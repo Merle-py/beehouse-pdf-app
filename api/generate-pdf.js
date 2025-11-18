@@ -263,13 +263,13 @@ async function generatePdfPromise(data) {
             
             // Endereço
             doc.moveTo(fieldBoxX, yIRow + rHI).lineTo(endX, yIRow + rHI).stroke();
-            doc.font('Helvetica-Bold').fontSize(8).text('Endereço do Empreendimento:', xI_1 + textPad, yIRow + textYPad);
+            doc.font('Helvetica-Bold').fontSize(8).text('Endereço do Empreendimento:', xI_1 + textPad + 10, yIRow + textYPad);
             doc.font('Helvetica').fontSize(8).text(data.imovelEndereco || '', xI_1 + textPad + doc.widthOfString('Endereço do Empreendimento:') + textPad, yIRow + textYPad);
             yIRow += rHI;
 
             // Matrícula
             doc.moveTo(fieldBoxX, yIRow + rHI).lineTo(endX, yIRow + rHI).stroke();
-            doc.font('Helvetica-Bold').fontSize(8).text('Inscrição Imobiliária / Matrícula:', xI_1 + textPad, yIRow + textYPad);
+            doc.font('Helvetica-Bold').fontSize(8).text('Inscrição Imobiliária / Matrícula:', xI_1 + textPad + 10, yIRow + textYPad);
             doc.font('Helvetica').fontSize(8).text(data.imovelMatricula || '', xI_1 + textPad + doc.widthOfString('Inscrição Imobiliária / Matrícula:') + textPad, yIRow + textYPad);
             yIRow += rHI;
 
