@@ -395,7 +395,7 @@ async function generatePdfPromise(data) {
             };
 
             // *** ALTERAÇÃO AQUI: + 55 PIXELS (era + 40) ***
-            let currentY = checkAndSetY(doc.y + 55);
+            let currentY = checkAndSetY(doc.y + 70);
 
             // 1. Beehouse
             const drawSig = (title, label, subLabel, x, yPos) => {
