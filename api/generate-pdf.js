@@ -1,4 +1,3 @@
-// /api/generate-pdf.js
 import PDFDocument from 'pdfkit';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -21,6 +20,8 @@ function drawHeader(doc) {
     try {
         const __filename = fileURLToPath(import.meta.url);
         const __dirname = path.dirname(__filename);
+        // Nota: Na Vercel, caminhos de arquivos podem ser complexos. 
+        // Se a imagem falhar, o catch vai desenhar o texto 'Beehouse'.
         const logoPath = path.join(__dirname, '..', 'images', 'logo.jpeg');
         doc.image(logoPath, MARGIN_LEFT, MARGIN - 20, { width: 180 });
     } catch (imageError) {
@@ -393,7 +394,8 @@ async function generatePdfPromise(data) {
                 return proposedY; 
             };
 
-            let currentY = checkAndSetY(doc.y + 40);
+            // *** ALTERAÇÃO AQUI: + 55 PIXELS (era + 40) ***
+            let currentY = checkAndSetY(doc.y + 55);
 
             // 1. Beehouse
             const drawSig = (title, label, subLabel, x, yPos) => {
