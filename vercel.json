@@ -1,0 +1,7 @@
+{
+  "functions": {
+    "api/generate-pdf.js": {
+      "maxDuration": 60
+    }
+  }
+}
