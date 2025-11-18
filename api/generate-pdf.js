@@ -352,7 +352,7 @@ async function generatePdfPromise(data) {
             const clausulaNumX = MARGIN_LEFT;
             const clausulaTextX = MARGIN_LEFT + clausulaNumWidth;
 
-            const comissaoTexto = (authType === 'pj') ? 'A Contratante pagará a Contratada...' : 'O(s) Contratante(s) pagará(ão) a Contratada...';
+            const comissaoTexto = (authType === 'pj') ? 'A Contratante pagará a Contratada' : 'O(s) Contratante(s) pagará(ão) a Contratada';
             const declaracaoTexto = (authType === 'pj') 
                 ? 'A Contratante declara que os imóveis encontram-se livres e desembaraçados...'
                 : 'O(s) Contratante(s) declara(m) que os imóveis encontram-se livres e desembaraçados...';
