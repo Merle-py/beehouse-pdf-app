@@ -322,7 +322,7 @@ async function generatePdfPromise(data) {
             doc.fontSize(8);
 
             doc.font('Helvetica-Bold').text('Prazo de exclusividade:', xI_L6_2 + textPad, yIRow + textYPad);
-            doc.font('Helvetica').text((temExclusividade ? data.contratoPrazo : '0') + ' dias', xI_L6_2 + textPad + doc.widthOfString('Prazo de exclusividade:') + textPad, yIRow + textYPad);
+            doc.font('Helvetica').text((temExclusividade ? data.contratoPrazo : '0') + ' dias', xI_L6_2 + textPad + 10 + doc.widthOfString('Prazo de exclusividade:') + textPad, yIRow + textYPad);
 
             y = yIRow + rHI + 10;
 
