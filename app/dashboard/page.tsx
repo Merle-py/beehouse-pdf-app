@@ -23,12 +23,31 @@ export default function DashboardPage() {
     const [authorizations, setAuthorizations] = useState<Authorization[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [isAdmin, setIsAdmin] = useState(false);
+    const [userInfoLoading, setUserInfoLoading] = useState(true);
 
     useEffect(() => {
-        if (bitrix.isInitialized) {
+        if (bitrix.isInitialized && bitrix.authId) {
+            loadUserInfo();
             loadAuthorizations();
         }
-    }, [bitrix.isInitialized]);
+    }, [bitrix.isInitialized, bitrix.authId]);
+
+    const loadUserInfo = async () => {
+        try {
+            setUserInfoLoading(true);
+            const response = await fetch(`/api/bitrix/user-info?userId=${bitrix.authId}`);
+            const data = await response.json();
+
+            if (response.ok && data.success) {
+                setIsAdmin(data.isAdmin);
+            }
+        } catch (err) {
+            console.error('[Dashboard] Erro ao carregar info do usuário:', err);
+        } finally {
+            setUserInfoLoading(false);
+        }
+    };
 
     const loadAuthorizations = async () => {
         try {
@@ -73,10 +92,15 @@ export default function DashboardPage() {
                             Autorizações de Venda
                         </h1>
                         <p className="text-gray-600">
-                            {bitrix.isInsideBitrix
-                                ? `Conectado como corretor - ${authorizations.length} autorização(ões)`
-                                : 'Modo standalone'
-                            }
+                            {bitrix.isInsideBitrix ? (
+                                <span>
+                                    Conectado como <strong>{isAdmin ? 'administrador' : 'corretor'}</strong>
+                                    {isAdmin && <span className="ml-2 bg-red-600 text-white text-xs px-2 py-1 rounded-full">ADMIN</span>}
+                                    {' '}- {authorizations.length} autorização(ões)
+                                </span>
+                            ) : (
+                                'Modo standalone'
+                            )}
                         </p>
                     </div>
 
@@ -131,8 +155,8 @@ export default function DashboardPage() {
                                             key={auth.companyId}
                                             href={`/autorizacao/${auth.companyId}`}
                                             className={`block card hover:shadow-xl transition-all ${owned
-                                                    ? 'border-2 border-green-500 bg-green-50'
-                                                    : 'border-2 border-gray-300 bg-white'
+                                                ? 'border-2 border-green-500 bg-green-50'
+                                                : 'border-2 border-gray-300 bg-white'
                                                 }`}
                                         >
                                             {/* Badge de Propriedade */}
