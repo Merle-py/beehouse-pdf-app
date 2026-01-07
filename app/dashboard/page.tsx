@@ -27,16 +27,16 @@ export default function DashboardPage() {
     const [userInfoLoading, setUserInfoLoading] = useState(true);
 
     useEffect(() => {
-        if (bitrix.isInitialized && bitrix.authId) {
+        if (bitrix.isInitialized && bitrix.userId) {
             loadUserInfo();
             loadAuthorizations();
         }
-    }, [bitrix.isInitialized, bitrix.authId]);
+    }, [bitrix.isInitialized, bitrix.userId]);
 
     const loadUserInfo = async () => {
         try {
             setUserInfoLoading(true);
-            const response = await fetch(`/api/bitrix/user-info?userId=${bitrix.authId}`);
+            const response = await fetch(`/api/bitrix/user-info?userId=${bitrix.userId}`);
             const data = await response.json();
 
             if (response.ok && data.success) {
@@ -71,7 +71,7 @@ export default function DashboardPage() {
     };
 
     const isOwner = (auth: Authorization) => {
-        return auth.createdBy === bitrix.authId;
+        return auth.createdBy === bitrix.userId;
     };
 
     const formatDate = (dateStr: string) => {

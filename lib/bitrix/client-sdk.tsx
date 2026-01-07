@@ -5,13 +5,15 @@ import { createContext, useContext, useEffect, useState, ReactNode } from 'react
 interface Bitrix24Context {
     isInitialized: boolean;
     isInsideBitrix: boolean;
-    authId: string | null;
+    userId: string | null;  // ID numérico do usuário
+    authId: string | null;  // Access token
     domain: string | null;
 }
 
 const BitrixContext = createContext<Bitrix24Context>({
     isInitialized: false,
     isInsideBitrix: false,
+    userId: null,
     authId: null,
     domain: null
 });
@@ -23,6 +25,7 @@ export function Bitrix24Provider({ children }: { children: ReactNode }) {
     const [context, setContext] = useState<Bitrix24Context>({
         isInitialized: false,
         isInsideBitrix: false,
+        userId: null,
         authId: null,
         domain: null
     });
@@ -36,6 +39,7 @@ export function Bitrix24Provider({ children }: { children: ReactNode }) {
             setContext({
                 isInitialized: true,
                 isInsideBitrix: false,
+                userId: null,
                 authId: null,
                 domain: null
             });
@@ -52,13 +56,15 @@ export function Bitrix24Provider({ children }: { children: ReactNode }) {
                 window.BX24.init(() => {
                     const auth = window.BX24?.getAuth();
                     const domain = auth?.domain || null;
+                    const userId = auth?.user_id || null;
                     const authId = auth?.access_token || null;
 
-                    console.log('[Bitrix Client] SDK inicializado:', { domain, hasAuth: !!authId });
+                    console.log('[Bitrix Client] SDK inicializado:', { domain, userId, hasAuth: !!authId });
 
                     setContext({
                         isInitialized: true,
                         isInsideBitrix: true,
+                        userId,
                         authId,
                         domain
                     });
@@ -68,6 +74,7 @@ export function Bitrix24Provider({ children }: { children: ReactNode }) {
                 setContext({
                     isInitialized: true,
                     isInsideBitrix: false,
+                    userId: null,
                     authId: null,
                     domain: null
                 });
@@ -79,6 +86,7 @@ export function Bitrix24Provider({ children }: { children: ReactNode }) {
             setContext({
                 isInitialized: true,
                 isInsideBitrix: false,
+                userId: null,
                 authId: null,
                 domain: null
             });
@@ -139,7 +147,7 @@ declare global {
     interface Window {
         BX24?: {
             init: (callback: () => void) => void;
-            getAuth: () => { access_token: string; domain: string; expires_in: number };
+            getAuth: () => { access_token: string; user_id: string; domain: string; expires_in: number };
             callMethod: (method: string, params: any, callback: (result: any) => void) => void;
             openApplication: (params: { bx24_width?: number; bx24_height?: number }) => void;
             closeApplication: () => void;
