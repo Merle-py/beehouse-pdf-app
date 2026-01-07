@@ -19,8 +19,12 @@ export default function NovaAutorizacaoPage() {
     const [contratante, setContratante] = useState({
         nome: '',
         cpf: '',
+        rg: '',
         email: '',
+        telefone: '',
         profissao: '',
+        estadoCivil: '',
+        regimeCasamento: '',
         endereco: ''
     });
 
@@ -169,6 +173,20 @@ export default function NovaAutorizacaoPage() {
                                 </div>
 
                                 <div>
+                                    <label className="block text-sm font-semibold mb-2">RG *</label>
+                                    <input
+                                        type="text"
+                                        value={contratante.rg}
+                                        onChange={(e) => setContratante({ ...contratante, rg: e.target.value })}
+                                        className="input"
+                                        placeholder="00.000.000-0"
+                                        required
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
                                     <label className="block text-sm font-semibold mb-2">Email *</label>
                                     <input
                                         type="email"
@@ -178,17 +196,67 @@ export default function NovaAutorizacaoPage() {
                                         required
                                     />
                                 </div>
+
+                                <div>
+                                    <label className="block text-sm font-semibold mb-2">Telefone *</label>
+                                    <input
+                                        type="tel"
+                                        value={contratante.telefone}
+                                        onChange={(e) => setContratante({ ...contratante, telefone: e.target.value })}
+                                        className="input"
+                                        placeholder="(00) 00000-0000"
+                                        required
+                                    />
+                                </div>
                             </div>
 
-                            <div>
-                                <label className="block text-sm font-semibold mb-2">Profissão</label>
-                                <input
-                                    type="text"
-                                    value={contratante.profissao}
-                                    onChange={(e) => setContratante({ ...contratante, profissao: e.target.value })}
-                                    className="input"
-                                />
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-sm font-semibold mb-2">Profissão</label>
+                                    <input
+                                        type="text"
+                                        value={contratante.profissao}
+                                        onChange={(e) => setContratante({ ...contratante, profissao: e.target.value })}
+                                        className="input"
+                                    />
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-semibold mb-2">Estado Civil *</label>
+                                    <select
+                                        value={contratante.estadoCivil}
+                                        onChange={(e) => setContratante({ ...contratante, estadoCivil: e.target.value })}
+                                        className="input"
+                                        required
+                                    >
+                                        <option value="">Selecione...</option>
+                                        <option value="solteiro">Solteiro(a)</option>
+                                        <option value="casado">Casado(a)</option>
+                                        <option value="divorciado">Divorciado(a)</option>
+                                        <option value="viuvo">Viúvo(a)</option>
+                                        <option value="uniao-estavel">União Estável</option>
+                                    </select>
+                                </div>
                             </div>
+
+                            {/* Regime de Casamento (apenas se casado) */}
+                            {(contratante.estadoCivil === 'casado' || authType === 'pf-casado') && (
+                                <div>
+                                    <label className="block text-sm font-semibold mb-2">Regime de Casamento *</label>
+                                    <select
+                                        value={contratante.regimeCasamento}
+                                        onChange={(e) => setContratante({ ...contratante, regimeCasamento: e.target.value })}
+                                        className="input"
+                                        required
+                                    >
+                                        <option value="">Selecione...</option>
+                                        <option value="comunhao-parcial">Comunhão Parcial de Bens</option>
+                                        <option value="comunhao-universal">Comunhão Universal de Bens</option>
+                                        <option value="separacao-total">Separação Total de Bens</option>
+                                        <option value="participacao-final">Participação Final nos Aquestos</option>
+                                    </select>
+                                </div>
+                            )}
 
                             <div>
                                 <label className="block text-sm font-semibold mb-2">Endereço Completo</label>
