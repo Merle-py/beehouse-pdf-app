@@ -67,7 +67,6 @@ export function Bitrix24Provider({ children }: { children: ReactNode }) {
                     setContext({
                         isInitialized: true,
                         isInsideBitrix: true,
-                        userId,
                         authId,
                         domain
                     });

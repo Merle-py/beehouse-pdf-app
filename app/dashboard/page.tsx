@@ -146,7 +146,7 @@ export default function DashboardPage() {
                         ) : (
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                                 {authorizations.map((auth) => {
-                                    const owned = isOwner(auth);
+                                    const owned = false; // TODO: Ownership virá da API
 
                                     return (
                                         <Link
