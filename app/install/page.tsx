@@ -20,59 +20,14 @@ export default function InstallPage() {
                 setStatus("Conectado ao Bitrix24");
                 addLog("Iniciando instalação...");
 
-                // CONFIGURAÇÕES PARA MENU LATERAL ESQUERDO
-                const PLACEMENT = 'APP_SIDEBAR'; // Menu lateral esquerdo principal
-                // Substitua pela sua URL na Vercel
-                const HANDLER = 'https://beehouse-pdf-app-git-main-beehouses-projects.vercel.app/';
-                const APP_TITLE = 'Autorizações Beehouse';
-                const APP_DESCRIPTION = 'Sistema de Autorizações de Venda';
+                // Instalação Simples (Sem binding de placement)
+                addLog("Finalizando instalação...");
+                (window as any).BX24.installFinish();
 
-                addLog("Placement: " + PLACEMENT);
-                addLog("Handler: " + HANDLER);
-
-                // 1. LIMPA INSTALAÇÕES ANTIGAS
-                addLog("Limpando instalações antigas...");
-
-                (window as any).BX24.callMethod(
-                    'placement.unbind',
-                    {
-                        PLACEMENT: PLACEMENT,
-                        HANDLER: HANDLER
-                    },
-                    () => {
-                        // 2. CRIA NOVA INSTALAÇÃO NO MENU LATERAL
-                        addLog("Criando item no menu lateral...");
-
-                        (window as any).BX24.callMethod(
-                            'placement.bind',
-                            {
-                                PLACEMENT: PLACEMENT,
-                                HANDLER: HANDLER,
-                                TITLE: APP_TITLE,
-                                DESCRIPTION: APP_DESCRIPTION
-                            },
-                            (resBind: any) => {
-                                if (resBind.error()) {
-                                    console.error("Erro Bind:", resBind.error());
-                                    setStatus("FALHA NA INSTALAÇÃO");
-                                    addLog("❌ Erro ao criar item no menu: " + JSON.stringify(resBind.error()));
-                                    addLog("Verifique se a permissão 'Embedding of applications' está ativa.");
-                                } else {
-                                    // 3. FINALIZA INSTALAÇÃO
-                                    addLog("Finalizando instalação...");
-                                    (window as any).BX24.installFinish();
-
-                                    setStatus("INSTALAÇÃO CONCLUÍDA!");
-                                    addLog("✅ Item criado no menu lateral esquerdo!");
-                                    addLog("✅ Instalação finalizada com sucesso!");
-                                    addLog("");
-                                    addLog("📍 Agora você pode encontrar 'Autorizações Beehouse'");
-                                    addLog("   no menu lateral esquerdo do Bitrix24!");
-                                }
-                            }
-                        );
-                    }
-                );
+                setStatus("INSTALAÇÃO CONCLUÍDA!");
+                addLog("✅ Instalação finalizada com sucesso!");
+                addLog("");
+                addLog("📍 O aplicativo foi instalado na conta Bitrix24.");
             });
         };
 
