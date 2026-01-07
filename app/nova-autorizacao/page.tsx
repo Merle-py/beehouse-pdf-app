@@ -8,6 +8,7 @@ import SpouseSection from '@/components/forms/SpouseSection';
 import PropertyFinancialFields from '@/components/forms/PropertyFinancialFields';
 import SocioFields from '@/components/forms/SocioFields';
 import CompanySection from '@/components/forms/CompanySection';
+import MaskedInput from '@/components/forms/MaskedInput';
 import type { SpouseData, PropertyData, PersonData, CompanyData, LegalRepData } from '@/types/authorization';
 
 export default function NovaAutorizacaoPage() {
@@ -224,11 +225,11 @@ export default function NovaAutorizacaoPage() {
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div>
                                     <label className="block text-sm font-semibold mb-2">CPF *</label>
-                                    <input
-                                        type="text"
+                                    <MaskedInput
                                         value={contratante.cpf}
-                                        onChange={(e) => setContratante({ ...contratante, cpf: e.target.value })}
-                                        className="input"
+                                        onChange={(value) => setContratante({ ...contratante, cpf: value })}
+                                        mask="cpf"
+                                        validation="cpf"
                                         placeholder="000.000.000-00"
                                         required
                                     />
@@ -236,11 +237,9 @@ export default function NovaAutorizacaoPage() {
 
                                 <div>
                                     <label className="block text-sm font-semibold mb-2">RG *</label>
-                                    <input
-                                        type="text"
+                                    <MaskedInput
                                         value={contratante.rg}
-                                        onChange={(e) => setContratante({ ...contratante, rg: e.target.value })}
-                                        className="input"
+                                        onChange={(value) => setContratante({ ...contratante, rg: value })}
                                         placeholder="00.000.000-0"
                                         required
                                     />
@@ -250,22 +249,23 @@ export default function NovaAutorizacaoPage() {
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div>
                                     <label className="block text-sm font-semibold mb-2">Email *</label>
-                                    <input
-                                        type="email"
+                                    <MaskedInput
                                         value={contratante.email}
-                                        onChange={(e) => setContratante({ ...contratante, email: e.target.value })}
-                                        className="input"
+                                        onChange={(value) => setContratante({ ...contratante, email: value })}
+                                        validation="email"
+                                        placeholder="email@exemplo.com"
+                                        type="email"
                                         required
                                     />
                                 </div>
 
                                 <div>
                                     <label className="block text-sm font-semibold mb-2">Telefone *</label>
-                                    <input
-                                        type="tel"
+                                    <MaskedInput
                                         value={contratante.telefone}
-                                        onChange={(e) => setContratante({ ...contratante, telefone: e.target.value })}
-                                        className="input"
+                                        onChange={(value) => setContratante({ ...contratante, telefone: value })}
+                                        mask="phone"
+                                        validation="phone"
                                         placeholder="(00) 00000-0000"
                                         required
                                     />
