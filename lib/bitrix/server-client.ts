@@ -77,6 +77,8 @@ export async function validateUserToken(accessToken: string, domain: string): Pr
 
         const response = await axios.get<BitrixApiResponse<any>>(url);
 
+        console.log('[Bitrix Server] Raw API response:', JSON.stringify(response.data, null, 2));
+
         if (response.data.error) {
             console.error('[Bitrix Server] Token inválido:', response.data.error_description);
             throw new Error('Token inválido ou expirado');
