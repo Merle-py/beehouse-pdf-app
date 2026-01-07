@@ -4,15 +4,17 @@ const nextConfig = {
     experimental: {
         serverComponentsExternalPackages: ['pdfkit'],
     },
-    // Suporte para rodar dentro do iframe do Bitrix24
+    // Permite que a aplicação seja exibida em iframes do Bitrix24
     async headers() {
         return [
             {
                 source: '/:path*',
                 headers: [
+                    // NÃO define X-Frame-Options (permite todos os iframes)
+                    // Usa Content-Security-Policy para controlar origens específicas
                     {
-                        key: 'X-Frame-Options',
-                        value: 'ALLOWALL',
+                        key: 'Content-Security-Policy',
+                        value: "frame-ancestors 'self' https://*.bitrix24.com.br https://*.bitrix24.com https://*.bitrix24.net https://*.bitrix24.eu;",
                     },
                 ],
             },
