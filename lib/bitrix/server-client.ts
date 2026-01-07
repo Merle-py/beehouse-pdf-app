@@ -99,6 +99,8 @@ export async function validateUserToken(accessToken: string, domain: string): Pr
             ADMIN_MODE: true
         });
 
+        console.log('[Bitrix Server] user.get response:', JSON.stringify(users, null, 2));
+
         const isAdmin = users && users.length > 0 && (users[0].IS_ADMIN === 'Y' || users[0].IS_ADMIN === true);
 
         console.log('[Bitrix Server] IS_ADMIN:', isAdmin);
