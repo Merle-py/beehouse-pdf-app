@@ -2,227 +2,236 @@
 
 import { useState, useEffect } from 'react';
 import { useBitrix24 } from '@/lib/bitrix/client-sdk';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-
-interface PropertyInfo {
-    id: string;
-    name: string;
-}
-
-interface Authorization {
-    companyId: string;
-    companyName: string;
-    createdAt: string;
-    createdBy: string | null;
-    createdByName: string;
-    properties: PropertyInfo[];
-}
+import StatsCard from '@/components/ui/StatsCard';
+import TabNavigation from '@/components/ui/TabNavigation';
+import LoadingSpinner from '@/components/ui/LoadingSpinner';
+import EmptyState from '@/components/ui/EmptyState';
+import CompanyList from '@/components/dashboard/CompanyList';
+import PropertyList from '@/components/dashboard/PropertyList';
 
 export default function DashboardPage() {
     const bitrix = useBitrix24();
-    const [authorizations, setAuthorizations] = useState<Authorization[]>([]);
+    const router = useRouter();
+
+    const [activeTab, setActiveTab] = useState('companies');
+    const [stats, setStats] = useState({
+        totalCompanies: 0,
+        totalProperties: 0,
+        totalAuthorizations: 0,
+        pendingAuthorizations: 0
+    });
+    const [companies, setCompanies] = useState<any[]>([]);
+    const [properties, setProperties] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-    const [isAdmin, setIsAdmin] = useState(false);
-    const [userInfoLoading, setUserInfoLoading] = useState(true);
 
     useEffect(() => {
-        if (bitrix.isInitialized && bitrix.authId && bitrix.domain) {
-            loadUserInfo();
-            loadAuthorizations();
+        if (bitrix.isReady && bitrix.authId && bitrix.domain) {
+            loadDashboardData();
         }
-    }, [bitrix.isInitialized, bitrix.authId, bitrix.domain]);
+    }, [bitrix.isReady, bitrix.authId, bitrix.domain]);
 
-    const loadUserInfo = async () => {
-        try {
-            setUserInfoLoading(true);
-            const response = await fetch(`/api/bitrix/user-info?accessToken=${bitrix.authId}&domain=${bitrix.domain}`);
-            const data = await response.json();
-
-            if (response.ok && data.success) {
-                setIsAdmin(data.isAdmin);
-            }
-        } catch (err) {
-            console.error('[Dashboard] Erro ao carregar info do usuário:', err);
-        } finally {
-            setUserInfoLoading(false);
-        }
-    };
-
-    const loadAuthorizations = async () => {
+    const loadDashboardData = async () => {
         try {
             setLoading(true);
             setError(null);
 
-            const response = await fetch(`/api/bitrix/all-authorizations?accessToken=${bitrix.authId}&domain=${bitrix.domain}`);
-            const data = await response.json();
-
-            if (!response.ok || !data.success) {
-                throw new Error(data.error || 'Erro ao carregar autorizações');
+            // Carrega estatísticas
+            const statsResponse = await fetch(
+                `/api/bitrix/stats?accessToken=${bitrix.authId}&domain=${bitrix.domain}`
+            );
+            if (statsResponse.ok) {
+                const statsData = await statsResponse.json();
+                setStats(statsData.stats);
             }
 
-            setAuthorizations(data.authorizations || []);
+            // Carrega empresas
+            const companiesResponse = await fetch(
+                `/api/bitrix/companies?accessToken=${bitrix.authId}&domain=${bitrix.domain}`
+            );
+            if (companiesResponse.ok) {
+                const companiesData = await companiesResponse.json();
+                setCompanies(companiesData.companies || []);
+            }
+
+            // Carrega imóveis
+            const propertiesResponse = await fetch(
+                `/api/bitrix/properties?accessToken=${bitrix.authId}&domain=${bitrix.domain}`
+            );
+            if (propertiesResponse.ok) {
+                const propertiesData = await propertiesResponse.json();
+                setProperties(propertiesData.properties || []);
+            }
+
         } catch (err: any) {
-            console.error('[Dashboard] Erro:', err);
-            setError(err.message || 'Erro ao carregar autorizations');
+            console.error('Erro ao carregar dashboard:', err);
+            setError('Erro ao carregar dados do dashboard');
         } finally {
             setLoading(false);
         }
     };
 
-    const formatDate = (dateStr: string) => {
-        try {
-            return new Date(dateStr).toLocaleDateString('pt-BR');
-        } catch {
-            return dateStr;
-        }
+    const handleCreateProperty = (companyId: string) => {
+        // TODO: Implementar criação de imóvel
+        console.log('Criar imóvel para empresa:', companyId);
+        alert('Funcionalidade em desenvolvimento: Criar Imóvel');
     };
 
-    // isOwner agora vem da API (server-side validation)
+    const handleCreateAuthorization = (companyId: string) => {
+        router.push(`/nova-autorizacao?companyId=${companyId}`);
+    };
+
+    const handleCreateAuthorizationForProperty = (propertyId: string) => {
+        // TODO: Implementar criação de autorização para imóvel
+        console.log('Criar autorização para imóvel:', propertyId);
+        alert('Funcionalidade em desenvolvimento: Criar Autorização para Imóvel');
+    };
+
+    if (!bitrix.isReady) {
+        return (
+            <div className="min-h-screen flex items-center justify-center">
+                <LoadingSpinner size="lg" text="Conectando ao Bitrix24..." />
+            </div>
+        );
+    }
+
+    const tabs = [
+        { id: 'companies', label: 'Empresas', count: companies.length },
+        { id: 'properties', label: 'Imóveis', count: properties.length },
+        { id: 'authorizations', label: 'Autorizações', count: stats.totalAuthorizations }
+    ];
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-8 px-4">
-            <div className="max-w-7xl mx-auto">
-                {/* Header */}
-                <div className="flex justify-between items-center mb-8">
-                    <div>
-                        <h1 className="text-4xl font-bold text-beehouse-secondary mb-2">
-                            Autorizações de Venda
-                        </h1>
-                        <p className="text-gray-600">
-                            {bitrix.isInsideBitrix ? (
-                                <span>
-                                    Conectado como <strong>{isAdmin ? 'administrador' : 'corretor'}</strong>
-                                    {isAdmin && <span className="ml-2 bg-red-600 text-white text-xs px-2 py-1 rounded-full">ADMIN</span>}
-                                    {' '}- {authorizations.length} autorização(ões)
-                                </span>
-                            ) : (
-                                'Modo standalone'
-                            )}
-                        </p>
+        <div className="min-h-screen bg-gray-50">
+            {/* Header */}
+            <div className="bg-white shadow">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+                    <div className="flex justify-between items-center">
+                        <div>
+                            <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
+                            <p className="mt-1 text-sm text-gray-500">
+                                Gerencie empresas, imóveis e autorizações
+                            </p>
+                        </div>
+                        <Link href="/nova-autorizacao" className="btn-primary">
+                            + Nova Autorização
+                        </Link>
                     </div>
+                </div>
+            </div>
 
-                    <Link
-                        href="/nova-autorizacao"
-                        className="bg-beehouse-primary hover:bg-beehouse-accent text-white px-6 py-3 rounded-lg font-semibold transition-colors"
-                    >
-                        ➕ Nova Autorização
-                    </Link>
+            {/* Content */}
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                {/* Stats Grid */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                    <StatsCard
+                        title="Total de Empresas"
+                        value={stats.totalCompanies}
+                        icon="🏢"
+                        color="blue"
+                    />
+                    <StatsCard
+                        title="Total de Imóveis"
+                        value={stats.totalProperties}
+                        icon="🏠"
+                        color="green"
+                    />
+                    <StatsCard
+                        title="Autorizações"
+                        value={stats.totalAuthorizations}
+                        icon="📄"
+                        color="purple"
+                    />
+                    <StatsCard
+                        title="Pendentes"
+                        value={stats.pendingAuthorizations}
+                        icon="⏳"
+                        color="yellow"
+                        subtitle="Sem autorização"
+                    />
                 </div>
 
-                {/* Loading */}
-                {loading && (
-                    <div className="text-center py-12">
-                        <div className="spinner mx-auto mb-4"></div>
-                        <p className="text-gray-600">Carregando autorizações...</p>
+                {/* Tabs */}
+                <div className="bg-white rounded-lg shadow">
+                    <div className="px-6 pt-6">
+                        <TabNavigation
+                            tabs={tabs}
+                            activeTab={activeTab}
+                            onChange={setActiveTab}
+                        />
                     </div>
-                )}
 
-                {/* Error */}
-                {error && !loading && (
-                    <div className="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
-                        <p className="text-red-800 mb-4">❌ {error}</p>
-                        <button
-                            onClick={loadAuthorizations}
-                            className="btn-primary"
-                        >
-                            Tentar Novamente
-                        </button>
-                    </div>
-                )}
-
-                {/* Lista de Autorizações */}
-                {!loading && !error && (
-                    <>
-                        {authorizations.length === 0 ? (
-                            <div className="card text-center py-12">
-                                <p className="text-gray-600 text-lg mb-4">
-                                    Nenhuma autorização cadastrada ainda
-                                </p>
-                                <Link href="/nova-autorizacao" className="btn-primary inline-block">
-                                    Criar Primeira Autorização
-                                </Link>
+                    {/* Tab Content */}
+                    <div className="p-6">
+                        {loading ? (
+                            <LoadingSpinner text="Carregando dados..." />
+                        ) : error ? (
+                            <div className="text-center py-12">
+                                <p className="text-red-600">{error}</p>
+                                <button
+                                    onClick={loadDashboardData}
+                                    className="mt-4 btn-secondary"
+                                >
+                                    Tentar Novamente
+                                </button>
                             </div>
                         ) : (
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                                {authorizations.map((auth) => {
-                                    const owned = false; // TODO: Ownership virá da API
+                            <>
+                                {activeTab === 'companies' && (
+                                    companies.length > 0 ? (
+                                        <CompanyList
+                                            companies={companies}
+                                            onCreateProperty={handleCreateProperty}
+                                            onCreateAuthorization={handleCreateAuthorization}
+                                        />
+                                    ) : (
+                                        <EmptyState
+                                            icon="🏢"
+                                            title="Nenhuma empresa cadastrada"
+                                            description="Crie sua primeira autorização para começar"
+                                            action={{
+                                                label: 'Nova Autorização',
+                                                onClick: () => router.push('/nova-autorizacao')
+                                            }}
+                                        />
+                                    )
+                                )}
 
-                                    return (
-                                        <Link
-                                            key={auth.companyId}
-                                            href={`/autorizacao/${auth.companyId}`}
-                                            className={`block card hover:shadow-xl transition-all ${owned
-                                                ? 'border-2 border-green-500 bg-green-50'
-                                                : 'border-2 border-gray-300 bg-white'
-                                                }`}
-                                        >
-                                            {/* Badge de Propriedade */}
-                                            <div className="mb-3">
-                                                {owned ? (
-                                                    <span className="bg-green-600 text-white text-xs px-3 py-1 rounded-full font-semibold">
-                                                        ✓ SUA AUTORIZAÇÃO
-                                                    </span>
-                                                ) : (
-                                                    <span className="bg-gray-400 text-white text-xs px-3 py-1 rounded-full">
-                                                        Outro Corretor
-                                                    </span>
-                                                )}
-                                            </div>
+                                {activeTab === 'properties' && (
+                                    properties.length > 0 ? (
+                                        <PropertyList
+                                            properties={properties}
+                                            onCreateAuthorization={handleCreateAuthorizationForProperty}
+                                        />
+                                    ) : (
+                                        <EmptyState
+                                            icon="🏠"
+                                            title="Nenhum imóvel cadastrado"
+                                            description="Os imóveis são criados automaticamente ao gerar autorizações"
+                                            action={{
+                                                label: 'Nova Autorização',
+                                                onClick: () => router.push('/nova-autorizacao')
+                                            }}
+                                        />
+                                    )
+                                )}
 
-                                            {/* Nome da Empresa */}
-                                            <h3 className="text-xl font-bold text-gray-800 mb-2">
-                                                {auth.companyName}
-                                            </h3>
-
-                                            {/* Metadata */}
-                                            <div className="space-y-2 text-sm text-gray-600 mb-4">
-                                                <div>
-                                                    <strong>Criado em:</strong> {formatDate(auth.createdAt)}
-                                                </div>
-                                                {!owned && (
-                                                    <div>
-                                                        <strong>Criado por:</strong> {auth.createdByName}
-                                                    </div>
-                                                )}
-                                            </div>
-
-                                            {/* Imóveis */}
-                                            {auth.properties.length > 0 && (
-                                                <div className="pt-4 border-t border-gray-200">
-                                                    <p className="text-sm font-semibold text-gray-700 mb-2">
-                                                        Imóveis vinculados:
-                                                    </p>
-                                                    <ul className="space-y-1">
-                                                        {auth.properties.slice(0, 3).map((prop) => (
-                                                            <li key={prop.id} className="text-sm text-gray-600 flex items-center">
-                                                                <span className="mr-2">🏠</span>
-                                                                {prop.name}
-                                                            </li>
-                                                        ))}
-                                                        {auth.properties.length > 3 && (
-                                                            <li className="text-sm text-gray-500 italic">
-                                                                +{auth.properties.length - 3} imóvel(is)
-                                                            </li>
-                                                        )}
-                                                    </ul>
-                                                </div>
-                                            )}
-
-                                            {/* Call to Action */}
-                                            <div className="mt-4 pt-4 border-t border-gray-200">
-                                                <span className={`text-sm font-semibold ${owned ? 'text-green-700' : 'text-gray-600'
-                                                    }`}>
-                                                    {owned ? 'Ver Detalhes e Editar →' : 'Ver Informações →'}
-                                                </span>
-                                            </div>
+                                {activeTab === 'authorizations' && (
+                                    <div className="text-center py-12">
+                                        <p className="text-gray-600 mb-4">
+                                            Lista de autorizações em desenvolvimento
+                                        </p>
+                                        <Link href="/nova-autorizacao" className="btn-primary">
+                                            Nova Autorização
                                         </Link>
-                                    );
-                                })}
-                            </div>
+                                    </div>
+                                )}
+                            </>
                         )}
-                    </>
-                )}
+                    </div>
+                </div>
             </div>
         </div>
     );
