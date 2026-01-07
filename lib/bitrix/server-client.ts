@@ -52,11 +52,14 @@ export async function callBitrixAPI<T = any>(method: string, params: Record<stri
 
 /**
  * Valida um access_token de usuário e retorna as informações do usuário autenticado
- * Usa o método user.current que valida o token diretamente com o Bitrix24
- * IMPORTANTE: Esta função usa o access_token do USUÁRIO, não o webhook admin
  * 
- * @param accessToken - Token de acesso do usuário (obtido via BX24.getAuth().access_token)
- * @param domain - Domínio Bitrix24 (ex: 'minhaempresa.bitrix24.com.br')
+ * IMPORTANTE: user.current NÃO retorna IS_ADMIN!
+ * Estratégia: 
+ * 1. Valida token via user.current (obtém userId)
+ * 2. Busca IS_ADMIN via user.get com webhook admin
+ * 
+ * @param accessToken - Token de acesso do usuário
+ * @param domain - Domínio Bitrix24
  * @returns Informações do usuário autenticado (ID, nome, isAdmin)
  */
 export async function validateUserToken(accessToken: string, domain: string): Promise<{
@@ -75,9 +78,8 @@ export async function validateUserToken(accessToken: string, domain: string): Pr
     try {
         console.log('[Bitrix Server] Validando token do usuário...');
 
+        // Passo 1: Valida token e obtém userId
         const response = await axios.get<BitrixApiResponse<any>>(url);
-
-        console.log('[Bitrix Server] Raw API response:', JSON.stringify(response.data, null, 2));
 
         if (response.data.error) {
             console.error('[Bitrix Server] Token inválido:', response.data.error_description);
@@ -85,17 +87,24 @@ export async function validateUserToken(accessToken: string, domain: string): Pr
         }
 
         const user = response.data.result;
+        const userId = user.ID;
 
-        console.log('[Bitrix Server] Token validado - User ID:', user.ID);
-        console.log('[Bitrix Server] IS_ADMIN value:', user.IS_ADMIN, 'Type:', typeof user.IS_ADMIN);
-        console.log('[Bitrix Server] Full user object:', JSON.stringify(user, null, 2));
+        console.log('[Bitrix Server] Token validado - User ID:', userId);
 
-        const isAdmin = user.IS_ADMIN === 'Y' || user.IS_ADMIN === true || user.IS_ADMIN === 1;
+        // Passo 2: Busca IS_ADMIN via webhook admin (user.get)
+        console.log('[Bitrix Server] Buscando permissões de admin via webhook...');
 
-        console.log('[Bitrix Server] Computed isAdmin:', isAdmin);
+        const users = await callBitrixAPI<any[]>('user.get', {
+            ID: userId,
+            ADMIN_MODE: true
+        });
+
+        const isAdmin = users && users.length > 0 && (users[0].IS_ADMIN === 'Y' || users[0].IS_ADMIN === true);
+
+        console.log('[Bitrix Server] IS_ADMIN:', isAdmin);
 
         return {
-            userId: user.ID,
+            userId: userId,
             name: user.NAME || '',
             lastName: user.LAST_NAME || '',
             isAdmin
