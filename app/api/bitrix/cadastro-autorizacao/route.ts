@@ -5,6 +5,9 @@ import { convertFormDataToPDFData } from '@/lib/pdf/helpers';
 import { saveUserTokens, callAsUser } from '@/lib/bitrix/oauth-manager';
 import type { AuthorizationFormData, AuthorizationApiResponse, BitrixCompanyCreateData, BitrixPropertyItemData } from '@/types/authorization';
 
+// Força a rota a ser dinâmica (recebe dados do corretor em tempo real)
+export const dynamic = 'force-dynamic';
+
 /**
  * API Route: Cadastro de Autorização de Venda (com rastreamento de corretor)
  * 

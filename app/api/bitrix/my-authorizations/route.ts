@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { callAsUser } from '@/lib/bitrix/oauth-manager';
 
+// Força a rota a ser dinâmica (necessário para usar searchParams)
+export const dynamic = 'force-dynamic';
+
 /**
  * API Route: Listagem de autorizações do corretor
  * 
