@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { callBitrixAPI } from '@/lib/bitrix/server-client';
+import { callBitrixAPI, getBitrixUser } from '@/lib/bitrix/server-client';
 
 // Força a rota a ser dinâmica
 export const dynamic = 'force-dynamic';
@@ -15,18 +15,33 @@ export async function GET(
     { params }: { params: { companyId: string } }
 ): Promise<NextResponse> {
     try {
-        const { searchParams } = new URL(request.url);
-        const brokerId = searchParams.get('brokerId');
         const companyId = params.companyId;
 
-        if (!companyId) {
-            return NextResponse.json({
-                success: false,
-                error: 'Company ID não fornecido'
-            }, { status: 400 });
+        // Obtém parametros
+        const { searchParams } = new URL(request.url);
+        // "brokerId" aqui na verdade é o TOKEN de acesso passado pelo client
+        const accessToken = searchParams.get('brokerId');
+        const domain = searchParams.get('domain') || 'viver.bitrix24.com.br';
+
+        if (!accessToken) {
+            return NextResponse.json({ success: false, error: 'Token de acesso não fornecido' }, { status: 401 });
         }
 
-        console.log(`[API Detail] Buscando Company ${companyId} para broker ${brokerId || 'desconhecido'}`);
+        if (!companyId) {
+            return NextResponse.json({ success: false, error: 'Company ID não fornecido' }, { status: 400 });
+        }
+
+        // VALIDAÇÃO DE SEGURANÇA (NOVA)
+        const currentUser = await getBitrixUser(accessToken, domain);
+
+        if (!currentUser) {
+            return NextResponse.json({ success: false, error: 'Sessão inválida ou expirada' }, { status: 401 });
+        }
+
+        const realUserId = currentUser.id;
+        const isAdmin = currentUser.isAdmin;
+
+        console.log(`[API Sec] User: ${realUserId} | Admin: ${isAdmin} | Solicitando: ${companyId}`);
 
         // Busca a Company
         const company = await callBitrixAPI('crm.company.get', {
@@ -44,9 +59,8 @@ export async function GET(
         const createdByMatch = company.COMMENTS?.match(/\(ID: ([^\)]+)\)/);
         const createdBy = createdByMatch ? createdByMatch[1] : null;
 
-        // TODO: Verificar se é admin (por enquanto, apenas verifica criador)
-        const isOwner = brokerId && createdBy === brokerId;
-        const isAdmin = false; // TODO: Implementar verificação de admin
+        // Verifica ownership comparando ID com ID (agora correto)
+        const isOwner = createdBy && String(createdBy) === String(realUserId);
 
         // Busca Property Items vinculados
         let properties = [];
