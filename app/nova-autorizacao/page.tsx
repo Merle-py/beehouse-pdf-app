@@ -4,6 +4,8 @@ import { useState } from 'react';
 import { useBitrix24 } from '@/lib/bitrix/client-sdk';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import SpouseSection from '@/components/forms/SpouseSection';
+import type { SpouseData } from '@/types/authorization';
 
 export default function NovaAutorizacaoPage() {
     const bitrix = useBitrix24();
@@ -19,6 +21,15 @@ export default function NovaAutorizacaoPage() {
         email: '',
         profissao: '',
         endereco: ''
+    });
+
+    // Estado do cônjuge (PF Casado)
+    const [conjuge, setConjuge] = useState<SpouseData>({
+        nome: '',
+        cpf: '',
+        rg: '',
+        profissao: '',
+        email: ''
     });
 
     const [contrato, setContrato] = useState({
@@ -37,6 +48,7 @@ export default function NovaAutorizacaoPage() {
             const formData = {
                 authType,
                 contratante,
+                ...(authType === 'pf-casado' && { conjuge }), // Adiciona cônjuge se casado
                 contrato
             };
 
@@ -174,6 +186,14 @@ export default function NovaAutorizacaoPage() {
                                 />
                             </div>
                         </div>
+
+                        {/* Dados do Cônjuge (apenas PF Casado) */}
+                        {authType === 'pf-casado' && (
+                            <SpouseSection
+                                spouse={conjuge}
+                                onChange={setConjuge}
+                            />
+                        )}
 
                         {/* Dados do Contrato */}
                         <div className="space-y-4">
