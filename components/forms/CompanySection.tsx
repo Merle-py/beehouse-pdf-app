@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import MaskedInput from './MaskedInput';
 import type { CompanyData, LegalRepData } from '@/types/authorization';
 
 interface CompanySectionProps {
@@ -48,11 +49,11 @@ export default function CompanySection({
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                         <label className="block text-sm font-semibold mb-2">CNPJ *</label>
-                        <input
-                            type="text"
+                        <MaskedInput
                             value={empresa.cnpj || ''}
-                            onChange={(e) => handleEmpresaChange('cnpj', e.target.value)}
-                            className="input"
+                            onChange={(value) => handleEmpresaChange('cnpj', value)}
+                            mask="cnpj"
+                            validation="cnpj"
                             placeholder="00.000.000/0000-00"
                             required
                         />
@@ -74,23 +75,23 @@ export default function CompanySection({
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                         <label className="block text-sm font-semibold mb-2">Email *</label>
-                        <input
-                            type="email"
+                        <MaskedInput
                             value={empresa.email || ''}
-                            onChange={(e) => handleEmpresaChange('email', e.target.value)}
-                            className="input"
+                            onChange={(value) => handleEmpresaChange('email', value)}
+                            validation="email"
                             placeholder="contato@empresa.com"
+                            type="email"
                             required
                         />
                     </div>
 
                     <div>
                         <label className="block text-sm font-semibold mb-2">Telefone *</label>
-                        <input
-                            type="tel"
+                        <MaskedInput
                             value={empresa.telefone || ''}
-                            onChange={(e) => handleEmpresaChange('telefone', e.target.value)}
-                            className="input"
+                            onChange={(value) => handleEmpresaChange('telefone', value)}
+                            mask="phone"
+                            validation="phone"
                             placeholder="(00) 0000-0000"
                             required
                         />
@@ -131,11 +132,11 @@ export default function CompanySection({
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                         <label className="block text-sm font-semibold mb-2">CPF *</label>
-                        <input
-                            type="text"
+                        <MaskedInput
                             value={repLegal.cpf || ''}
-                            onChange={(e) => handleRepLegalChange('cpf', e.target.value)}
-                            className="input"
+                            onChange={(value) => handleRepLegalChange('cpf', value)}
+                            mask="cpf"
+                            validation="cpf"
                             placeholder="000.000.000-00"
                             required
                         />

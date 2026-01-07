@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import MaskedInput from './MaskedInput';
 import type { PersonData } from '@/types/authorization';
 
 interface SocioFieldsProps {
@@ -48,11 +49,11 @@ export default function SocioFields({ socio, index, onChange, onRemove, canRemov
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                     <label className="block text-sm font-semibold mb-2">CPF *</label>
-                    <input
-                        type="text"
+                    <MaskedInput
                         value={socio.cpf || ''}
-                        onChange={(e) => handleChange('cpf', e.target.value)}
-                        className="input"
+                        onChange={(value) => handleChange('cpf', value)}
+                        mask="cpf"
+                        validation="cpf"
                         placeholder="000.000.000-00"
                         required
                     />
@@ -75,23 +76,23 @@ export default function SocioFields({ socio, index, onChange, onRemove, canRemov
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                     <label className="block text-sm font-semibold mb-2">Email *</label>
-                    <input
-                        type="email"
+                    <MaskedInput
                         value={socio.email || ''}
-                        onChange={(e) => handleChange('email', e.target.value)}
-                        className="input"
+                        onChange={(value) => handleChange('email', value)}
+                        validation="email"
                         placeholder="email@exemplo.com"
+                        type="email"
                         required
                     />
                 </div>
 
                 <div>
                     <label className="block text-sm font-semibold mb-2">Telefone *</label>
-                    <input
-                        type="tel"
+                    <MaskedInput
                         value={socio.telefone || ''}
-                        onChange={(e) => handleChange('telefone', e.target.value)}
-                        className="input"
+                        onChange={(value) => handleChange('telefone', value)}
+                        mask="phone"
+                        validation="phone"
                         placeholder="(00) 00000-0000"
                         required
                     />
