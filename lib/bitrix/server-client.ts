@@ -85,12 +85,18 @@ export async function validateUserToken(accessToken: string, domain: string): Pr
         const user = response.data.result;
 
         console.log('[Bitrix Server] Token validado - User ID:', user.ID);
+        console.log('[Bitrix Server] IS_ADMIN value:', user.IS_ADMIN, 'Type:', typeof user.IS_ADMIN);
+        console.log('[Bitrix Server] Full user object:', JSON.stringify(user, null, 2));
+
+        const isAdmin = user.IS_ADMIN === 'Y' || user.IS_ADMIN === true || user.IS_ADMIN === 1;
+
+        console.log('[Bitrix Server] Computed isAdmin:', isAdmin);
 
         return {
             userId: user.ID,
             name: user.NAME || '',
             lastName: user.LAST_NAME || '',
-            isAdmin: user.IS_ADMIN === 'Y' || user.IS_ADMIN === true
+            isAdmin
         };
 
     } catch (error: any) {

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createCompany, createPropertyItem } from '@/lib/bitrix/server-client';
+import { createCompany, createPropertyItem, validateUserToken } from '@/lib/bitrix/server-client';
 import { generateAuthorizationPdf } from '@/lib/pdf/authorization-generator';
 import { convertFormDataToPDFData } from '@/lib/pdf/helpers';
 import { saveUserTokens, callAsUser } from '@/lib/bitrix/oauth-manager';
@@ -37,20 +37,30 @@ export async function POST(request: NextRequest): Promise<NextResponse<Authoriza
             }, { status: 400 });
         }
 
-        console.log('[API] Dados recebidos:', {
-            authType: formData.authType,
-            brokerId,
-            brokerDomain
-        });
+        // 🔒 VALIDAÇÃO SEGURA: Valida token ANTES de usar
+        if (!brokerAccessToken || !brokerDomain) {
+            return NextResponse.json({
+                success: false,
+                error: 'Token de autenticação não fornecido'
+            }, { status: 401 });
+        }
+
+        console.log('[API] Validando token do corretor...');
+
+        // Valida token e obtém userId REAL (impossível falsificar)
+        const userInfo = await validateUserToken(brokerAccessToken, brokerDomain);
+        const validatedBrokerId = userInfo.userId;
+
+        console.log('[API] Token validado - Broker ID:', validatedBrokerId, 'Nome:', userInfo.name);
 
         // 2. Obter dados do corretor para rastreamento
         let brokerInfo: any = null;
-        if (brokerId && brokerAccessToken) {
+        if (validatedBrokerId && brokerAccessToken) {
             try {
                 // Salvar tokens temporariamente
                 if (brokerDomain && brokerAccessToken) {
                     await saveUserTokens({
-                        member_id: brokerId,
+                        member_id: validatedBrokerId,
                         access_token: brokerAccessToken,
                         refresh_token: '', // Será atualizado no fluxo OAuth completo
                         expires_in: Math.floor(Date.now() / 1000) + 3600,
@@ -59,7 +69,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<Authoriza
                 }
 
                 // Obter informações do corretor
-                brokerInfo = await callAsUser('user.current', {}, brokerId);
+                brokerInfo = await callAsUser('user.current', {}, validatedBrokerId);
                 console.log('[API] Corretor identificado:', brokerInfo.NAME, brokerInfo.LAST_NAME);
             } catch (error: any) {
                 console.warn('[API] Não foi possível obter dados do corretor:', error.message);
@@ -76,7 +86,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<Authoriza
             TITLE: companyTitle,
             PHONE: companyPhone ? [{ VALUE: companyPhone, VALUE_TYPE: 'WORK' }] : undefined,
             EMAIL: companyEmail ? [{ VALUE: companyEmail, VALUE_TYPE: 'WORK' }] : undefined,
-            COMMENTS: `Autorização criada por: ${brokerInfo?.NAME || 'Sistema'} ${brokerInfo?.LAST_NAME || ''} (ID: ${brokerId || 'N/A'})\nTipo: ${formData.authType}\nData: ${new Date().toLocaleString('pt-BR')}`,
+            COMMENTS: `Autorização criada por: ${brokerInfo?.NAME || 'Sistema'} ${brokerInfo?.LAST_NAME || ''} (ID: ${validatedBrokerId || 'N/A'})\nTipo: ${formData.authType}\nData: ${new Date().toLocaleString('pt-BR')}`,
 
             // Campos customizados: PF Solteiro/Casado
             ...(formData.authType === 'pf-solteiro' || formData.authType === 'pf-casado' ? {

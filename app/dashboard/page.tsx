@@ -54,7 +54,7 @@ export default function DashboardPage() {
             setLoading(true);
             setError(null);
 
-            const response = await fetch('/api/bitrix/all-authorizations');
+            const response = await fetch(`/api/bitrix/all-authorizations?accessToken=${bitrix.authId}&domain=${bitrix.domain}`);
             const data = await response.json();
 
             if (!response.ok || !data.success) {

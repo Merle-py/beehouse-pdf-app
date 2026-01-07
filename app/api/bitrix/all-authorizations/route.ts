@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { callBitrixAPI } from '@/lib/bitrix/server-client';
+import { callBitrixAPI, validateUserToken } from '@/lib/bitrix/server-client';
 
 // Força a rota a ser dinâmica
 export const dynamic = 'force-dynamic';
@@ -7,12 +7,30 @@ export const dynamic = 'force-dynamic';
 /**
  * API Route: Listar TODAS as autorizações (apenas nomes)
  * 
+ * 🔒 SEGURO: Requer autenticação via token
  * Retorna lista de Companies com seus Property Items vinculados
  * Mostra apenas: ID, Nome da Company, Nomes dos Imóveis, Criador
  */
 export async function GET(request: NextRequest): Promise<NextResponse> {
     try {
-        console.log('[API All] Buscando todas as autorizações...');
+        const { searchParams } = new URL(request.url);
+        const accessToken = searchParams.get('accessToken');
+        const domain = searchParams.get('domain');
+
+        // 🔒 VALIDAÇÃO: Requer autenticação
+        if (!accessToken || !domain) {
+            return NextResponse.json({
+                success: false,
+                error: 'Autenticação necessária'
+            }, { status: 401 });
+        }
+
+        console.log('[API All] Validando token...');
+
+        // Valida token (garante que é um usuário autenticado)
+        await validateUserToken(accessToken, domain);
+
+        console.log('[API All] Token validado - Buscando autorizações...');
 
         // Busca TODAS as Companies que têm o padrão de COMMENTS de autorização
         const companies = await callBitrixAPI('crm.company.list', {
@@ -81,6 +99,15 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 
     } catch (error: any) {
         console.error('[API All] Erro:', error);
+
+        // Erro de autenticação
+        if (error.message.includes('inválido') || error.message.includes('expirado')) {
+            return NextResponse.json({
+                success: false,
+                error: 'Token inválido ou expirado'
+            }, { status: 401 });
+        }
+
         return NextResponse.json({
             success: false,
             error: 'Erro ao buscar autorizações',
