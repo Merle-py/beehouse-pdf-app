@@ -36,7 +36,7 @@ export default function AutorizacaoDetalhesPage() {
             setLoading(true);
             setError(null);
 
-            const response = await fetch(`/api/bitrix/authorization/${companyId}?brokerId=${bitrix.userId}`);
+            const response = await fetch(`/api/bitrix/authorization/${companyId}?accessToken=${bitrix.authId}&domain=${bitrix.domain}`);
             const result = await response.json();
 
             if (!response.ok || !result.success) {

@@ -1,55 +1,53 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { callBitrixAPI } from '@/lib/bitrix/server-client';
+import { validateUserToken } from '@/lib/bitrix/server-client';
 
 export const dynamic = 'force-dynamic';
 
 /**
  * API Route: Verifica se o usuário atual é Administrador
- * Retorna o status de admin e informações do usuário
+ * Valida o access_token server-side - IMPOSSÍVEL de falsificar
  */
 export async function GET(request: NextRequest): Promise<NextResponse> {
     try {
         const { searchParams } = new URL(request.url);
-        const userId = searchParams.get('userId');
+        const accessToken = searchParams.get('accessToken');
+        const domain = searchParams.get('domain');
 
-        if (!userId) {
+        if (!accessToken || !domain) {
             return NextResponse.json({
                 success: false,
-                error: 'User ID não fornecido'
+                error: 'Access token e domain são obrigatórios'
             }, { status: 400 });
         }
 
-        console.log(`[API User Info] Verificando usuário ${userId}`);
+        console.log(`[API User Info] Validando token...`);
 
-        // Busca informações do usuário via API Bitrix24
-        const users = await callBitrixAPI<any[]>('user.get', {
-            ID: userId,
-            ADMIN_MODE: true
-        });
-
-        if (!users || users.length === 0) {
-            return NextResponse.json({
-                success: false,
-                error: 'Usuário não encontrado'
-            }, { status: 404 });
-        }
-
-        const user = users[0];
-        const isAdmin = user.IS_ADMIN === 'Y' || user.IS_ADMIN === true;
+        // 🔒 VALIDAÇÃO SEGURA: O servidor valida o token com o Bitrix24
+        // Não confiamos no userId enviado pelo cliente
+        const userInfo = await validateUserToken(accessToken, domain);
 
         return NextResponse.json({
             success: true,
-            isAdmin,
+            isAdmin: userInfo.isAdmin,
             user: {
-                id: user.ID,
-                name: user.NAME,
-                lastName: user.LAST_NAME,
-                fullName: `${user.NAME} ${user.LAST_NAME}`.trim()
+                id: userInfo.userId,
+                name: userInfo.name,
+                lastName: userInfo.lastName,
+                fullName: `${userInfo.name} ${userInfo.lastName}`.trim()
             }
         });
 
     } catch (error: any) {
         console.error('[API User Info] Erro:', error);
+
+        // Erros específicos de token inválido
+        if (error.message.includes('inválido') || error.message.includes('expirado')) {
+            return NextResponse.json({
+                success: false,
+                error: 'Token inválido ou expirado'
+            }, { status: 401 });
+        }
+
         return NextResponse.json({
             success: false,
             error: 'Erro ao verificar usuário',

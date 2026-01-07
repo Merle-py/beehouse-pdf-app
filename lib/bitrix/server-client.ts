@@ -51,6 +51,60 @@ export async function callBitrixAPI<T = any>(method: string, params: Record<stri
 }
 
 /**
+ * Valida um access_token de usuário e retorna as informações do usuário autenticado
+ * Usa o método user.current que valida o token diretamente com o Bitrix24
+ * IMPORTANTE: Esta função usa o access_token do USUÁRIO, não o webhook admin
+ * 
+ * @param accessToken - Token de acesso do usuário (obtido via BX24.getAuth().access_token)
+ * @param domain - Domínio Bitrix24 (ex: 'minhaempresa.bitrix24.com.br')
+ * @returns Informações do usuário autenticado (ID, nome, isAdmin)
+ */
+export async function validateUserToken(accessToken: string, domain: string): Promise<{
+    userId: string;
+    name: string;
+    lastName: string;
+    isAdmin: boolean;
+}> {
+    if (!accessToken || !domain) {
+        throw new Error('Access token e domain são obrigatórios');
+    }
+
+    // Monta URL para chamar user.current usando o token do USUÁRIO
+    const url = `https://${domain}/rest/user.current.json?auth=${accessToken}`;
+
+    try {
+        console.log('[Bitrix Server] Validando token do usuário...');
+
+        const response = await axios.get<BitrixApiResponse<any>>(url);
+
+        if (response.data.error) {
+            console.error('[Bitrix Server] Token inválido:', response.data.error_description);
+            throw new Error('Token inválido ou expirado');
+        }
+
+        const user = response.data.result;
+
+        console.log('[Bitrix Server] Token validado - User ID:', user.ID);
+
+        return {
+            userId: user.ID,
+            name: user.NAME || '',
+            lastName: user.LAST_NAME || '',
+            isAdmin: user.IS_ADMIN === 'Y' || user.IS_ADMIN === true
+        };
+
+    } catch (error: any) {
+        console.error('[Bitrix Server] Erro ao validar token:', error.message);
+
+        if (error.response?.status === 401) {
+            throw new Error('Token inválido ou expirado');
+        }
+
+        throw new Error(`Erro na validação do token: ${error.message}`);
+    }
+}
+
+/**
  * Cria uma Company no Bitrix24 (via webhook admin - bypass de permissões)
  * @param data - Dados da empresa
  * @returns ID da Company criada

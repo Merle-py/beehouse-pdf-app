@@ -1,34 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { callBitrixAPI } from '@/lib/bitrix/server-client';
+import { callBitrixAPI, validateUserToken } from '@/lib/bitrix/server-client';
 
 // Força a rota a ser dinâmica
 export const dynamic = 'force-dynamic';
-
-/**
- * Verifica se o usuário é Administrador no Bitrix24 (SERVER-SIDE)
- * Isso garante segurança, pois a validação não pode ser manipulada pelo cliente
- */
-async function checkIfUserIsAdmin(userId: string): Promise<boolean> {
-    try {
-        const users = await callBitrixAPI<any[]>('user.get', {
-            ID: userId,
-            ADMIN_MODE: true
-        });
-
-        if (!users || users.length === 0) {
-            return false;
-        }
-
-        const user = users[0];
-
-        // Verifica se o usuário tem permissão de administrador
-        // IS_ADMIN pode retornar "Y" ou true dependendo da versão do Bitrix24
-        return user.IS_ADMIN === 'Y' || user.IS_ADMIN === true;
-    } catch (error) {
-        console.error('[Admin Check] Erro ao verificar admin:', error);
-        return false;
-    }
-}
 
 /**
  * API Route: Detalhes de uma Autorização específica
@@ -42,7 +16,8 @@ export async function GET(
 ): Promise<NextResponse> {
     try {
         const { searchParams } = new URL(request.url);
-        const brokerId = searchParams.get('brokerId');
+        const accessToken = searchParams.get('accessToken');
+        const domain = searchParams.get('domain');
         const companyId = params.companyId;
 
         if (!companyId) {
@@ -52,7 +27,21 @@ export async function GET(
             }, { status: 400 });
         }
 
-        console.log(`[API Detail] Buscando Company ${companyId} para broker ${brokerId || 'desconhecido'}`);
+        if (!accessToken || !domain) {
+            return NextResponse.json({
+                success: false,
+                error: 'Token de autenticação não fornecido'
+            }, { status: 400 });
+        }
+
+        console.log(`[API Detail] Buscando Company ${companyId}...`);
+
+        // 🔒 VALIDAÇÃO SEGURA: Valida o token e obtém userId real
+        const userInfo = await validateUserToken(accessToken, domain);
+        const brokerId = userInfo.userId;
+        const isAdmin = userInfo.isAdmin;
+
+        console.log(`[API Detail] Token validado - User ID: ${brokerId}, Admin: ${isAdmin}`);
 
         // Busca a Company
         const company = await callBitrixAPI('crm.company.get', {
@@ -72,9 +61,6 @@ export async function GET(
 
         // Verifica se é dono
         const isOwner = brokerId && createdBy === brokerId;
-
-        // ✅ VERIFICAÇÃO SEGURA: Valida no servidor via API do Bitrix24
-        const isAdmin = brokerId ? await checkIfUserIsAdmin(brokerId) : false;
 
         console.log(`[API Detail] Permissões - isOwner: ${isOwner}, isAdmin: ${isAdmin}`);
 
