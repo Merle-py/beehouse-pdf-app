@@ -28,7 +28,8 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         console.log('[API PDF] PDF gerado com sucesso');
 
         // Retorna o PDF como arquivo para download
-        return new NextResponse(pdfBuffer, {
+        // Converte Buffer para Uint8Array para compatibilidade com NextResponse
+        return new NextResponse(new Uint8Array(pdfBuffer), {
             status: 200,
             headers: {
                 'Content-Type': 'application/pdf',
