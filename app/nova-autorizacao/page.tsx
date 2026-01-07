@@ -5,7 +5,8 @@ import { useBitrix24 } from '@/lib/bitrix/client-sdk';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import SpouseSection from '@/components/forms/SpouseSection';
-import type { SpouseData } from '@/types/authorization';
+import PropertyFinancialFields from '@/components/forms/PropertyFinancialFields';
+import type { SpouseData, PropertyData } from '@/types/authorization';
 
 export default function NovaAutorizacaoPage() {
     const bitrix = useBitrix24();
@@ -32,6 +33,18 @@ export default function NovaAutorizacaoPage() {
         email: ''
     });
 
+    // Estado do imóvel
+    const [imovel, setImovel] = useState<PropertyData>({
+        descricao: '',
+        endereco: '',
+        valor: 0,
+        matricula: '',
+        adminCondominio: '',
+        valorCondominio: 0,
+        chamadaCapital: '',
+        numParcelas: ''
+    });
+
     const [contrato, setContrato] = useState({
         prazo: 90,
         comissaoPct: 6
@@ -49,6 +62,7 @@ export default function NovaAutorizacaoPage() {
                 authType,
                 contratante,
                 ...(authType === 'pf-casado' && { conjuge }), // Adiciona cônjuge se casado
+                imovelUnico: imovel, // Dados do imóvel
                 contrato
             };
 
@@ -194,6 +208,59 @@ export default function NovaAutorizacaoPage() {
                                 onChange={setConjuge}
                             />
                         )}
+
+                        {/* Dados do Imóvel */}
+                        <div className="space-y-4">
+                            <h3 className="text-xl font-bold">🏠 Dados do Imóvel</h3>
+
+                            <div>
+                                <label className="block text-sm font-semibold mb-2">Descrição do Imóvel *</label>
+                                <textarea
+                                    value={imovel.descricao}
+                                    onChange={(e) => setImovel({ ...imovel, descricao: e.target.value })}
+                                    className="input"
+                                    rows={2}
+                                    placeholder="Ex: Apartamento 3 quartos, 2 vagas"
+                                    required
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-semibold mb-2">Endereço Completo *</label>
+                                <input
+                                    type="text"
+                                    value={imovel.endereco}
+                                    onChange={(e) => setImovel({ ...imovel, endereco: e.target.value })}
+                                    className="input"
+                                    placeholder="Rua, número, bairro, cidade"
+                                    required
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-semibold mb-2">Valor de Venda (R$) *</label>
+                                <input
+                                    type="number"
+                                    value={imovel.valor || ''}
+                                    onChange={(e) => setImovel({ ...imovel, valor: parseFloat(e.target.value) || 0 })}
+                                    className="input"
+                                    placeholder="0,00"
+                                    step="0.01"
+                                    min="0"
+                                    required
+                                />
+                            </div>
+
+                            {/* Campos Financeiros */}
+                            <PropertyFinancialFields
+                                matricula={imovel.matricula}
+                                adminCondominio={imovel.adminCondominio}
+                                valorCondominio={imovel.valorCondominio}
+                                chamadaCapital={imovel.chamadaCapital}
+                                numParcelas={imovel.numParcelas}
+                                onChange={(field, value) => setImovel({ ...imovel, [field]: value })}
+                            />
+                        </div>
 
                         {/* Dados do Contrato */}
                         <div className="space-y-4">
