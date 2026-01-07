@@ -7,7 +7,8 @@ import Link from 'next/link';
 import SpouseSection from '@/components/forms/SpouseSection';
 import PropertyFinancialFields from '@/components/forms/PropertyFinancialFields';
 import SocioFields from '@/components/forms/SocioFields';
-import type { SpouseData, PropertyData, PersonData } from '@/types/authorization';
+import CompanySection from '@/components/forms/CompanySection';
+import type { SpouseData, PropertyData, PersonData, CompanyData, LegalRepData } from '@/types/authorization';
 
 export default function NovaAutorizacaoPage() {
     const bitrix = useBitrix24();
@@ -52,6 +53,22 @@ export default function NovaAutorizacaoPage() {
             endereco: ''
         }
     ]);
+
+    // Estado da empresa (PJ)
+    const [empresa, setEmpresa] = useState<CompanyData>({
+        razaoSocial: '',
+        cnpj: '',
+        email: '',
+        telefone: '',
+        ie: '',
+        endereco: ''
+    });
+
+    const [repLegal, setRepLegal] = useState<LegalRepData>({
+        nome: '',
+        cpf: '',
+        cargo: ''
+    });
 
     // Estado do imóvel
     const [imovel, setImovel] = useState<PropertyData>({
@@ -110,6 +127,7 @@ export default function NovaAutorizacaoPage() {
                 contratante,
                 ...(authType === 'pf-casado' && { conjuge }), // Adiciona cônjuge se casado
                 ...(authType === 'socios' && { socios, numSocios: socios.length }), // Adiciona sócios
+                ...(authType === 'pj' && { empresa, repLegal }), // Adiciona empresa e representante
                 imovelUnico: imovel, // Dados do imóvel
                 contrato
             };
@@ -346,6 +364,16 @@ export default function NovaAutorizacaoPage() {
                                     />
                                 ))}
                             </div>
+                        )}
+
+                        {/* Dados da Empresa (apenas PJ) */}
+                        {authType === 'pj' && (
+                            <CompanySection
+                                empresa={empresa}
+                                repLegal={repLegal}
+                                onEmpresaChange={setEmpresa}
+                                onRepLegalChange={setRepLegal}
+                            />
                         )}
 
                         {/* Dados do Imóvel */}
