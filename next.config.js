@@ -4,22 +4,21 @@ const nextConfig = {
     experimental: {
         serverComponentsExternalPackages: ['pdfkit'],
     },
-    // Permite que a aplicação seja exibida em iframes do Bitrix24
+
+    // Permite que o Bitrix carregue o site em um Iframe
     async headers() {
         return [
             {
-                source: '/:path*',
+                source: "/:path*",
                 headers: [
-                    // NÃO define X-Frame-Options (permite todos os iframes)
-                    // Usa Content-Security-Policy para controlar origens específicas
-                    {
-                        key: 'Content-Security-Policy',
-                        value: "frame-ancestors 'self' https://*.bitrix24.com.br https://*.bitrix24.com https://*.bitrix24.net https://*.bitrix24.eu;",
-                    },
+                    { key: "Access-Control-Allow-Origin", value: "*" },
+                    // Esta linha é a mais importante:
+                    { key: "Content-Security-Policy", value: "frame-ancestors 'self' https://*.bitrix24.com https://*.bitrix24.com.br https://*.bitrix24.ru https://*.bitrix24.eu" },
+                    { key: "X-Frame-Options", value: "ALLOWALL" }
                 ],
             },
         ];
     },
-}
+};
 
-module.exports = nextConfig
+module.exports = nextConfig;
