@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import MaskedInput from './MaskedInput';
 import type { SpouseData } from '@/types/authorization';
 
 interface SpouseSectionProps {
@@ -36,11 +37,11 @@ export default function SpouseSection({ spouse, onChange }: SpouseSectionProps) 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                     <label className="block text-sm font-semibold mb-2">CPF *</label>
-                    <input
-                        type="text"
+                    <MaskedInput
                         value={spouse.cpf || ''}
-                        onChange={(e) => handleChange('cpf', e.target.value)}
-                        className="input"
+                        onChange={(value) => handleChange('cpf', value)}
+                        mask="cpf"
+                        validation="cpf"
                         placeholder="000.000.000-00"
                         required
                     />
@@ -75,12 +76,12 @@ export default function SpouseSection({ spouse, onChange }: SpouseSectionProps) 
 
                 <div>
                     <label className="block text-sm font-semibold mb-2">Email *</label>
-                    <input
-                        type="email"
+                    <MaskedInput
                         value={spouse.email || ''}
-                        onChange={(e) => handleChange('email', e.target.value)}
-                        className="input"
+                        onChange={(value) => handleChange('email', value)}
+                        validation="email"
                         placeholder="email@exemplo.com"
+                        type="email"
                         required
                     />
                 </div>
