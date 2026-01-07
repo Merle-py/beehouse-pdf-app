@@ -23,8 +23,8 @@ export default function InstallPage() {
                 // CONFIGURAÇÕES PARA MENU LATERAL ESQUERDO
                 const PLACEMENT = 'APP_SIDEBAR'; // Menu lateral esquerdo principal
                 // Substitua pela sua URL na Vercel
-                const HANDLER = 'https://beehouse-pdf-app-git-testesw-beehouses-projects.vercel.app/';
-                const APP_TITLE = 'Autorizações Beehouse.';
+                const HANDLER = 'https://beehouse-pdf-app-git-main-beehouses-projects.vercel.app/';
+                const APP_TITLE = 'Autorizações Beehouse';
                 const APP_DESCRIPTION = 'Sistema de Autorizações de Venda';
 
                 addLog("Placement: " + PLACEMENT);
