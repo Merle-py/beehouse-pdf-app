@@ -21,7 +21,7 @@ function validateWebhookConfig(): void {
  * @param method - Método da API (ex: 'crm.company.add')
  * @param params - Parâmetros da chamada
  */
-async function callBitrixAPI<T = any>(method: string, params: Record<string, any> = {}): Promise<T> {
+export async function callBitrixAPI<T = any>(method: string, params: Record<string, any> = {}): Promise<T> {
     validateWebhookConfig();
 
     const url = `${ADMIN_WEBHOOK_URL}${method}`;
