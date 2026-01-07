@@ -70,10 +70,6 @@ export default function DashboardPage() {
         }
     };
 
-    const isOwner = (auth: Authorization) => {
-        return auth.createdBy === bitrix.userId;
-    };
-
     const formatDate = (dateStr: string) => {
         try {
             return new Date(dateStr).toLocaleDateString('pt-BR');
@@ -81,6 +77,8 @@ export default function DashboardPage() {
             return dateStr;
         }
     };
+
+    // isOwner agora vem da API (server-side validation)
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-8 px-4">

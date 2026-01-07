@@ -5,15 +5,13 @@ import { createContext, useContext, useEffect, useState, ReactNode } from 'react
 interface Bitrix24Context {
     isInitialized: boolean;
     isInsideBitrix: boolean;
-    userId: string | null;  // ID numérico do usuário
-    authId: string | null;  // Access token
+    authId: string | null;  // Access token (para validação server-side)
     domain: string | null;
 }
 
 const BitrixContext = createContext<Bitrix24Context>({
     isInitialized: false,
     isInsideBitrix: false,
-    userId: null,
     authId: null,
     domain: null
 });
@@ -25,7 +23,6 @@ export function Bitrix24Provider({ children }: { children: ReactNode }) {
     const [context, setContext] = useState<Bitrix24Context>({
         isInitialized: false,
         isInsideBitrix: false,
-        userId: null,
         authId: null,
         domain: null
     });
@@ -39,7 +36,6 @@ export function Bitrix24Provider({ children }: { children: ReactNode }) {
             setContext({
                 isInitialized: true,
                 isInsideBitrix: false,
-                userId: null,
                 authId: null,
                 domain: null
             });
@@ -81,7 +77,6 @@ export function Bitrix24Provider({ children }: { children: ReactNode }) {
                 setContext({
                     isInitialized: true,
                     isInsideBitrix: false,
-                    userId: null,
                     authId: null,
                     domain: null
                 });
@@ -93,7 +88,6 @@ export function Bitrix24Provider({ children }: { children: ReactNode }) {
             setContext({
                 isInitialized: true,
                 isInsideBitrix: false,
-                userId: null,
                 authId: null,
                 domain: null
             });
