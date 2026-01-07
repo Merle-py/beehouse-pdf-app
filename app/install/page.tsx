@@ -24,7 +24,7 @@ export default function InstallPage() {
                 const PLACEMENT = 'APP_SIDEBAR'; // Menu lateral esquerdo principal
                 // Substitua pela sua URL na Vercel
                 const HANDLER = 'https://beehouse-pdf-app-git-testesw-beehouses-projects.vercel.app/';
-                const APP_TITLE = 'Autorizações Beehouse';
+                const APP_TITLE = 'Autorizações Beehouse.';
                 const APP_DESCRIPTION = 'Sistema de Autorizações de Venda';
 
                 addLog("Placement: " + PLACEMENT);
