@@ -6,7 +6,8 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import SpouseSection from '@/components/forms/SpouseSection';
 import PropertyFinancialFields from '@/components/forms/PropertyFinancialFields';
-import type { SpouseData, PropertyData } from '@/types/authorization';
+import SocioFields from '@/components/forms/SocioFields';
+import type { SpouseData, PropertyData, PersonData } from '@/types/authorization';
 
 export default function NovaAutorizacaoPage() {
     const bitrix = useBitrix24();
@@ -37,6 +38,21 @@ export default function NovaAutorizacaoPage() {
         email: ''
     });
 
+    // Estado dos sócios (Sociedade)
+    const [socios, setSocios] = useState<PersonData[]>([
+        {
+            nome: '',
+            cpf: '',
+            rg: '',
+            email: '',
+            telefone: '',
+            profissao: '',
+            estadoCivil: '',
+            regimeCasamento: '',
+            endereco: ''
+        }
+    ]);
+
     // Estado do imóvel
     const [imovel, setImovel] = useState<PropertyData>({
         descricao: '',
@@ -54,6 +70,33 @@ export default function NovaAutorizacaoPage() {
         comissaoPct: 6
     });
 
+    // Fun\u00e7\u00f5es para gerenciar s\u00f3cios
+    const adicionarSocio = () => {
+        setSocios([...socios, {
+            nome: '',
+            cpf: '',
+            rg: '',
+            email: '',
+            telefone: '',
+            profissao: '',
+            estadoCivil: '',
+            regimeCasamento: '',
+            endereco: ''
+        }]);
+    };
+
+    const removerSocio = (index: number) => {
+        if (socios.length > 1) {
+            setSocios(socios.filter((_, i) => i !== index));
+        }
+    };
+
+    const atualizarSocio = (index: number, socio: PersonData) => {
+        const novosSocios = [...socios];
+        novosSocios[index] = socio;
+        setSocios(novosSocios);
+    };
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
@@ -66,6 +109,7 @@ export default function NovaAutorizacaoPage() {
                 authType,
                 contratante,
                 ...(authType === 'pf-casado' && { conjuge }), // Adiciona cônjuge se casado
+                ...(authType === 'socios' && { socios, numSocios: socios.length }), // Adiciona sócios
                 imovelUnico: imovel, // Dados do imóvel
                 contrato
             };
@@ -275,6 +319,33 @@ export default function NovaAutorizacaoPage() {
                                 spouse={conjuge}
                                 onChange={setConjuge}
                             />
+                        )}
+
+                        {/* Dados dos Sócios (apenas Sociedade) */}
+                        {authType === 'socios' && (
+                            <div className="space-y-4">
+                                <div className="flex justify-between items-center">
+                                    <h3 className="text-xl font-bold">👥 Dados dos Sócios</h3>
+                                    <button
+                                        type="button"
+                                        onClick={adicionarSocio}
+                                        className="btn-secondary text-sm"
+                                    >
+                                        + Adicionar Sócio
+                                    </button>
+                                </div>
+
+                                {socios.map((socio, index) => (
+                                    <SocioFields
+                                        key={index}
+                                        socio={socio}
+                                        index={index}
+                                        onChange={(updatedSocio) => atualizarSocio(index, updatedSocio)}
+                                        onRemove={() => removerSocio(index)}
+                                        canRemove={socios.length > 1}
+                                    />
+                                ))}
+                            </div>
                         )}
 
                         {/* Dados do Imóvel */}
