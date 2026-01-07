@@ -56,10 +56,17 @@ export function Bitrix24Provider({ children }: { children: ReactNode }) {
                 window.BX24.init(() => {
                     const auth = window.BX24?.getAuth();
                     const domain = auth?.domain || null;
-                    const userId = auth?.user_id || null;
+
+                    // Bitrix24 pode retornar userId em diferentes campos dependendo da versão
+                    const userId = auth?.user_id || auth?.USER_ID || auth?.member_id || auth?.MEMBER_ID || null;
                     const authId = auth?.access_token || null;
 
-                    console.log('[Bitrix Client] SDK inicializado:', { domain, userId, hasAuth: !!authId });
+                    console.log('[Bitrix Client] SDK inicializado:', {
+                        domain,
+                        userId,
+                        hasAuth: !!authId,
+                        authObject: auth // Log completo para debug
+                    });
 
                     setContext({
                         isInitialized: true,
@@ -147,7 +154,15 @@ declare global {
     interface Window {
         BX24?: {
             init: (callback: () => void) => void;
-            getAuth: () => { access_token: string; user_id: string; domain: string; expires_in: number };
+            getAuth: () => {
+                access_token: string;
+                user_id?: string;
+                USER_ID?: string;
+                member_id?: string;
+                MEMBER_ID?: string;
+                domain: string;
+                expires_in: number;
+            };
             callMethod: (method: string, params: any, callback: (result: any) => void) => void;
             openApplication: (params: { bx24_width?: number; bx24_height?: number }) => void;
             closeApplication: () => void;
