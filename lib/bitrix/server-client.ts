@@ -101,9 +101,19 @@ export async function validateUserToken(accessToken: string, domain: string): Pr
 
         console.log('[Bitrix Server] user.get response:', JSON.stringify(users, null, 2));
 
-        const isAdmin = users && users.length > 0 && (users[0].IS_ADMIN === 'Y' || users[0].IS_ADMIN === true);
+        // Tenta obter IS_ADMIN da API
+        let isAdmin = users && users.length > 0 && (users[0].IS_ADMIN === 'Y' || users[0].IS_ADMIN === true);
 
-        console.log('[Bitrix Server] IS_ADMIN:', isAdmin);
+        // FALLBACK: Se API não retornar IS_ADMIN, usa lista de IDs configurada
+        if (!isAdmin && process.env.B24_ADMIN_IDS) {
+            const adminIds = process.env.B24_ADMIN_IDS.split(',').map(id => id.trim());
+            isAdmin = adminIds.includes(userId);
+            console.log('[Bitrix Server] IS_ADMIN via API: false, verificando lista de IDs...');
+            console.log('[Bitrix Server] Admin IDs configurados:', adminIds);
+            console.log('[Bitrix Server] User ID está na lista?', isAdmin);
+        }
+
+        console.log('[Bitrix Server] IS_ADMIN final:', isAdmin);
 
         return {
             userId: userId,
