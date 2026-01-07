@@ -9,8 +9,8 @@ interface Company {
     TITLE: string;
     COMPANY_TYPE: string;
     UF_CRM_CPF_CNPJ?: string;
-    EMAIL?: string[];
-    PHONE?: string[];
+    EMAIL?: Array<{ VALUE: string }> | string;
+    PHONE?: Array<{ VALUE: string }> | string;
     propertyCount?: number;
     createdTime?: string;
 }
@@ -77,10 +77,18 @@ export default function CompanyList({ companies, onCreateProperty, onCreateAutho
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap">
                                     <div className="text-sm text-gray-900">
-                                        {Array.isArray(company.EMAIL) ? company.EMAIL[0]?.VALUE : company.EMAIL || '-'}
+                                        {Array.isArray(company.EMAIL) && company.EMAIL.length > 0
+                                            ? (typeof company.EMAIL[0] === 'object' && 'VALUE' in company.EMAIL[0]
+                                                ? company.EMAIL[0].VALUE
+                                                : company.EMAIL[0])
+                                            : (typeof company.EMAIL === 'string' ? company.EMAIL : '-')}
                                     </div>
                                     <div className="text-sm text-gray-500">
-                                        {Array.isArray(company.PHONE) ? company.PHONE[0]?.VALUE : company.PHONE || '-'}
+                                        {Array.isArray(company.PHONE) && company.PHONE.length > 0
+                                            ? (typeof company.PHONE[0] === 'object' && 'VALUE' in company.PHONE[0]
+                                                ? company.PHONE[0].VALUE
+                                                : company.PHONE[0])
+                                            : (typeof company.PHONE === 'string' ? company.PHONE : '-')}
                                     </div>
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap">
