@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { bitrixServerClient } from '@/lib/bitrix/server-client';
+import { callBitrixAPI } from '@/lib/bitrix/server-client';
 
 /**
  * GET /api/bitrix/properties
@@ -20,9 +20,9 @@ export async function GET(request: NextRequest) {
 
         // Valida o token do usuário
         const { validateUserToken } = await import('@/lib/bitrix/server-client');
-        const validation = await validateUserToken(accessToken, domain);
+        const user = await validateUserToken(accessToken, domain);
 
-        if (!validation.isValid) {
+        if (!user) {
             return NextResponse.json(
                 { error: 'Token inválido' },
                 { status: 401 }
@@ -38,7 +38,7 @@ export async function GET(request: NextRequest) {
         }
 
         // Busca todos os imóveis (SPA Items)
-        const response = await bitrixServerClient.callMethod('crm.item.list', {
+        const response: any = await callBitrixAPI('crm.item.list', {
             entityTypeId: parseInt(entityTypeId),
             select: [
                 'id',
@@ -63,7 +63,7 @@ export async function GET(request: NextRequest) {
         let companiesMap: Record<string, any> = {};
 
         if (companyIds.length > 0) {
-            const companiesResponse = await bitrixServerClient.callMethod('crm.company.list', {
+            const companiesResponse: any = await callBitrixAPI('crm.company.list', {
                 filter: { ID: companyIds },
                 select: ['ID', 'TITLE', 'COMPANY_TYPE']
             });

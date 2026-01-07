@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { bitrixServerClient } from '@/lib/bitrix/server-client';
+import { callBitrixAPI } from '@/lib/bitrix/server-client';
 
 /**
  * GET /api/bitrix/stats
@@ -20,9 +20,9 @@ export async function GET(request: NextRequest) {
 
         // Valida o token do usuário
         const { validateUserToken } = await import('@/lib/bitrix/server-client');
-        const validation = await validateUserToken(accessToken, domain);
+        const user = await validateUserToken(accessToken, domain);
 
-        if (!validation.isValid) {
+        if (!user) {
             return NextResponse.json(
                 { error: 'Token inválido' },
                 { status: 401 }
@@ -38,20 +38,20 @@ export async function GET(request: NextRequest) {
         }
 
         // Busca total de empresas
-        const companiesResponse = await bitrixServerClient.callMethod('crm.company.list', {
+        const companiesResponse: any = await callBitrixAPI('crm.company.list', {
             select: ['ID']
         });
         const totalCompanies = companiesResponse.total || 0;
 
         // Busca total de imóveis
-        const propertiesResponse = await bitrixServerClient.callMethod('crm.item.list', {
+        const propertiesResponse: any = await callBitrixAPI('crm.item.list', {
             entityTypeId: parseInt(entityTypeId),
             select: ['id']
         });
         const totalProperties = propertiesResponse.total || 0;
 
         // Busca total de autorizações (empresas com campo UF_CRM_AUTHORIZATION_PDF preenchido)
-        const authorizationsResponse = await bitrixServerClient.callMethod('crm.company.list', {
+        const authorizationsResponse: any = await callBitrixAPI('crm.company.list', {
             filter: { '!UF_CRM_AUTHORIZATION_PDF': '' },
             select: ['ID']
         });

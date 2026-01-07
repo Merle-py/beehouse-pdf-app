@@ -77,10 +77,10 @@ export default function CompanyList({ companies, onCreateProperty, onCreateAutho
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap">
                                     <div className="text-sm text-gray-900">
-                                        {company.EMAIL?.[0]?.VALUE || '-'}
+                                        {Array.isArray(company.EMAIL) ? company.EMAIL[0]?.VALUE : company.EMAIL || '-'}
                                     </div>
                                     <div className="text-sm text-gray-500">
-                                        {company.PHONE?.[0]?.VALUE || '-'}
+                                        {Array.isArray(company.PHONE) ? company.PHONE[0]?.VALUE : company.PHONE || '-'}
                                     </div>
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap">
