@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { useBitrix24 } from '@/lib/bitrix/client-sdk';
 import Link from 'next/link';
 
@@ -12,6 +13,7 @@ interface Authorization {
 }
 
 export default function MyAuthorizationsPage() {
+    const router = useRouter();
     const bitrix = useBitrix24();
     const [authorizations, setAuthorizations] = useState<Authorization[]>([]);
     const [loading, setLoading] = useState(true);
@@ -170,13 +172,13 @@ export default function MyAuthorizationsPage() {
                                             <div className="mt-4 pt-4 border-t border-gray-200 flex gap-2">
                                                 <button
                                                     className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 py-2 px-4 rounded transition-colors text-sm"
-                                                    onClick={() => alert(`Função de edição em desenvolvimento\nCompany ID: ${auth.ID}`)}
+                                                    onClick={() => router.push(`/editar-empresa/${auth.ID}`)}
                                                 >
                                                     📝 Editar
                                                 </button>
                                                 <button
                                                     className="flex-1 bg-beehouse-primary hover:bg-beehouse-accent text-white py-2 px-4 rounded transition-colors text-sm"
-                                                    onClick={() => alert(`Função de visualização em desenvolvimento\nCompany ID: ${auth.ID}`)}
+                                                    onClick={() => router.push(`/autorizacao/${auth.ID}`)}
                                                 >
                                                     👁️ Ver Detalhes
                                                 </button>

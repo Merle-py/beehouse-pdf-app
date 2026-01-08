@@ -1,6 +1,9 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import type { Company } from '@/types/company';
+import type { Property } from '@/types/property';
+import type { DashboardStats } from '@/types/dashboard';
 import { useBitrix24 } from '@/lib/bitrix/client-sdk';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -26,8 +29,8 @@ export default function DashboardPage() {
         signedAuthorizations: 0,
         pendingSignatures: 0
     });
-    const [companies, setCompanies] = useState<any[]>([]);
-    const [properties, setProperties] = useState<any[]>([]);
+    const [companies, setCompanies] = useState<Company[]>([]);
+    const [properties, setProperties] = useState<Property[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [isAdmin, setIsAdmin] = useState(false);

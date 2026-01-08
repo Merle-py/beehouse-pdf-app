@@ -4,18 +4,7 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import Badge from '@/components/ui/Badge';
 import { useBitrix24 } from '@/lib/bitrix/client-sdk';
-
-interface Property {
-    id: string;
-    title: string;
-    description: string;
-    address: string;
-    value: number;
-    companyId: string;
-    companyName: string;
-    hasAuthorization: boolean;
-    ufCrmPropertyHasAuthorization?: string | boolean;
-}
+import type { Property } from '@/types/property';
 
 interface PropertyListProps {
     properties: Property[];
@@ -121,14 +110,15 @@ export default function PropertyList({ properties, onCreateAuthorization, isAdmi
                                     {property.title}
                                 </div>
                                 <div className="text-sm text-gray-500">
-                                    {property.description}
+                                    {property.description || property.ufCrmPropertyDescription || '-'}
                                 </div>
                             </td>
                             <td className="px-6 py-4 text-sm text-gray-500">
-                                {property.address}
+                                {property.address || property.ufCrmPropertyAddress || '-'}
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">
-                                {formatCurrency(property.value)}
+                                {property.value ? formatCurrency(property.value) :
+                                    property.ufCrmPropertyValue ? formatCurrency(parseFloat(property.ufCrmPropertyValue)) : '-'}
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap">
                                 <Link
