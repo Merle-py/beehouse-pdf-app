@@ -43,26 +43,46 @@ export async function GET(
 
         console.log(`[API Detail] Token validado - User ID: ${brokerId}, Admin: ${isAdmin}`);
 
-        // Busca a Company
-        const company = await callBitrixAPI('crm.company.get', {
+        // Busca dados da empresa
+        const companyResponse: any = await callBitrixAPI('crm.company.get', {
             id: companyId
         });
 
-        if (!company) {
+        if (!companyResponse) {
             return NextResponse.json({
                 success: false,
-                error: 'Autorização não encontrada'
+                error: 'Empresa não encontrada'
             }, { status: 404 });
         }
 
-        // Extrai quem criou do campo COMMENTS
-        const createdByMatch = company.COMMENTS?.match(/\(ID: ([^\)]+)\)/);
-        const createdBy = createdByMatch ? createdByMatch[1] : null;
+        const company = companyResponse;
 
-        // Verifica se é dono
-        const isOwner = brokerId && createdBy === brokerId;
+        // Verifica se o usuário é o responsável pela empresa (ASSIGNED_BY_ID)
+        const assignedById = company.ASSIGNED_BY_ID ? parseInt(company.ASSIGNED_BY_ID) : null;
+        const isOwner = assignedById === userInfo.userId;
 
-        console.log(`[API Detail] Permissões - isOwner: ${isOwner}, isAdmin: ${isAdmin}`);
+        console.log('[API Authorization] Verificação de acesso:', {
+            userId: userInfo.userId,
+            assignedById,
+            isOwner,
+            isAdmin: userInfo.isAdmin
+        });
+
+        // Se não é owner nem admin, retorna dados limitados
+        if (!isOwner && !userInfo.isAdmin) {
+            return NextResponse.json({
+                success: true,
+                company: {
+                    ID: company.ID,
+                    TITLE: company.TITLE,
+                    COMPANY_TYPE: company.COMPANY_TYPE
+                },
+                properties: [],
+                isOwner: false,
+                isAdmin: false,
+                hasAccess: false
+            });
+        }
 
         // Busca imóveis vinculados (SPA Items)
         const entityTypeId = process.env.B24_PROPERTY_ENTITY_TYPE_ID;
@@ -104,6 +124,8 @@ export async function GET(
                 properties,
                 canEdit,
                 canDelete
+                canDelete,
+                hasAccess: true
             });
         }
 

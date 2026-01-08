@@ -121,135 +121,190 @@ export default function AutorizacaoDetalhesPage() {
                     </Link>
                 </div>
 
-                {/* Header */}
-                <div className="card mb-6">
-                    <div className="flex justify-between items-start">
-                        <div>
-                            <h1 className="text-3xl font-bold mb-2">{data.company.TITLE}</h1>
-                            <div className="flex items-center gap-3 mb-4">
-                                <Badge variant={typeBadge.variant}>{typeBadge.label}</Badge>
-                                {data.isOwner && (
-                                    <span className="inline-block bg-green-100 text-green-800 text-sm px-3 py-1 rounded-full">
-                                        ✓ Criado por você
-                                    </span>
-                                )}
-                            </div>
-                        </div>
-
-                        {data.canEdit && (
-                            <Link href={`/nova-autorizacao?companyId=${companyId}`} className="btn-primary">
-                                ✏️ Editar
-                            </Link>
-                        )}
-                    </div>
-                </div>
-
-                {data.canEdit ? (
-                    <>
-                        {/* Informações da Empresa */}
-                        <div className="card mb-6">
-                            <h2 className="text-2xl font-bold mb-4">Informações da Empresa</h2>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                {data.company.UF_CRM_CPF_CNPJ && (
-                                    <div>
-                                        <span className="text-sm text-gray-600 font-semibold">CPF/CNPJ:</span>
-                                        <p className="text-gray-800">{data.company.UF_CRM_CPF_CNPJ}</p>
-                                    </div>
-                                )}
-                                {data.company.EMAIL && (
-                                    <div>
-                                        <span className="text-sm text-gray-600 font-semibold">Email:</span>
-                                        <p className="text-gray-800">
-                                            {Array.isArray(data.company.EMAIL)
-                                                ? (typeof data.company.EMAIL[0] === 'object' ? data.company.EMAIL[0]?.VALUE : data.company.EMAIL[0])
-                                                : data.company.EMAIL}
-                                        </p>
-                                    </div>
-                                )}
-                                {data.company.PHONE && (
-                                    <div>
-                                        <span className="text-sm text-gray-600 font-semibold">Telefone:</span>
-                                        <p className="text-gray-800">
-                                            {Array.isArray(data.company.PHONE)
-                                                ? (typeof data.company.PHONE[0] === 'object' ? data.company.PHONE[0]?.VALUE : data.company.PHONE[0])
-                                                : data.company.PHONE}
-                                        </p>
-                                    </div>
-                                )}
-                                {data.company.DATE_CREATE && (
-                                    <div>
-                                        <span className="text-sm text-gray-600 font-semibold">Data de Criação:</span>
-                                        <p className="text-gray-800">{formatDate(data.company.DATE_CREATE)}</p>
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-
-                        {/* Imóveis Vinculados */}
-                        <div className="card">
-                            <h2 className="text-2xl font-bold mb-4">
-                                Imóveis Vinculados ({data.properties.length})
-                            </h2>
-
-                            {data.properties.length === 0 ? (
-                                <p className="text-gray-600">Nenhum imóvel vinculado a esta empresa</p>
-                            ) : (
-                                <div className="space-y-4">
-                                    {data.properties.map((prop: any) => (
-                                        <div key={prop.id} className="border rounded-lg p-4 bg-gray-50 hover:bg-gray-100 transition">
-                                            <h3 className="font-bold text-lg mb-3">{prop.title || `Imóvel #${prop.id}`}</h3>
-                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
-                                                {prop.ufCrmPropertyAddress && (
-                                                    <div>
-                                                        <span className="text-gray-600 font-semibold">📍 Endereço:</span>
-                                                        <p className="text-gray-800">{prop.ufCrmPropertyAddress}</p>
-                                                    </div>
-                                                )}
-                                                {prop.ufCrmPropertyValue && (
-                                                    <div>
-                                                        <span className="text-gray-600 font-semibold">💰 Valor:</span>
-                                                        <p className="text-gray-800">{formatCurrency(prop.ufCrmPropertyValue)}</p>
-                                                    </div>
-                                                )}
-                                                {prop.ufCrmPropertyMatricula && (
-                                                    <div>
-                                                        <span className="text-gray-600 font-semibold">📄 Matrícula:</span>
-                                                        <p className="text-gray-800">{prop.ufCrmPropertyMatricula}</p>
-                                                    </div>
-                                                )}
-                                                {prop.ufCrmPropertyDescription && (
-                                                    <div className="md:col-span-2">
-                                                        <span className="text-gray-600 font-semibold">📝 Descrição:</span>
-                                                        <p className="text-gray-800">{prop.ufCrmPropertyDescription}</p>
-                                                    </div>
-                                                )}
-                                            </div>
-                                        </div>
-                                    ))}
+                {/* Acesso Negado */}
+                {!loading && data && !data.hasAccess && (
+                    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6">
+                            <div className="flex items-start">
+                                <div className="flex-shrink-0">
+                                    <svg className="h-6 w-6 text-yellow-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                    </svg>
                                 </div>
-                            )}
-                        </div>
-                    </>
-                ) : (
-                    <div className="card text-center py-12">
-                        <div className="text-6xl mb-4">🔒</div>
-                        <h2 className="text-2xl font-bold mb-2">Acesso Restrito</h2>
-                        <p className="text-gray-600 mb-4">
-                            {data.message || 'Esta autorização foi criada por outro corretor'}
-                        </p>
-                        <div className="text-left max-w-md mx-auto mt-6 p-4 bg-gray-50 rounded">
-                            <p className="text-sm text-gray-700 mb-2">
-                                <strong>Informações disponíveis:</strong>
-                            </p>
-                            <ul className="text-sm text-gray-600 space-y-1">
-                                <li>✓ Nome: {data.company.TITLE}</li>
-                                <li>✓ Data de criação: {formatDate(data.company.DATE_CREATE)}</li>
-                                <li>✓ Imóveis: {data.properties.length}</li>
-                            </ul>
+                                <div className="ml-3 flex-1">
+                                    <h3 className="text-lg font-medium text-yellow-800">
+                                        Acesso Restrito
+                                    </h3>
+                                    <div className="mt-2 text-sm text-yellow-700">
+                                        <p>Você não tem permissão para visualizar os detalhes completos desta empresa.</p>
+                                        <p className="mt-2">Apenas o responsável pela empresa ou administradores podem acessar essas informações.</p>
+                                    </div>
+
+                                    {/* Informações Básicas */}
+                                    <div className="mt-4 bg-white rounded-md p-4 border border-yellow-200">
+                                        <h4 className="text-sm font-medium text-gray-900 mb-2">Informações Básicas</h4>
+                                        <dl className="grid grid-cols-1 gap-2">
+                                            <div>
+                                                <dt className="text-xs text-gray-500">Nome</dt>
+                                                <dd className="text-sm font-medium text-gray-900">{data.company.TITLE}</dd>
+                                            </div>
+                                            <div>
+                                                <dt className="text-xs text-gray-500">Tipo</dt>
+                                                <dd className="text-sm">
+                                                    <Badge variant={getCompanyTypeBadge(data.company.COMPANY_TYPE).variant}>
+                                                        {getCompanyTypeBadge(data.company.COMPANY_TYPE).label}
+                                                    </Badge>
+                                                </dd>
+                                            </div>
+                                        </dl>
+                                    </div>
+
+                                    <div className="mt-4 flex gap-3">
+                                        <Link
+                                            href="/dashboard"
+                                            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                                        >
+                                            ← Voltar ao Dashboard
+                                        </Link>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 )}
+
+                {/* Conteúdo Completo (Owner ou Admin) */}
+                {!loading && data && data.hasAccess && (
+                    <>
+                        {/* Header */}
+                        <div className="card mb-6">
+                            <div className="flex justify-between items-start">
+                                <div>
+                                    <h1 className="text-3xl font-bold mb-2">{data.company.TITLE}</h1>
+                                    <div className="flex items-center gap-3 mb-4">
+                                        <Badge variant={typeBadge.variant}>{typeBadge.label}</Badge>
+                                        {data.isOwner && (
+                                            <span className="inline-block bg-green-100 text-green-800 text-sm px-3 py-1 rounded-full">
+                                                ✓ Criado por você
+                                            </span>
+                                        )}
+                                    </div>
+                                </div>
+
+                                {data.canEdit && (
+                                    <Link href={`/nova-autorizacao?companyId=${companyId}`} className="btn-primary">
+                                        ✏️ Editar
+                                    </Link>
+                                )}
+                            </div>
+                        </div>
+
+                        {data.canEdit ? (
+                            <>
+                                {/* Informações da Empresa */}
+                                <div className="card mb-6">
+                                    <h2 className="text-2xl font-bold mb-4">Informações da Empresa</h2>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        {data.company.UF_CRM_CPF_CNPJ && (
+                                            <div>
+                                                <span className="text-sm text-gray-600 font-semibold">CPF/CNPJ:</span>
+                                                <p className="text-gray-800">{data.company.UF_CRM_CPF_CNPJ}</p>
+                                            </div>
+                                        )}
+                                        {data.company.EMAIL && (
+                                            <div>
+                                                <span className="text-sm text-gray-600 font-semibold">Email:</span>
+                                                <p className="text-gray-800">
+                                                    {Array.isArray(data.company.EMAIL)
+                                                        ? (typeof data.company.EMAIL[0] === 'object' ? data.company.EMAIL[0]?.VALUE : data.company.EMAIL[0])
+                                                        : data.company.EMAIL}
+                                                </p>
+                                            </div>
+                                        )}
+                                        {data.company.PHONE && (
+                                            <div>
+                                                <span className="text-sm text-gray-600 font-semibold">Telefone:</span>
+                                                <p className="text-gray-800">
+                                                    {Array.isArray(data.company.PHONE)
+                                                        ? (typeof data.company.PHONE[0] === 'object' ? data.company.PHONE[0]?.VALUE : data.company.PHONE[0])
+                                                        : data.company.PHONE}
+                                                </p>
+                                            </div>
+                                        )}
+                                        {data.company.DATE_CREATE && (
+                                            <div>
+                                                <span className="text-sm text-gray-600 font-semibold">Data de Criação:</span>
+                                                <p className="text-gray-800">{formatDate(data.company.DATE_CREATE)}</p>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+
+                                {/* Imóveis Vinculados */}
+                                <div className="card">
+                                    <h2 className="text-2xl font-bold mb-4">
+                                        Imóveis Vinculados ({data.properties.length})
+                                    </h2>
+
+                                    {data.properties.length === 0 ? (
+                                        <p className="text-gray-600">Nenhum imóvel vinculado a esta empresa</p>
+                                    ) : (
+                                        <div className="space-y-4">
+                                            {data.properties.map((prop: any) => (
+                                                <div key={prop.id} className="border rounded-lg p-4 bg-gray-50 hover:bg-gray-100 transition">
+                                                    <h3 className="font-bold text-lg mb-3">{prop.title || `Imóvel #${prop.id}`}</h3>
+                                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+                                                        {prop.ufCrmPropertyAddress && (
+                                                            <div>
+                                                                <span className="text-gray-600 font-semibold">📍 Endereço:</span>
+                                                                <p className="text-gray-800">{prop.ufCrmPropertyAddress}</p>
+                                                            </div>
+                                                        )}
+                                                        {prop.ufCrmPropertyValue && (
+                                                            <div>
+                                                                <span className="text-gray-600 font-semibold">💰 Valor:</span>
+                                                                <p className="text-gray-800">{formatCurrency(prop.ufCrmPropertyValue)}</p>
+                                                            </div>
+                                                        )}
+                                                        {prop.ufCrmPropertyMatricula && (
+                                                            <div>
+                                                                <span className="text-gray-600 font-semibold">📄 Matrícula:</span>
+                                                                <p className="text-gray-800">{prop.ufCrmPropertyMatricula}</p>
+                                                            </div>
+                                                        )}
+                                                        {prop.ufCrmPropertyDescription && (
+                                                            <div className="md:col-span-2">
+                                                                <span className="text-gray-600 font-semibold">📝 Descrição:</span>
+                                                                <p className="text-gray-800">{prop.ufCrmPropertyDescription}</p>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+                            </>
+                        ) : (
+                            <div className="card text-center py-12">
+                                <div className="text-6xl mb-4">🔒</div>
+                                <h2 className="text-2xl font-bold mb-2">Acesso Restrito</h2>
+                                <p className="text-gray-600 mb-4">
+                                    {data.message || 'Esta autorização foi criada por outro corretor'}
+                                </p>
+                                <div className="text-left max-w-md mx-auto mt-6 p-4 bg-gray-50 rounded">
+                                    <p className="text-sm text-gray-700 mb-2">
+                                        <strong>Informações disponíveis:</strong>
+                                    </p>
+                                    <ul className="text-sm text-gray-600 space-y-1">
+                                        <li>✓ Nome: {data.company.TITLE}</li>
+                                        <li>✓ Data de criação: {formatDate(data.company.DATE_CREATE)}</li>
+                                        <li>✓ Imóveis: {data.properties.length}</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        )}
+                    </div>
             </div>
-        </div>
-    );
+            );
 }
