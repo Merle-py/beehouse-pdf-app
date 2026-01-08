@@ -300,6 +300,11 @@ export default function DashboardPage() {
                                         <PropertyList
                                             properties={properties}
                                             onCreateAuthorization={handleCreateAuthorizationForProperty}
+                                            isAdmin={isAdmin}
+                                            onPropertyUpdate={() => {
+                                                localStorage.removeItem(CACHE_KEY);
+                                                loadFromCacheOrFetch(true);
+                                            }}
                                         />
                                     ) : (
                                         <EmptyState
