@@ -37,47 +37,74 @@ export async function GET(request: NextRequest) {
             );
         }
 
-        // Busca todos os imóveis (SPA Items)
-        const response: any = await callBitrixAPI('crm.item.list', {
-            entityTypeId: parseInt(entityTypeId),
-            select: [
-                'id',
-                'title',
-                'ufCrm*', // Todos os campos customizados
-                'companyId',
-                'createdTime',
-                'updatedTime'
-            ],
-            order: { createdTime: 'DESC' }
-        });
+        console.log('[API Properties] Buscando imóveis...');
 
-        if (!response.result || !response.result.items) {
+        // Busca TODOS os imóveis com paginação
+        let allProperties: any[] = [];
+        let start = 0;
+        const limit = 50;
+        let hasMore = true;
+
+        while (hasMore && start < 1000) {
+            const response: any = await callBitrixAPI('crm.item.list', {
+                entityTypeId: parseInt(entityTypeId),
+                select: [
+                    'id',
+                    'title',
+                    'ufCrm*', // Todos os campos customizados
+                    'companyId',
+                    'createdTime',
+                    'updatedTime'
+                ],
+                order: { createdTime: 'DESC' },
+                start,
+                limit
+            });
+
+            const items = response?.items || [];
+            allProperties = allProperties.concat(items);
+
+            console.log(`[API Properties] Página ${Math.floor(start / limit) + 1}: ${items.length} imóveis`);
+
+            hasMore = items.length === limit;
+            start += limit;
+        }
+
+        console.log(`[API Properties] Total encontrado: ${allProperties.length} imóveis`);
+
+        if (allProperties.length === 0) {
             return NextResponse.json({ properties: [] });
         }
 
         // Busca informações das empresas vinculadas
-        const companyIds = response.result.items
+        const companyIds = allProperties
             .map((item: any) => item.companyId)
             .filter((id: any) => id);
 
         let companiesMap: Record<string, any> = {};
 
         if (companyIds.length > 0) {
-            const companiesResponse: any = await callBitrixAPI('crm.company.list', {
-                filter: { ID: companyIds },
-                select: ['ID', 'TITLE', 'COMPANY_TYPE']
-            });
+            // Remove duplicatas
+            const uniqueCompanyIds = [...new Set(companyIds)];
 
-            if (companiesResponse.result) {
-                companiesMap = companiesResponse.result.reduce((acc: any, company: any) => {
-                    acc[company.ID] = company;
-                    return acc;
-                }, {});
+            // Busca empresas em lotes de 50
+            for (let i = 0; i < uniqueCompanyIds.length; i += 50) {
+                const batch = uniqueCompanyIds.slice(i, i + 50);
+                const companiesResponse: any = await callBitrixAPI('crm.company.list', {
+                    filter: { ID: batch },
+                    select: ['ID', 'TITLE', 'COMPANY_TYPE']
+                });
+
+                if (companiesResponse) {
+                    companiesResponse.forEach((company: any) => {
+                        companiesMap[company.ID] = company;
+                    });
+                }
             }
         }
 
         // Formata os dados dos imóveis
-        const properties = response.result.items.map((item: any) => {
+        const properties = allProperties.map((item: any) => {
             const company = item.companyId ? companiesMap[item.companyId] : null;
 
             return {
