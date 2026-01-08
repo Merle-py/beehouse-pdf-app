@@ -56,9 +56,42 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
             order: { CREATED_TIME: 'DESC' }
         });
 
-        const companies = response || [];
+        let companies = response || [];
 
         console.log('[API Companies] Encontradas:', companies.length, 'empresas');
+
+        // Busca contagem de imóveis para cada empresa
+        const entityTypeId = process.env.B24_PROPERTY_ENTITY_TYPE_ID;
+        if (entityTypeId && companies.length > 0) {
+            try {
+                // Busca todos os imóveis
+                const propertiesResponse: any = await callBitrixAPI('crm.item.list', {
+                    entityTypeId: parseInt(entityTypeId),
+                    select: ['id', 'companyId']
+                });
+
+                const properties = propertiesResponse?.items || [];
+
+                // Conta imóveis por empresa
+                const propertyCountMap: Record<string, number> = {};
+                properties.forEach((property: any) => {
+                    if (property.companyId) {
+                        propertyCountMap[property.companyId] = (propertyCountMap[property.companyId] || 0) + 1;
+                    }
+                });
+
+                // Adiciona contagem aos dados das empresas
+                companies = companies.map((company: any) => ({
+                    ...company,
+                    propertyCount: propertyCountMap[company.ID] || 0
+                }));
+
+                console.log('[API Companies] Contagem de imóveis adicionada');
+            } catch (err) {
+                console.error('[API Companies] Erro ao contar imóveis:', err);
+                // Continua sem a contagem se houver erro
+            }
+        }
 
         return NextResponse.json({
             success: true,
