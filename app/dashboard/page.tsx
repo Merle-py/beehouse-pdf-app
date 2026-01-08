@@ -26,34 +26,62 @@ export default function DashboardPage() {
     const [properties, setProperties] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-    const [dataLoaded, setDataLoaded] = useState(false); // Cache flag
 
+    const CACHE_KEY = 'dashboard_cache';
+    const CACHE_DURATION = 5 * 60 * 1000; // 5 minutos em millisegundos
+
+    // Carrega dados do cache ao iniciar
     useEffect(() => {
         console.log('[Dashboard] Bitrix state:', {
             isInitialized: bitrix.isInitialized,
             authId: bitrix.authId,
-            domain: bitrix.domain,
-            dataLoaded
+            domain: bitrix.domain
         });
 
-        // Só carrega se não tiver carregado ainda
-        if (bitrix.isInitialized && bitrix.authId && bitrix.domain && !dataLoaded) {
-            loadDashboardData();
+        if (bitrix.isInitialized && bitrix.authId && bitrix.domain) {
+            loadFromCacheOrFetch();
         }
-    }, [bitrix.isInitialized, bitrix.authId, bitrix.domain, dataLoaded]);
+    }, [bitrix.isInitialized, bitrix.authId, bitrix.domain]);
 
-    const loadDashboardData = async (forceRefresh = false) => {
-        // Se já carregou e não é refresh forçado, não recarrega
-        if (dataLoaded && !forceRefresh) {
-            console.log('[Dashboard] Dados já em cache, pulando carregamento');
-            return;
+    const loadFromCacheOrFetch = (forceRefresh = false) => {
+        if (!forceRefresh) {
+            try {
+                const cached = localStorage.getItem(CACHE_KEY);
+                if (cached) {
+                    const { data, timestamp } = JSON.parse(cached);
+                    const now = Date.now();
+
+                    // Verifica se o cache ainda é válido (menos de 5 minutos)
+                    if (now - timestamp < CACHE_DURATION) {
+                        console.log('[Dashboard] Carregando do cache localStorage');
+                        setStats(data.stats);
+                        setCompanies(data.companies);
+                        setProperties(data.properties);
+                        setLoading(false);
+                        return;
+                    }
+
+                    console.log('[Dashboard] Cache expirado, recarregando...');
+                }
+            } catch (err) {
+                console.error('[Dashboard] Erro ao ler cache:', err);
+            }
         }
 
+        // Se não tem cache ou expirou, ou se é refresh forçado, carrega da API
+        loadDashboardData();
+    };
+
+    const loadDashboardData = async () => {
         try {
             setLoading(true);
             setError(null);
 
-            console.log('[Dashboard] Loading data...');
+            console.log('[Dashboard] Loading data from API...');
+
+            let fetchedStats = stats;
+            let fetchedCompanies = companies;
+            let fetchedProperties = properties;
 
             // Carrega estatísticas
             console.log('[Dashboard] Fetching stats...');
@@ -64,6 +92,7 @@ export default function DashboardPage() {
                 const statsData = await statsResponse.json();
                 console.log('[Dashboard] Stats loaded:', statsData);
                 setStats(statsData.stats);
+                fetchedStats = statsData.stats;
             } else {
                 console.error('[Dashboard] Stats error:', await statsResponse.text());
             }
@@ -77,6 +106,7 @@ export default function DashboardPage() {
                 const companiesData = await companiesResponse.json();
                 console.log('[Dashboard] Companies loaded:', companiesData);
                 setCompanies(companiesData.companies || []);
+                fetchedCompanies = companiesData.companies || [];
             } else {
                 console.error('[Dashboard] Companies error:', await companiesResponse.text());
             }
@@ -90,12 +120,26 @@ export default function DashboardPage() {
                 const propertiesData = await propertiesResponse.json();
                 console.log('[Dashboard] Properties loaded:', propertiesData);
                 setProperties(propertiesData.properties || []);
+                fetchedProperties = propertiesData.properties || [];
             } else {
                 console.error('[Dashboard] Properties error:', await propertiesResponse.text());
             }
 
-            // Marca como carregado
-            setDataLoaded(true);
+            // Salva no localStorage com timestamp
+            try {
+                const cacheData = {
+                    data: {
+                        stats: fetchedStats,
+                        companies: fetchedCompanies,
+                        properties: fetchedProperties
+                    },
+                    timestamp: Date.now()
+                };
+                localStorage.setItem(CACHE_KEY, JSON.stringify(cacheData));
+                console.log('[Dashboard] Dados salvos no cache localStorage');
+            } catch (err) {
+                console.error('[Dashboard] Erro ao salvar cache:', err);
+            }
 
         } catch (err: any) {
             console.error('[Dashboard] Error loading dashboard:', err);
@@ -151,6 +195,9 @@ export default function DashboardPage() {
                             <button
                                 onClick={(e) => {
                                     e.preventDefault();
+                                    // Limpa o cache do localStorage
+                                    localStorage.removeItem(CACHE_KEY);
+                                    console.log('[Dashboard] Cache limpo, recarregando...');
                                     loadDashboardData(true);
                                 }}
                                 className="btn-secondary flex items-center gap-2"
