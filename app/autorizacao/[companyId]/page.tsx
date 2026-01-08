@@ -11,6 +11,7 @@ interface AuthorizationDetail {
     success: boolean;
     isOwner: boolean;
     isAdmin: boolean;
+    hasAccess: boolean;
     company: any;
     properties: any[];
     canEdit: boolean;
