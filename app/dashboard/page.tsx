@@ -196,9 +196,7 @@ export default function DashboardPage() {
     };
 
     const handleCreateProperty = (companyId: string) => {
-        // TODO: Implementar criação de imóvel
-        console.log('Criar imóvel para empresa:', companyId);
-        alert('Funcionalidade em desenvolvimento: Criar Imóvel');
+        router.push(`/novo-imovel?companyId=${companyId}`);
     };
 
     const handleCreateAuthorization = (companyId: string) => {
@@ -206,9 +204,12 @@ export default function DashboardPage() {
     };
 
     const handleCreateAuthorizationForProperty = (propertyId: string) => {
-        // TODO: Implementar criação de autorização para imóvel
-        console.log('Criar autorização para imóvel:', propertyId);
-        alert('Funcionalidade em desenvolvimento: Criar Autorização para Imóvel');
+        const property = properties.find(p => p.id === propertyId);
+        if (property && property.companyId) {
+            router.push(`/nova-autorizacao?propertyId=${propertyId}&companyId=${property.companyId}`);
+        } else {
+            alert('Erro: Imóvel não possui empresa vinculada');
+        }
     };
 
     // Filtra e ordena imóveis
