@@ -105,15 +105,42 @@ export async function GET(request: NextRequest) {
 
         console.log(`[API Stats] Total de autorizações: ${totalAuthorizations}`);
 
-        // Calcula autorizações pendentes
-        const pendingAuthorizations = totalCompanies - totalAuthorizations;
+        // Conta imóveis SEM autorização (nem PDF nem flag manual)
+        // Para calcular pendentes corretamente
+        let propertiesWithAuthorization = 0;
+        start = 0;
+        hasMore = true;
+
+        while (hasMore && start < 1000) {
+            const propertiesResponse: any = await callBitrixAPI('crm.item.list', {
+                entityTypeId: parseInt(entityTypeId),
+                select: ['id', 'ufCrmPropertyHasAuthorization'], // Campo customizado para flag manual
+                start,
+                limit: 50
+            });
+            const properties = propertiesResponse?.items || [];
+
+            // Conta imóveis que têm flag de autorização manual marcada
+            const withAuth = properties.filter((prop: any) => {
+                return prop.ufCrmPropertyHasAuthorization === 'Y' || prop.ufCrmPropertyHasAuthorization === true || prop.ufCrmPropertyHasAuthorization === '1';
+            });
+
+            propertiesWithAuthorization += withAuth.length;
+            hasMore = properties.length === 50;
+            start += 50;
+        }
+
+        console.log(`[API Stats] Imóveis com autorização manual: ${propertiesWithAuthorization}`);
+
+        // Pendentes = Total de imóveis - (Autorizações com PDF + Autorizações manuais)
+        const pendingAuthorizations = Math.max(0, totalProperties - totalAuthorizations - propertiesWithAuthorization);
 
         return NextResponse.json({
             stats: {
                 totalCompanies,
                 totalProperties,
-                totalAuthorizations,
-                pendingAuthorizations: Math.max(0, pendingAuthorizations)
+                totalAuthorizations: totalAuthorizations + propertiesWithAuthorization, // Total inclui ambos
+                pendingAuthorizations
             }
         });
 
