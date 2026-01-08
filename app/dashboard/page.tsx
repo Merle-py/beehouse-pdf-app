@@ -26,20 +26,29 @@ export default function DashboardPage() {
     const [properties, setProperties] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [dataLoaded, setDataLoaded] = useState(false); // Cache flag
 
     useEffect(() => {
         console.log('[Dashboard] Bitrix state:', {
             isInitialized: bitrix.isInitialized,
             authId: bitrix.authId,
-            domain: bitrix.domain
+            domain: bitrix.domain,
+            dataLoaded
         });
 
-        if (bitrix.isInitialized && bitrix.authId && bitrix.domain) {
+        // Só carrega se não tiver carregado ainda
+        if (bitrix.isInitialized && bitrix.authId && bitrix.domain && !dataLoaded) {
             loadDashboardData();
         }
-    }, [bitrix.isInitialized, bitrix.authId, bitrix.domain]);
+    }, [bitrix.isInitialized, bitrix.authId, bitrix.domain, dataLoaded]);
 
-    const loadDashboardData = async () => {
+    const loadDashboardData = async (forceRefresh = false) => {
+        // Se já carregou e não é refresh forçado, não recarrega
+        if (dataLoaded && !forceRefresh) {
+            console.log('[Dashboard] Dados já em cache, pulando carregamento');
+            return;
+        }
+
         try {
             setLoading(true);
             setError(null);
@@ -84,6 +93,9 @@ export default function DashboardPage() {
             } else {
                 console.error('[Dashboard] Properties error:', await propertiesResponse.text());
             }
+
+            // Marca como carregado
+            setDataLoaded(true);
 
         } catch (err: any) {
             console.error('[Dashboard] Error loading dashboard:', err);
@@ -135,9 +147,18 @@ export default function DashboardPage() {
                                 Gerencie empresas, imóveis e autorizações
                             </p>
                         </div>
-                        <Link href="/nova-autorizacao" className="btn-primary">
-                            + Nova Autorização
-                        </Link>
+                        <div className="flex gap-3">
+                            <button
+                                onClick={() => loadDashboardData(true)}
+                                className="btn-secondary flex items-center gap-2"
+                                disabled={loading}
+                            >
+                                🔄 {loading ? 'Atualizando...' : 'Atualizar'}
+                            </button>
+                            <Link href="/nova-autorizacao" className="btn-primary">
+                                + Nova Autorização
+                            </Link>
+                        </div>
                     </div>
                 </div>
             </div>
