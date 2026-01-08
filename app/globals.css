@@ -3,27 +3,91 @@
 @tailwind utilities;
 
 :root {
-  --foreground-rgb: 0, 0, 0;
-  --background-start-rgb: 214, 219, 220;
-  --background-end-rgb: 255, 255, 255;
+  --beehouse-primary: #D4AF37;
+  --beehouse-secondary: #2C3E50;
+  --beehouse-accent: #E8C468;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --foreground-rgb: 255, 255, 255;
-    --background-start-rgb: 0, 0, 0;
-    --background-end-rgb: 0, 0, 0;
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', sans-serif;
+  background-color: #f9fafb;
+}
+
+/* Estilos globais para formulários - INPUTS VISÍVEIS */
+@layer components {
+
+  /* Inputs padrão com bordas visíveis (2px) */
+  input[type="text"],
+  input[type="email"],
+  input[type="tel"],
+  input[type="number"],
+  input[type="date"],
+  input[type="password"],
+  input[type="url"],
+  textarea,
+  select {
+    @apply w-full px-4 py-3 border-2 border-gray-300 rounded-lg;
+    @apply focus:border-blue-500 focus:ring-2 focus:ring-blue-200 focus:outline-none;
+    @apply transition-all duration-200;
+    @apply bg-white text-gray-900;
+    @apply placeholder-gray-400;
   }
-}
 
-body {}
+  input[type="text"]:hover,
+  input[type="email"]:hover,
+  input[type="tel"]:hover,
+  input[type="number"]:hover,
+  input[type="date"]:hover,
+  input[type="password"]:hover,
+  input[type="url"]:hover,
+  textarea:hover,
+  select:hover {
+    @apply border-gray-400;
+  }
 
-.btn-secondary {
-  @apply bg-gray-600 hover:bg-gray-700 text-white font-semibold px-6 py-3 rounded-lg transition-all shadow-md hover:shadow-lg;
-}
+  input[type="text"]:disabled,
+  input[type="email"]:disabled,
+  input[type="tel"]:disabled,
+  input[type="number"]:disabled,
+  input[type="date"]:disabled,
+  input[type="password"]:disabled,
+  input[type="url"]:disabled,
+  textarea:disabled,
+  select:disabled {
+    @apply bg-gray-100 cursor-not-allowed text-gray-500;
+  }
 
-.card {
-  @apply bg-white rounded-xl shadow-sm border border-gray-200 p-6;
+  /* Labels */
+  label {
+    @apply block text-sm font-semibold text-gray-700 mb-2;
+  }
+
+  /* Fieldsets */
+  fieldset {
+    @apply border-2 border-gray-200 rounded-lg p-4 mb-4;
+  }
+
+  legend {
+    @apply text-lg font-bold text-gray-800 px-2;
+  }
+
+  /* Cards */
+  .card {
+    @apply bg-white rounded-xl shadow-sm border border-gray-200 p-6;
+  }
+
+  /* Botões */
+  .btn-primary {
+    @apply bg-beehouse-primary hover:bg-beehouse-accent text-white font-semibold px-6 py-3 rounded-lg transition-all shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+
+  .btn-secondary {
+    @apply bg-gray-600 hover:bg-gray-700 text-white font-semibold px-6 py-3 rounded-lg transition-all shadow-md hover:shadow-lg;
+  }
+
+  .btn-danger {
+    @apply bg-red-600 hover:bg-red-700 text-white font-semibold px-6 py-3 rounded-lg transition-colors duration-200;
+  }
 }
 
 /* Loading spinner */
