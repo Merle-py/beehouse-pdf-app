@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import { useBitrix24 } from '@/lib/bitrix/client-sdk';
 import Link from 'next/link';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
@@ -21,6 +21,7 @@ interface AuthorizationDetail {
 
 export default function AutorizacaoDetalhesPage() {
     const params = useParams();
+    const router = useRouter();
     const bitrix = useBitrix24();
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -192,9 +193,20 @@ export default function AutorizacaoDetalhesPage() {
                                 </div>
                             </div>
                             {data.canEdit && (
-                                <button className="btn-secondary">
-                                    ✏️ Editar
-                                </button>
+                                <div className="flex gap-2">
+                                    <button
+                                        onClick={() => router.push(`/nova-autorizacao?companyId=${companyId}`)}
+                                        className="btn-primary text-sm"
+                                    >
+                                        ➕ Nova Autorização
+                                    </button>
+                                    <button
+                                        onClick={() => router.push(`/novo-imovel?companyId=${companyId}`)}
+                                        className="btn-primary text-sm"
+                                    >
+                                        🏠 Novo Imóvel
+                                    </button>
+                                </div>
                             )}
                         </div>
                     </div>
@@ -243,7 +255,7 @@ export default function AutorizacaoDetalhesPage() {
                             <div className="space-y-3">
                                 {data.properties.map((property: any) => (
                                     <div key={property.id} className="p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
-                                        <div className="flex justify-between items-start">
+                                        <div className="flex justify-between items-start gap-4">
                                             <div className="flex-1">
                                                 <h3 className="font-medium text-gray-900">{property.title || `Imóvel #${property.id}`}</h3>
                                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mt-2 text-sm">
@@ -267,9 +279,29 @@ export default function AutorizacaoDetalhesPage() {
                                                     )}
                                                 </div>
                                             </div>
-                                            <Badge variant={property.hasAuthorization ? 'success' : 'warning'}>
-                                                {property.hasAuthorization ? 'Com Autorização' : 'Sem Autorização'}
-                                            </Badge>
+                                            <div className="flex flex-col gap-2 items-end">
+                                                <Badge variant={property.hasAuthorization ? 'success' : 'warning'}>
+                                                    {property.hasAuthorization ? 'Com Autorização' : 'Sem Autorização'}
+                                                </Badge>
+                                                {data.canEdit && (
+                                                    <div className="flex gap-2">
+                                                        <button
+                                                            onClick={() => router.push(`/editar-imovel/${property.id}`)}
+                                                            className="px-3 py-1 text-xs bg-gray-200 hover:bg-gray-300 rounded transition-colors"
+                                                        >
+                                                            ✏️ Editar
+                                                        </button>
+                                                        {!property.hasAuthorization && (
+                                                            <button
+                                                                onClick={() => router.push(`/nova-autorizacao?propertyId=${property.id}&companyId=${companyId}`)}
+                                                                className="px-3 py-1 text-xs bg-blue-500 hover:bg-blue-600 text-white rounded transition-colors"
+                                                            >
+                                                                ➕ Autorização
+                                                            </button>
+                                                        )}
+                                                    </div>
+                                                )}
+                                            </div>
                                         </div>
                                     </div>
                                 ))}
