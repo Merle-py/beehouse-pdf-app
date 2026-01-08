@@ -149,7 +149,10 @@ export default function DashboardPage() {
                         </div>
                         <div className="flex gap-3">
                             <button
-                                onClick={() => loadDashboardData(true)}
+                                onClick={(e) => {
+                                    e.preventDefault();
+                                    loadDashboardData(true);
+                                }}
                                 className="btn-secondary flex items-center gap-2"
                                 disabled={loading}
                             >
