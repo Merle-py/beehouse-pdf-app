@@ -250,14 +250,14 @@ export default function DashboardPage() {
                         value={stats.signedAuthorizations}
                         subtitle="Autorizações assinadas"
                         icon="✍️"
-                        variant="success"
+                        color="green"
                     />
                     <StatsCard
                         title="Pendentes de Assinatura"
                         value={stats.pendingSignatures}
                         subtitle="Aguardando assinatura"
                         icon="📝"
-                        variant="warning"
+                        color="yellow"
                     />
                 </div>
 
