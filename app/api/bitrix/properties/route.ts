@@ -54,7 +54,8 @@ export async function GET(request: NextRequest) {
                     'ufCrm*', // Todos os campos customizados
                     'companyId',
                     'createdTime',
-                    'updatedTime'
+                    'updatedTime',
+                    'ufCrmPropertyHasAuthorization' // Campo de autorização manual
                 ],
                 order: { createdTime: 'DESC' },
                 start,
