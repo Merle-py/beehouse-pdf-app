@@ -8,6 +8,7 @@ export interface Property {
     companyId: string;
     companyName: string;
     companyType: string;
+    assignedById?: string;  // ID do usuário que criou o imóvel
     ufCrmPropertyAddress?: string;
     ufCrmPropertyValue?: string;
     ufCrmPropertyMatricula?: string;

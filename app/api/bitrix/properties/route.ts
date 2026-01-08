@@ -56,6 +56,7 @@ export async function GET(request: NextRequest) {
                     'title',
                     'ufCrm*', // Todos os campos customizados
                     'companyId',
+                    'assignedById',  // ID do usuário que criou o imóvel
                     'createdTime',
                     'updatedTime',
                     'ufCrm15_1767879091919', // Campo de autorização manual (ID exato)
@@ -137,6 +138,7 @@ export async function GET(request: NextRequest) {
                 companyId: item.companyId,
                 companyName: company?.TITLE || 'Sem empresa',
                 companyType: company?.COMPANY_TYPE || '',
+                assignedById: item.assignedById,  // ID do criador do imóvel
                 createdTime: item.createdTime,
                 updatedTime: item.updatedTime,
                 hasAuthorization: hasManualAuth,

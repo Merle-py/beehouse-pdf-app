@@ -60,6 +60,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
                     'UF_CRM_*', // Todos os campos customizados
                     'EMAIL',
                     'PHONE',
+                    'ASSIGNED_BY_ID',  // ID do usuário que criou a empresa
                     'CREATED_TIME'
                 ],
                 order: { CREATED_TIME: 'DESC' },

@@ -11,9 +11,10 @@ interface PropertyListProps {
     onCreateAuthorization: (propertyId: string) => void;
     isAdmin?: boolean;
     onPropertyUpdate?: () => void;
+    currentUserId?: string;  // ID do usuário atual
 }
 
-export default function PropertyList({ properties, onCreateAuthorization, isAdmin = false, onPropertyUpdate }: PropertyListProps) {
+export default function PropertyList({ properties, onCreateAuthorization, isAdmin = false, onPropertyUpdate, currentUserId }: PropertyListProps) {
     const bitrix = useBitrix24();
     const [updatingProperty, setUpdatingProperty] = useState<string | null>(null);
 
@@ -106,11 +107,20 @@ export default function PropertyList({ properties, onCreateAuthorization, isAdmi
                     {properties.map((property) => (
                         <tr key={property.id} className="hover:bg-gray-50">
                             <td className="px-6 py-4">
-                                <div className="text-sm font-medium text-gray-900">
-                                    {property.title}
-                                </div>
-                                <div className="text-sm text-gray-500">
-                                    {property.description || property.ufCrmPropertyDescription || '-'}
+                                <div className="flex items-center gap-2">
+                                    <div>
+                                        <div className="text-sm font-medium text-gray-900">
+                                            {property.title}
+                                        </div>
+                                        <div className="text-sm text-gray-500">
+                                            {property.description || property.ufCrmPropertyDescription || '-'}
+                                        </div>
+                                    </div>
+                                    {currentUserId && property.assignedById === currentUserId && (
+                                        <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
+                                            Minha
+                                        </span>
+                                    )}
                                 </div>
                             </td>
                             <td className="px-6 py-4 text-sm text-gray-500">

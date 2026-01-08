@@ -39,6 +39,7 @@ export default function DashboardPage() {
     const [authorizationsLoading, setAuthorizationsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [isAdmin, setIsAdmin] = useState(false);
+    const [currentUserId, setCurrentUserId] = useState<string>('');
 
     // Modal de seleção de empresa
     const [showCompanyModal, setShowCompanyModal] = useState(false);
@@ -61,6 +62,7 @@ export default function DashboardPage() {
 
         if (bitrix.isInitialized && bitrix.authId && bitrix.domain) {
             loadFromCacheOrFetch();
+            loadUserInfo();
         }
     }, [bitrix.isInitialized, bitrix.authId, bitrix.domain]);
 
@@ -199,6 +201,23 @@ export default function DashboardPage() {
             toast.error('Erro ao carregar autorizações');
         } finally {
             setAuthorizationsLoading(false);
+        }
+    };
+
+    // Carrega informações do usuário atual (ID e se é admin)
+    const loadUserInfo = async () => {
+        try {
+            const response = await fetch(`/api/bitrix/user-info?accessToken=${bitrix.authId}&domain=${bitrix.domain}`);
+            if (response.ok) {
+                const data = await response.json();
+                if (data.success) {
+                    setCurrentUserId(data.user.ID);
+                    setIsAdmin(data.user.IS_ADMIN || false);
+                    console.log('[Dashboard] User info loaded:', { id: data.user.ID, isAdmin: data.user.IS_ADMIN });
+                }
+            }
+        } catch (err) {
+            console.error('[Dashboard] Erro ao carregar info do usuário:', err);
         }
     };
 
@@ -486,6 +505,8 @@ export default function DashboardPage() {
                                             companies={companies}
                                             onCreateProperty={handleCreateProperty}
                                             onCreateAuthorization={handleCreateAuthorization}
+                                            isAdmin={isAdmin}
+                                            currentUserId={currentUserId}
                                         />
                                     ) : (
                                         <EmptyState
