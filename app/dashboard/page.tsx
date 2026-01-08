@@ -20,7 +20,9 @@ export default function DashboardPage() {
         totalCompanies: 0,
         totalProperties: 0,
         totalAuthorizations: 0,
-        pendingAuthorizations: 0
+        pendingAuthorizations: 0,
+        signedAuthorizations: 0,
+        pendingSignatures: 0
     });
     const [companies, setCompanies] = useState<any[]>([]);
     const [properties, setProperties] = useState<any[]>([]);

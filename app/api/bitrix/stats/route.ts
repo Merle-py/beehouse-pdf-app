@@ -133,15 +133,48 @@ export async function GET(request: NextRequest) {
 
         console.log(`[API Stats] Imóveis com autorização manual: ${propertiesWithAuthorization}`);
 
+        // Conta imóveis com arquivo de autorização assinado
+        let propertiesWithSignedAuth = 0;
+        start = 0;
+        hasMore = true;
+
+        while (hasMore && start < 1000) {
+            const propertiesResponse: any = await callBitrixAPI('crm.item.list', {
+                entityTypeId: parseInt(entityTypeId),
+                select: ['id', 'ufCrm15_1767734105854'], // Campo de arquivo de autorização
+                start,
+                limit: 50
+            });
+            const properties = propertiesResponse?.items || [];
+
+            // Conta imóveis que têm arquivo de autorização enviado
+            const withFile = properties.filter((prop: any) => {
+                const fileField = prop.ufCrm15_1767734105854;
+                // Verifica se tem arquivo (não vazio, não null, não undefined)
+                return fileField && fileField !== '' && fileField !== 'null' && fileField !== 'undefined';
+            });
+
+            propertiesWithSignedAuth += withFile.length;
+            hasMore = properties.length === 50;
+            start += 50;
+        }
+
+        console.log(`[API Stats] Imóveis com autorização assinada: ${propertiesWithSignedAuth}`);
+
         // Pendentes = Total de imóveis - (Autorizações com PDF + Autorizações manuais)
         const pendingAuthorizations = Math.max(0, totalProperties - totalAuthorizations - propertiesWithAuthorization);
+
+        // Pendentes de assinatura = Imóveis com autorização - Imóveis com arquivo assinado
+        const pendingSignatures = Math.max(0, (totalAuthorizations + propertiesWithAuthorization) - propertiesWithSignedAuth);
 
         return NextResponse.json({
             stats: {
                 totalCompanies,
                 totalProperties,
                 totalAuthorizations: totalAuthorizations + propertiesWithAuthorization, // Total inclui ambos
-                pendingAuthorizations
+                pendingAuthorizations,
+                signedAuthorizations: propertiesWithSignedAuth,
+                pendingSignatures
             }
         });
 

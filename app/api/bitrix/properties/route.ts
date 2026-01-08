@@ -55,7 +55,8 @@ export async function GET(request: NextRequest) {
                     'companyId',
                     'createdTime',
                     'updatedTime',
-                    'ufCrm15_1767879091919' // Campo de autorização manual (ID exato)
+                    'ufCrm15_1767879091919', // Campo de autorização manual (ID exato)
+                    'ufCrm15_1767734105854'  // Campo de arquivo de autorização
                 ],
                 order: { createdTime: 'DESC' },
                 start,
