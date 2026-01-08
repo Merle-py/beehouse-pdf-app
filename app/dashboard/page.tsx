@@ -242,7 +242,7 @@ export default function DashboardPage() {
                         title="Pendentes"
                         value={stats.pendingAuthorizations}
                         icon="⏳"
-                        color="yellow"
+                        color="red"
                         subtitle="Sem autorização"
                     />
                     <StatsCard

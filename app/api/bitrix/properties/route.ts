@@ -56,7 +56,7 @@ export async function GET(request: NextRequest) {
                     'createdTime',
                     'updatedTime',
                     'ufCrm15_1767879091919', // Campo de autorização manual (ID exato)
-                    'ufCrm15_1767734105854'  // Campo de arquivo de autorização
+                    'ufCrm15_1767882267145'  // Campo de arquivo de autorização (ID correto)
                 ],
                 order: { createdTime: 'DESC' },
                 start,
@@ -121,7 +121,7 @@ export async function GET(request: NextRequest) {
                 item.ufCrm15_1767879091919 === 1;
 
             // Verifica se tem arquivo de autorização assinado
-            const authFile = item.ufCrm15_1767734105854;
+            const authFile = item.ufCrm15_1767882267145;
             const hasSigned = authFile && authFile !== '' && authFile !== 'null' && authFile !== 'undefined';
 
             return {
