@@ -48,7 +48,7 @@ export default function AutorizacaoDetalhesPage() {
 
 
 
-    const formatDate = (dateString: string) => {
+    const formatDate = (dateString: string | undefined) => {
         if (!dateString) return '-';
         try {
             return new Date(dateString).toLocaleDateString('pt-BR', {
