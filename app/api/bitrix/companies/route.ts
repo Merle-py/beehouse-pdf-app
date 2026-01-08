@@ -64,17 +64,43 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
         const entityTypeId = process.env.B24_PROPERTY_ENTITY_TYPE_ID;
         if (entityTypeId && companies.length > 0) {
             try {
-                // Busca todos os imóveis
-                const propertiesResponse: any = await callBitrixAPI('crm.item.list', {
-                    entityTypeId: parseInt(entityTypeId),
-                    select: ['id', 'companyId']
-                });
+                console.log('[API Companies] Buscando imóveis para contagem...');
 
-                const properties = propertiesResponse?.items || [];
+                // Busca TODOS os imóveis com paginação
+                let allProperties: any[] = [];
+                let start = 0;
+                const limit = 50; // Limite por página do Bitrix24
+                let hasMore = true;
+
+                while (hasMore) {
+                    const propertiesResponse: any = await callBitrixAPI('crm.item.list', {
+                        entityTypeId: parseInt(entityTypeId),
+                        select: ['id', 'companyId'],
+                        start,
+                        limit
+                    });
+
+                    const items = propertiesResponse?.items || [];
+                    allProperties = allProperties.concat(items);
+
+                    console.log(`[API Companies] Página ${Math.floor(start / limit) + 1}: ${items.length} imóveis`);
+
+                    // Verifica se há mais páginas
+                    hasMore = items.length === limit;
+                    start += limit;
+
+                    // Proteção contra loop infinito
+                    if (start > 1000) {
+                        console.warn('[API Companies] Limite de 1000 imóveis atingido');
+                        break;
+                    }
+                }
+
+                console.log(`[API Companies] Total de imóveis encontrados: ${allProperties.length}`);
 
                 // Conta imóveis por empresa
                 const propertyCountMap: Record<string, number> = {};
-                properties.forEach((property: any) => {
+                allProperties.forEach((property: any) => {
                     if (property.companyId) {
                         propertyCountMap[property.companyId] = (propertyCountMap[property.companyId] || 0) + 1;
                     }
