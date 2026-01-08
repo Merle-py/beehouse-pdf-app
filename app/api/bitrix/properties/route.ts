@@ -55,7 +55,7 @@ export async function GET(request: NextRequest) {
                     'companyId',
                     'createdTime',
                     'updatedTime',
-                    'ufCrmPropertyHasAuthorization' // Campo de autorização manual
+                    'ufCrm15_1767879091919' // Campo de autorização manual (ID exato)
                 ],
                 order: { createdTime: 'DESC' },
                 start,
@@ -113,6 +113,12 @@ export async function GET(request: NextRequest) {
         const properties = allProperties.map((item: any) => {
             const company = item.companyId ? companiesMap[item.companyId] : null;
 
+            // Verifica autorização manual usando o ID exato do campo
+            const hasManualAuth = item.ufCrm15_1767879091919 === 'Y' ||
+                item.ufCrm15_1767879091919 === true ||
+                item.ufCrm15_1767879091919 === '1' ||
+                item.ufCrm15_1767879091919 === 1;
+
             return {
                 id: item.id,
                 title: item.title,
@@ -125,7 +131,8 @@ export async function GET(request: NextRequest) {
                 companyType: company?.COMPANY_TYPE || '',
                 createdTime: item.createdTime,
                 updatedTime: item.updatedTime,
-                hasAuthorization: false // TODO: verificar se tem autorização
+                hasAuthorization: hasManualAuth, // Usa o campo manual
+                ufCrmPropertyHasAuthorization: item.ufCrm15_1767879091919 // Passa o valor original também
             };
         });
 
