@@ -3,28 +3,20 @@
 @tailwind utilities;
 
 :root {
-  --beehouse-primary: #D4AF37;
-  --beehouse-secondary: #2C3E50;
-  --beehouse-accent: #E8C468;
+  --foreground-rgb: 0, 0, 0;
+  --background-start-rgb: 214, 219, 220;
+  --background-end-rgb: 255, 255, 255;
 }
 
-body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', sans-serif;
-  background-color: #f9fafb;
+@media (prefers-color-scheme: dark) {
+  :root {
+    --foreground-rgb: 255, 255, 255;
+    --background-start-rgb: 0, 0, 0;
+    --background-end-rgb: 0, 0, 0;
+  }
 }
 
-/* Estilos customizados para formulários */
-.form-input {
-  @apply w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-beehouse-primary focus:border-transparent transition-all;
-}
-
-.form-label {
-  @apply block text-sm font-medium text-gray-700 mb-1;
-}
-
-.btn-primary {
-  @apply bg-beehouse-primary hover:bg-beehouse-accent text-white font-semibold px-6 py-3 rounded-lg transition-all shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed;
-}
+body {}
 
 .btn-secondary {
   @apply bg-gray-600 hover:bg-gray-700 text-white font-semibold px-6 py-3 rounded-lg transition-all shadow-md hover:shadow-lg;
@@ -68,6 +60,7 @@ body {
     transform: translateX(100%);
     opacity: 0;
   }
+
   to {
     transform: translateX(0);
     opacity: 1;
