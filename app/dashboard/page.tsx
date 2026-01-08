@@ -245,20 +245,6 @@ export default function DashboardPage() {
                         color="red"
                         subtitle="Sem autorização"
                     />
-                    <StatsCard
-                        title="Assinadas"
-                        value={stats.signedAuthorizations}
-                        subtitle="Autorizações assinadas"
-                        icon="✍️"
-                        color="green"
-                    />
-                    <StatsCard
-                        title="Pendentes de Assinatura"
-                        value={stats.pendingSignatures}
-                        subtitle="Aguardando assinatura"
-                        icon="📝"
-                        color="yellow"
-                    />
                 </div>
 
                 {/* Tabs */}
