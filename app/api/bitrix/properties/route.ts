@@ -120,6 +120,10 @@ export async function GET(request: NextRequest) {
                 item.ufCrm15_1767879091919 === '1' ||
                 item.ufCrm15_1767879091919 === 1;
 
+            // Verifica se tem arquivo de autorização assinado
+            const authFile = item.ufCrm15_1767734105854;
+            const hasSigned = authFile && authFile !== '' && authFile !== 'null' && authFile !== 'undefined';
+
             return {
                 id: item.id,
                 title: item.title,
@@ -132,8 +136,10 @@ export async function GET(request: NextRequest) {
                 companyType: company?.COMPANY_TYPE || '',
                 createdTime: item.createdTime,
                 updatedTime: item.updatedTime,
-                hasAuthorization: hasManualAuth, // Usa o campo manual
-                ufCrmPropertyHasAuthorization: item.ufCrm15_1767879091919 // Passa o valor original também
+                hasAuthorization: hasManualAuth,
+                ufCrmPropertyHasAuthorization: item.ufCrm15_1767879091919,
+                hasSigned,
+                authorizationFile: authFile
             };
         });
 
