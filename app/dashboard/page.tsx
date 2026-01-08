@@ -5,6 +5,8 @@ import { useBitrix24 } from '@/lib/bitrix/client-sdk';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import StatsCard from '@/components/ui/StatsCard';
+import Dropdown from '@/components/ui/Dropdown';
+import CompanySelectionModal from '@/components/modals/CompanySelectionModal';
 import TabNavigation from '@/components/ui/TabNavigation';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import EmptyState from '@/components/ui/EmptyState';
@@ -29,6 +31,10 @@ export default function DashboardPage() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [isAdmin, setIsAdmin] = useState(false);
+
+    // Modal de seleção de empresa
+    const [showCompanyModal, setShowCompanyModal] = useState(false);
+    const [modalAction, setModalAction] = useState<'property' | 'authorization' | null>(null);
 
     // Filtros
     const [selectedCompany, setSelectedCompany] = useState<string>('all');
@@ -156,6 +162,39 @@ export default function DashboardPage() {
         }
     };
 
+    // Handlers para o dropdown "+ Novo"
+    const handleNovaEmpresa = () => {
+        router.push('/nova-empresa');
+    };
+
+    const handleNovoImovel = () => {
+        setModalAction('property');
+        setShowCompanyModal(true);
+    };
+
+    const handleNovaAutorizacao = () => {
+        setModalAction('authorization');
+        setShowCompanyModal(true);
+    };
+
+    const handleCompanySelected = (companyId: string) => {
+        setShowCompanyModal(false);
+        if (modalAction === 'property') {
+            router.push(`/novo-imovel?companyId=${companyId}`);
+        } else if (modalAction === 'authorization') {
+            router.push(`/nova-autorizacao?companyId=${companyId}`);
+        }
+    };
+
+    const handleCreateNewCompany = () => {
+        setShowCompanyModal(false);
+        if (modalAction === 'property') {
+            router.push('/nova-empresa?redirect=novo-imovel');
+        } else if (modalAction === 'authorization') {
+            router.push('/nova-empresa?redirect=nova-autorizacao');
+        }
+    };
+
     const handleCreateProperty = (companyId: string) => {
         // TODO: Implementar criação de imóvel
         console.log('Criar imóvel para empresa:', companyId);
@@ -246,9 +285,30 @@ export default function DashboardPage() {
                             >
                                 🔄 {loading ? 'Atualizando...' : 'Atualizar'}
                             </button>
-                            <Link href="/nova-autorizacao" className="btn-primary">
-                                + Nova Autorização
-                            </Link>
+                            <Dropdown
+                                trigger={
+                                    <button className="btn-primary flex items-center gap-2">
+                                        ➕ Novo
+                                    </button>
+                                }
+                                options={[
+                                    {
+                                        label: 'Nova Empresa',
+                                        icon: '🏢',
+                                        onClick: handleNovaEmpresa
+                                    },
+                                    {
+                                        label: 'Novo Imóvel',
+                                        icon: '🏠',
+                                        onClick: handleNovoImovel
+                                    },
+                                    {
+                                        label: 'Nova Autorização',
+                                        icon: '📄',
+                                        onClick: handleNovaAutorizacao
+                                    }
+                                ]}
+                            />
                         </div>
                     </div>
                 </div>
@@ -438,6 +498,14 @@ export default function DashboardPage() {
                     </div>
                 </div>
             </div>
+
+            {/* Modal de Seleção de Empresa */}
+            <CompanySelectionModal
+                isOpen={showCompanyModal}
+                onClose={() => setShowCompanyModal(false)}
+                onSelectExisting={handleCompanySelected}
+                onCreateNew={handleCreateNewCompany}
+            />
         </div>
     );
 }
