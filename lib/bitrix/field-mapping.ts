@@ -65,7 +65,7 @@ export const PROPERTY_FIELDS = {
 
     // Autorização
     POSSUI_AUTORIZACAO: 'UF_CRM_15_1767879091919',      // Possui autorização? (Sim/Não)
-    ARQUIVO_AUTORIZACAO: 'UF_CRM_15_1767734105854',     // Enviar autorização de venda (Arquivo)
+    ARQUIVO_AUTORIZACAO: 'UF_CRM_15_1767882267145',     // Enviar autorização de venda (Arquivo)
 } as const;
 
 // ===== HELPERS =====

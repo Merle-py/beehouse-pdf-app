@@ -141,7 +141,7 @@ export async function GET(request: NextRequest) {
         while (hasMore && start < 1000) {
             const propertiesResponse: any = await callBitrixAPI('crm.item.list', {
                 entityTypeId: parseInt(entityTypeId),
-                select: ['id', 'ufCrm15_1767734105854'], // Campo de arquivo de autorização
+                select: ['id', 'ufCrm15_1767882267145'], // Campo de arquivo de autorização (ID correto)
                 start,
                 limit: 50
             });
@@ -149,7 +149,7 @@ export async function GET(request: NextRequest) {
 
             // Conta imóveis que têm arquivo de autorização enviado
             const withFile = properties.filter((prop: any) => {
-                const fileField = prop.ufCrm15_1767734105854;
+                const fileField = prop.ufCrm15_1767882267145;
                 // Verifica se tem arquivo (não vazio, não null, não undefined)
                 return fileField && fileField !== '' && fileField !== 'null' && fileField !== 'undefined';
             });
