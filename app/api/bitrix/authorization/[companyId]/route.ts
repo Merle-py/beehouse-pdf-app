@@ -64,36 +64,50 @@ export async function GET(
 
         console.log(`[API Detail] Permissões - isOwner: ${isOwner}, isAdmin: ${isAdmin}`);
 
-        // Busca Property Items vinculados
-        let properties = [];
-        try {
-            const items = await callBitrixAPI('crm.item.list', {
-                entityTypeId: parseInt(process.env.B24_PROPERTY_ENTITY_TYPE_ID || '0'),
-                filter: {
-                    COMPANY_ID: companyId
-                },
-                select: ['*']
-            });
+        // Busca imóveis vinculados (SPA Items)
+        const entityTypeId = process.env.B24_PROPERTY_ENTITY_TYPE_ID;
+        let properties: any[] = [];
 
-            properties = items || [];
-        } catch (error) {
-            console.warn(`[API Detail] Erro ao buscar imóveis: ${error}`);
+        if (entityTypeId) {
+            try {
+                const propertiesResult = await callBitrixAPI('crm.item.list', {
+                    entityTypeId: parseInt(entityTypeId),
+                    filter: { companyId: companyId },
+                    select: ['*', 'ufCrm*']
+                });
+
+                // Garante que properties é sempre um array
+                properties = Array.isArray(propertiesResult?.items)
+                    ? propertiesResult.items
+                    : (propertiesResult?.items ? [propertiesResult.items] : []);
+
+                console.log(`[API Detail] Encontrados ${properties.length} imóveis`);
+            } catch (err) {
+                console.error('[API Detail] Erro ao buscar imóveis:', err);
+                properties = [];
+            }
         }
 
-        // Se for criador ou admin, retorna TUDO
-        if (isOwner || isAdmin) {
+        // Determina permissões
+        const canEdit = isOwner || isAdmin;
+        const canDelete = isOwner || isAdmin;
+
+        console.log(`[API Detail] Permissões - Owner: ${isOwner}, Edit: ${canEdit}, Delete: ${canDelete}`);
+
+        // Retorna dados completos se tiver permissão
+        if (canEdit) {
             return NextResponse.json({
                 success: true,
-                isOwner: true,
+                isOwner,
                 isAdmin,
                 company,
                 properties,
-                canEdit: true,
-                canDelete: isAdmin
+                canEdit,
+                canDelete
             });
         }
 
-        // Se for outro corretor, retorna apenas dados públicos
+        // Retorna dados limitados para outros corretores
         return NextResponse.json({
             success: true,
             isOwner: false,
@@ -101,16 +115,15 @@ export async function GET(
             company: {
                 ID: company.ID,
                 TITLE: company.TITLE,
-                DATE_CREATE: company.DATE_CREATE,
-                COMMENTS: company.COMMENTS
+                DATE_CREATE: company.DATE_CREATE
             },
-            properties: properties.map((p: any) => ({
+            properties: properties.map(p => ({
                 ID: p.ID,
                 TITLE: p.TITLE
             })),
             canEdit: false,
             canDelete: false,
-            message: 'Acesso restrito: Esta autorização foi criada por outro corretor'
+            message: 'Esta autorização foi criada por outro corretor. Você pode ver apenas informações básicas.'
         });
 
     } catch (error: any) {
