@@ -26,6 +26,7 @@ export default function DashboardPage() {
     const [properties, setProperties] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [isAdmin, setIsAdmin] = useState(false);
 
     const CACHE_KEY = 'dashboard_cache';
     const CACHE_DURATION = 5 * 60 * 1000; // 5 minutos em millisegundos

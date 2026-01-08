@@ -13,19 +13,35 @@ interface Property {
     companyId: string;
     companyName: string;
     hasAuthorization: boolean;
+    ufCrmPropertyHasAuthorization?: string | boolean;
 }
 
 interface PropertyListProps {
     properties: Property[];
     onCreateAuthorization: (propertyId: string) => void;
+    isAdmin?: boolean;
 }
 
-export default function PropertyList({ properties, onCreateAuthorization }: PropertyListProps) {
+export default function PropertyList({ properties, onCreateAuthorization, isAdmin = false }: PropertyListProps) {
     const formatCurrency = (value: number) => {
         return new Intl.NumberFormat('pt-BR', {
             style: 'currency',
             currency: 'BRL'
         }).format(value);
+    };
+
+    const handleToggleManualAuth = async (propertyId: string, currentValue: any) => {
+        // TODO: Implementar chamada à API para atualizar flag
+        console.log('Toggle manual auth:', propertyId, !currentValue);
+        alert('Funcionalidade em desenvolvimento: Marcar autorização manual');
+    };
+
+    const getAuthorizationStatus = (property: Property) => {
+        const hasManualAuth = property.ufCrmPropertyHasAuthorization === 'Y' ||
+            property.ufCrmPropertyHasAuthorization === true ||
+            property.ufCrmPropertyHasAuthorization === '1';
+
+        return property.hasAuthorization || hasManualAuth;
     };
 
     return (
@@ -50,7 +66,7 @@ export default function PropertyList({ properties, onCreateAuthorization }: Prop
                         </th>
                         {isAdmin && (
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Admin
+                                Autorização Geral
                             </th>
                         )}
                         <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -84,13 +100,26 @@ export default function PropertyList({ properties, onCreateAuthorization }: Prop
                                 </Link>
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap">
-                                <Badge variant={property.hasAuthorization ? 'success' : 'warning'}>
-                                    {property.hasAuthorization ? 'Com Autorização' : 'Sem Autorização'}
+                                <Badge variant={getAuthorizationStatus(property) ? 'success' : 'warning'}>
+                                    {getAuthorizationStatus(property) ? 'Com Autorização' : 'Sem Autorização'}
                                 </Badge>
                             </td>
+                            {isAdmin && (
+                                <td className="px-6 py-4 whitespace-nowrap">
+                                    <label className="flex items-center gap-2 cursor-pointer">
+                                        <input
+                                            type="checkbox"
+                                            checked={property.ufCrmPropertyHasAuthorization === 'Y' || property.ufCrmPropertyHasAuthorization === true}
+                                            onChange={() => handleToggleManualAuth(property.id, property.ufCrmPropertyHasAuthorization)}
+                                            className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
+                                        />
+                                        <span className="text-xs text-gray-600">Marcar</span>
+                                    </label>
+                                </td>
+                            )}
                             <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                 <div className="flex justify-end gap-2">
-                                    {!property.hasAuthorization && (
+                                    {!getAuthorizationStatus(property) && (
                                         <button
                                             onClick={() => onCreateAuthorization(property.id)}
                                             className="text-green-600 hover:text-green-900"
