@@ -172,6 +172,40 @@ export default function DashboardPage() {
         alert('Funcionalidade em desenvolvimento: Criar Autorização para Imóvel');
     };
 
+    // Filtra e ordena imóveis
+    const filteredAndSortedProperties = React.useMemo(() => {
+        let filtered = [...properties];
+
+        // Filtro por empresa
+        if (selectedCompany !== 'all') {
+            filtered = filtered.filter(p => p.companyId === selectedCompany);
+        }
+
+        // Filtro por status de autorização
+        if (selectedAuthStatus === 'with') {
+            filtered = filtered.filter(p => p.hasAuthorization);
+        } else if (selectedAuthStatus === 'without') {
+            filtered = filtered.filter(p => !p.hasAuthorization);
+        }
+
+        // Ordena: sem assinatura primeiro, depois com assinatura
+        filtered.sort((a, b) => {
+            const aHasSigned = a.hasSigned || false;
+            const bHasSigned = b.hasSigned || false;
+
+            if (aHasSigned === bHasSigned) return 0;
+            return aHasSigned ? 1 : -1; // Sem assinatura (false) vem primeiro
+        });
+
+        return filtered;
+    }, [properties, selectedCompany, selectedAuthStatus]);
+
+    // Filtra empresas
+    const filteredCompanies = React.useMemo(() => {
+        if (selectedCompany === 'all') return companies;
+        return companies.filter(c => c.ID === selectedCompany);
+    }, [companies, selectedCompany]);
+
     if (!bitrix.isInitialized) {
         return (
             <div className="min-h-screen flex items-center justify-center">
