@@ -114,7 +114,7 @@ export async function GET(request: NextRequest) {
         while (hasMore && start < 1000) {
             const propertiesResponse: any = await callBitrixAPI('crm.item.list', {
                 entityTypeId: parseInt(entityTypeId),
-                select: ['id', 'ufCrmPropertyHasAuthorization'], // Campo customizado para flag manual
+                select: ['id', 'ufCrm15_1767879091919'], // Campo customizado para flag manual (ID exato)
                 start,
                 limit: 50
             });
@@ -122,7 +122,8 @@ export async function GET(request: NextRequest) {
 
             // Conta imóveis que têm flag de autorização manual marcada
             const withAuth = properties.filter((prop: any) => {
-                return prop.ufCrmPropertyHasAuthorization === 'Y' || prop.ufCrmPropertyHasAuthorization === true || prop.ufCrmPropertyHasAuthorization === '1';
+                const fieldValue = prop.ufCrm15_1767879091919;
+                return fieldValue === 'Y' || fieldValue === true || fieldValue === '1' || fieldValue === 1;
             });
 
             propertiesWithAuthorization += withAuth.length;
