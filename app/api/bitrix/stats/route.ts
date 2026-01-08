@@ -78,21 +78,28 @@ export async function GET(request: NextRequest) {
 
         console.log(`[API Stats] Total de imóveis: ${totalProperties}`);
 
-        // Conta total de autorizações (empresas com PDF)
+        // Conta total de autorizações (empresas com PDF de autorização)
+        // Busca empresas e verifica manualmente quais têm PDF válido
         let totalAuthorizations = 0;
         start = 0;
         hasMore = true;
 
         while (hasMore && start < 1000) {
-            const authorizationsResponse: any = await callBitrixAPI('crm.company.list', {
-                filter: { '!UF_CRM_AUTHORIZATION_PDF': '' },
-                select: ['ID'],
+            const companiesResponse: any = await callBitrixAPI('crm.company.list', {
+                select: ['ID', 'UF_CRM_AUTHORIZATION_PDF'],
                 start,
                 limit: 50
             });
-            const authorizations = authorizationsResponse || [];
-            totalAuthorizations += authorizations.length;
-            hasMore = authorizations.length === 50;
+            const allCompanies = companiesResponse || [];
+
+            // Conta apenas empresas com PDF válido (não vazio e não null)
+            const companiesWithPDF = allCompanies.filter((company: any) => {
+                const pdf = company.UF_CRM_AUTHORIZATION_PDF;
+                return pdf && pdf.trim() !== '' && pdf !== 'null' && pdf !== 'undefined';
+            });
+
+            totalAuthorizations += companiesWithPDF.length;
+            hasMore = allCompanies.length === 50;
             start += 50;
         }
 
