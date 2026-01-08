@@ -10,6 +10,22 @@ import SpouseSection from '@/components/forms/SpouseSection';
 import PropertyFinancialFields from '@/components/forms/PropertyFinancialFields';
 import SocioFields from '@/components/forms/SocioFields';
 
+interface SpouseData {
+    nome: string;
+    cpf: string;
+    rg: string;
+    profissao: string;
+    email: string;
+}
+
+interface SocioData {
+    nome: string;
+    cpf: string;
+    rg: string;
+    estadoCivil: string;
+    profissao: string;
+}
+
 export default function NovaAutorizacaoPage() {
     const router = useRouter();
     const searchParams = useSearchParams();
@@ -31,7 +47,7 @@ export default function NovaAutorizacaoPage() {
     });
 
     // Estado para cônjuge (se casado)
-    const [conjuge, setConjuge] = useState({
+    const [conjuge, setConjuge] = useState<SpouseData>({
         nome: '',
         cpf: '',
         rg: '',
@@ -52,7 +68,7 @@ export default function NovaAutorizacaoPage() {
     });
 
     // Estado para sócios (se PJ)
-    const [socios, setSocios] = useState([{
+    const [socios, setSocios] = useState<SocioData[]>([{
         nome: '',
         cpf: '',
         rg: '',
@@ -240,8 +256,8 @@ export default function NovaAutorizacaoPage() {
                         <div className="card">
                             <h2 className="text-xl font-bold mb-4">Dados do Cônjuge</h2>
                             <SpouseSection
-                                data={conjuge}
-                                onChange={setConjuge}
+                                spouse={conjuge}
+                                onChange={(spouse) => setConjuge(spouse as SpouseData)}
                             />
                         </div>
                     )}
@@ -263,14 +279,14 @@ export default function NovaAutorizacaoPage() {
                                 <SocioFields
                                     key={index}
                                     index={index}
-                                    data={socio}
+                                    socio={socio as any}
                                     onChange={(updatedSocio) => {
                                         const newSocios = [...socios];
-                                        newSocios[index] = updatedSocio;
+                                        newSocios[index] = updatedSocio as any;
                                         setSocios(newSocios);
                                     }}
                                     onRemove={() => removeSocio(index)}
-                                    showRemove={socios.length > 1}
+                                    canRemove={socios.length > 1}
                                 />
                             ))}
                         </div>
@@ -306,8 +322,12 @@ export default function NovaAutorizacaoPage() {
                                     />
                                 </div>
                                 <PropertyFinancialFields
-                                    data={imovel}
-                                    onChange={setImovel}
+                                    matricula={imovel.matricula}
+                                    adminCondominio={imovel.administradora}
+                                    valorCondominio={parseFloat(imovel.valorCondominio) || 0}
+                                    chamadaCapital={imovel.chamadaCapital}
+                                    numParcelas={imovel.numeroParcelas}
+                                    onChange={(field, value) => setImovel({ ...imovel, [field]: value })}
                                 />
                                 <Textarea
                                     label="Descrição do Imóvel"
