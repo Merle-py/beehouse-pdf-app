@@ -215,7 +215,10 @@ export default function DashboardPage() {
                             <div className="text-center py-12">
                                 <p className="text-red-600">{error}</p>
                                 <button
-                                    onClick={loadDashboardData}
+                                    onClick={(e) => {
+                                        e.preventDefault();
+                                        loadDashboardData(true);
+                                    }}
                                     className="mt-4 btn-secondary"
                                 >
                                     Tentar Novamente
