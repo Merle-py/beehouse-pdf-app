@@ -61,7 +61,7 @@ export async function PATCH(
             entityTypeId: parseInt(entityTypeId),
             id: parseInt(propertyId),
             fields: {
-                ufCrmPropertyHasAuthorization: hasAuthorization ? 'Y' : 'N'
+                [process.env.B24_PROPERTY_HAS_AUTHORIZATION_FIELD || 'UF_CRM_15_1767879091919']: hasAuthorization ? 'Y' : 'N'
             }
         });
 
