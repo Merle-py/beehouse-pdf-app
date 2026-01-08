@@ -1,13 +1,13 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useBitrix24 } from '@/lib/bitrix/client-sdk';
 import Input from '@/components/forms/Input';
 import Textarea from '@/components/forms/Textarea';
 import PropertyFinancialFields from '@/components/forms/PropertyFinancialFields';
 
-export default function NovoImovelPage() {
+function NovoImovelForm() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const bitrix = useBitrix24();
@@ -185,5 +185,13 @@ export default function NovoImovelPage() {
                 </form>
             </div>
         </div>
+    );
+}
+
+export default function NovoImovelPage() {
+    return (
+        <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><div>Carregando...</div></div>}>
+            <NovoImovelForm />
+        </Suspense>
     );
 }

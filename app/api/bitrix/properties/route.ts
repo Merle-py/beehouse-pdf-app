@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { callBitrixAPI } from '@/lib/bitrix/server-client';
 
+// Force dynamic rendering to use searchParams
+export const dynamic = 'force-dynamic';
+
 /**
  * GET /api/bitrix/properties
  * Lista todos os imóveis (SPA Items) cadastrados

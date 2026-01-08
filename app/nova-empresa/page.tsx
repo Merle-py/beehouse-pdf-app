@@ -1,12 +1,13 @@
 'use client';
 
 import { useState } from 'react';
+import { Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useBitrix24 } from '@/lib/bitrix/client-sdk';
 import Input from '@/components/forms/Input';
 import Select from '@/components/forms/Select';
 
-export default function NovaEmpresaPage() {
+function NovaEmpresaForm() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const bitrix = useBitrix24();
@@ -151,5 +152,13 @@ export default function NovaEmpresaPage() {
                 </form>
             </div>
         </div>
+    );
+}
+
+export default function NovaEmpresaPage() {
+    return (
+        <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><div>Carregando...</div></div>}>
+            <NovaEmpresaForm />
+        </Suspense>
     );
 }

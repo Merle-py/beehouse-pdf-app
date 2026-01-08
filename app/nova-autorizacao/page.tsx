@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useBitrix24 } from '@/lib/bitrix/client-sdk';
 import Input from '@/components/forms/Input';
@@ -26,7 +26,7 @@ interface SocioData {
     profissao: string;
 }
 
-export default function NovaAutorizacaoPage() {
+function NovaAutorizacaoForm() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const bitrix = useBitrix24();
@@ -363,5 +363,13 @@ export default function NovaAutorizacaoPage() {
                 </form>
             </div>
         </div>
+    );
+}
+
+export default function NovaAutorizacaoPage() {
+    return (
+        <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><div>Carregando...</div></div>}>
+            <NovaAutorizacaoForm />
+        </Suspense>
     );
 }
