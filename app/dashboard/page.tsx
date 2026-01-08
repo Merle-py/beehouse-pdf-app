@@ -198,7 +198,7 @@ export default function DashboardPage() {
                                     // Limpa o cache do localStorage
                                     localStorage.removeItem(CACHE_KEY);
                                     console.log('[Dashboard] Cache limpo, recarregando...');
-                                    loadDashboardData(true);
+                                    loadFromCacheOrFetch(true);
                                 }}
                                 className="btn-secondary flex items-center gap-2"
                                 disabled={loading}
@@ -264,7 +264,8 @@ export default function DashboardPage() {
                                 <button
                                     onClick={(e) => {
                                         e.preventDefault();
-                                        loadDashboardData(true);
+                                        localStorage.removeItem(CACHE_KEY);
+                                        loadFromCacheOrFetch(true);
                                     }}
                                     className="mt-4 btn-secondary"
                                 >
