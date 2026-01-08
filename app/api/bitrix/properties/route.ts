@@ -65,6 +65,11 @@ export async function GET(request: NextRequest) {
             const items = response?.items || [];
             allProperties = allProperties.concat(items);
 
+            // DEBUG: Mostra os campos do primeiro imóvel para identificar o nome correto
+            if (items.length > 0 && start === 0) {
+                console.log('[API Properties] Campos do primeiro imóvel:', JSON.stringify(items[0], null, 2));
+            }
+
             console.log(`[API Properties] Página ${Math.floor(start / limit) + 1}: ${items.length} imóveis`);
 
             hasMore = items.length === limit;
