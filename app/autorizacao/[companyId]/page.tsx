@@ -195,6 +195,12 @@ export default function AutorizacaoDetalhesPage() {
                             {data.canEdit && (
                                 <div className="flex gap-2">
                                     <button
+                                        onClick={() => router.push(`/editar-empresa/${companyId}`)}
+                                        className="btn-secondary text-sm"
+                                    >
+                                        ✏️ Editar Empresa
+                                    </button>
+                                    <button
                                         onClick={() => router.push(`/nova-autorizacao?companyId=${companyId}`)}
                                         className="btn-primary text-sm"
                                     >

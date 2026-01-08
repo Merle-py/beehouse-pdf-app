@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, Suspense } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useBitrix24 } from '@/lib/bitrix/client-sdk';
 import Input from '@/components/forms/Input';
@@ -95,6 +95,59 @@ function NovaAutorizacaoForm() {
         { value: 'separacao-total', label: 'Separação Total de Bens' },
         { value: 'participacao-final', label: 'Participação Final nos Aquestos' }
     ];
+
+    // Autofill: carrega dados da empresa se companyId estiver presente
+    const companyId = searchParams.get('companyId');
+
+    useEffect(() => {
+        if (companyId && bitrix.isInitialized) {
+            loadCompanyData(companyId);
+        }
+    }, [companyId, bitrix.isInitialized]);
+
+    const loadCompanyData = async (id: string) => {
+        try {
+            const response = await fetch(`/api/bitrix/companies/${id}?accessToken=${bitrix.authId}&domain=${bitrix.domain}`);
+            const result = await response.json();
+
+            if (result.success && result.company) {
+                const company = result.company;
+
+                // Extrai email e telefone
+                const email = Array.isArray(company.EMAIL)
+                    ? (typeof company.EMAIL[0] === 'object' ? company.EMAIL[0]?.VALUE : company.EMAIL[0])
+                    : company.EMAIL;
+
+                const telefone = Array.isArray(company.PHONE)
+                    ? (typeof company.PHONE[0] === 'object' ? company.PHONE[0]?.VALUE : company.PHONE[0])
+                    : company.PHONE;
+
+                // Mapeia tipo da empresa para tipo de autorização
+                const companyTypeMap: Record<string, string> = {
+                    'CUSTOMER': 'pf',
+                    'PARTNER': 'pf-casado',
+                    'COMPETITOR': 'pj'
+                };
+
+                const mappedAuthType = companyTypeMap[company.COMPANY_TYPE] || 'pf';
+
+                // Pré-preenche formulário
+                setAuthType(mappedAuthType);
+                setContratante({
+                    nome: company.TITLE || '',
+                    cpfCnpj: company.UF_CRM_CPF_CNPJ || '',
+                    rg: '',
+                    telefone: telefone || '',
+                    email: email || '',
+                    estadoCivil: '',
+                    regimeCasamento: '',
+                    profissao: ''
+                });
+            }
+        } catch (error) {
+            console.error('Erro ao carregar dados da empresa:', error);
+        }
+    };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
