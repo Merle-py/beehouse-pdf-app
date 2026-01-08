@@ -169,7 +169,13 @@ export default function AutorizacaoDetalhesPage() {
 
             {/* Conteúdo Completo (Owner ou Admin) */}
             {!loading && data && data.hasAccess && (
-                <>
+                <div className="max-w-6xl mx-auto">
+                    <div className="mb-6">
+                        <Link href="/dashboard" className="text-beehouse-primary hover:underline">
+                            ← Voltar ao Dashboard
+                        </Link>
+                    </div>
+
                     {/* Header */}
                     <div className="card mb-6">
                         <div className="flex justify-between items-start">
@@ -178,128 +184,104 @@ export default function AutorizacaoDetalhesPage() {
                                 <div className="flex items-center gap-3 mb-4">
                                     <Badge variant={typeBadge.variant}>{typeBadge.label}</Badge>
                                     {data.isOwner && (
-                                        <span className="inline-block bg-green-100 text-green-800 text-sm px-3 py-1 rounded-full">
-                                            ✓ Criado por você
-                                        </span>
+                                        <Badge variant="success">Você é o responsável</Badge>
+                                    )}
+                                    {data.isAdmin && (
+                                        <Badge variant="info">Administrador</Badge>
                                     )}
                                 </div>
                             </div>
-
                             {data.canEdit && (
-                                <Link href={`/nova-autorizacao?companyId=${companyId}`} className="btn-primary">
+                                <button className="btn-secondary">
                                     ✏️ Editar
-                                </Link>
+                                </button>
                             )}
                         </div>
                     </div>
 
-                    {data.canEdit ? (
-                        <>
-                            {/* Informações da Empresa */}
-                            <div className="card mb-6">
-                                <h2 className="text-2xl font-bold mb-4">Informações da Empresa</h2>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    {data.company.UF_CRM_CPF_CNPJ && (
-                                        <div>
-                                            <span className="text-sm text-gray-600 font-semibold">CPF/CNPJ:</span>
-                                            <p className="text-gray-800">{data.company.UF_CRM_CPF_CNPJ}</p>
-                                        </div>
-                                    )}
-                                    {data.company.EMAIL && (
-                                        <div>
-                                            <span className="text-sm text-gray-600 font-semibold">Email:</span>
-                                            <p className="text-gray-800">
-                                                {Array.isArray(data.company.EMAIL)
-                                                    ? (typeof data.company.EMAIL[0] === 'object' ? data.company.EMAIL[0]?.VALUE : data.company.EMAIL[0])
-                                                    : data.company.EMAIL}
-                                            </p>
-                                        </div>
-                                    )}
-                                    {data.company.PHONE && (
-                                        <div>
-                                            <span className="text-sm text-gray-600 font-semibold">Telefone:</span>
-                                            <p className="text-gray-800">
-                                                {Array.isArray(data.company.PHONE)
-                                                    ? (typeof data.company.PHONE[0] === 'object' ? data.company.PHONE[0]?.VALUE : data.company.PHONE[0])
-                                                    : data.company.PHONE}
-                                            </p>
-                                        </div>
-                                    )}
-                                    {data.company.DATE_CREATE && (
-                                        <div>
-                                            <span className="text-sm text-gray-600 font-semibold">Data de Criação:</span>
-                                            <p className="text-gray-800">{formatDate(data.company.DATE_CREATE)}</p>
-                                        </div>
-                                    )}
-                                </div>
+                    {/* Informações da Empresa */}
+                    <div className="card mb-6">
+                        <h2 className="text-xl font-bold mb-4">Informações da Empresa</h2>
+                        <dl className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <dt className="text-sm text-gray-500">Data de Criação</dt>
+                                <dd className="text-base font-medium">{formatDate(data.company.DATE_CREATE)}</dd>
                             </div>
+                            {data.company.PHONE && (
+                                <div>
+                                    <dt className="text-sm text-gray-500">Telefone</dt>
+                                    <dd className="text-base font-medium">
+                                        {Array.isArray(data.company.PHONE)
+                                            ? (typeof data.company.PHONE[0] === 'object' ? data.company.PHONE[0]?.VALUE : data.company.PHONE[0])
+                                            : data.company.PHONE}
+                                    </dd>
+                                </div>
+                            )}
+                            {data.company.EMAIL && (
+                                <div>
+                                    <dt className="text-sm text-gray-500">Email</dt>
+                                    <dd className="text-base font-medium">
+                                        {Array.isArray(data.company.EMAIL)
+                                            ? (typeof data.company.EMAIL[0] === 'object' ? data.company.EMAIL[0]?.VALUE : data.company.EMAIL[0])
+                                            : data.company.EMAIL}
+                                    </dd>
+                                </div>
+                            )}
+                            {data.company.UF_CRM_CPF_CNPJ && (
+                                <div>
+                                    <dt className="text-sm text-gray-500">CPF/CNPJ</dt>
+                                    <dd className="text-base font-medium">{data.company.UF_CRM_CPF_CNPJ}</dd>
+                                </div>
+                            )}
+                        </dl>
+                    </div>
 
-                            {/* Imóveis Vinculados */}
-                            <div className="card">
-                                <h2 className="text-2xl font-bold mb-4">
-                                    Imóveis Vinculados ({data.properties.length})
-                                </h2>
-
-                                {data.properties.length === 0 ? (
-                                    <p className="text-gray-600">Nenhum imóvel vinculado a esta empresa</p>
-                                ) : (
-                                    <div className="space-y-4">
-                                        {data.properties.map((prop: any) => (
-                                            <div key={prop.id} className="border rounded-lg p-4 bg-gray-50 hover:bg-gray-100 transition">
-                                                <h3 className="font-bold text-lg mb-3">{prop.title || `Imóvel #${prop.id}`}</h3>
-                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
-                                                    {prop.ufCrmPropertyAddress && (
+                    {/* Imóveis Vinculados */}
+                    <div className="card">
+                        <h2 className="text-xl font-bold mb-4">Imóveis Vinculados ({data.properties.length})</h2>
+                        {data.properties.length > 0 ? (
+                            <div className="space-y-3">
+                                {data.properties.map((property: any) => (
+                                    <div key={property.id} className="p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                                        <div className="flex justify-between items-start">
+                                            <div className="flex-1">
+                                                <h3 className="font-medium text-gray-900">{property.title || `Imóvel #${property.id}`}</h3>
+                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mt-2 text-sm">
+                                                    {property.ufCrmPropertyAddress && (
                                                         <div>
-                                                            <span className="text-gray-600 font-semibold">📍 Endereço:</span>
-                                                            <p className="text-gray-800">{prop.ufCrmPropertyAddress}</p>
+                                                            <span className="text-gray-500">📍 Endereço:</span>
+                                                            <p className="text-gray-800">{property.ufCrmPropertyAddress}</p>
                                                         </div>
                                                     )}
-                                                    {prop.ufCrmPropertyValue && (
+                                                    {property.ufCrmPropertyValue && (
                                                         <div>
-                                                            <span className="text-gray-600 font-semibold">💰 Valor:</span>
-                                                            <p className="text-gray-800">{formatCurrency(prop.ufCrmPropertyValue)}</p>
+                                                            <span className="text-gray-500">💰 Valor:</span>
+                                                            <p className="text-gray-800">{formatCurrency(property.ufCrmPropertyValue)}</p>
                                                         </div>
                                                     )}
-                                                    {prop.ufCrmPropertyMatricula && (
+                                                    {property.ufCrmPropertyMatricula && (
                                                         <div>
-                                                            <span className="text-gray-600 font-semibold">📄 Matrícula:</span>
-                                                            <p className="text-gray-800">{prop.ufCrmPropertyMatricula}</p>
-                                                        </div>
-                                                    )}
-                                                    {prop.ufCrmPropertyDescription && (
-                                                        <div className="md:col-span-2">
-                                                            <span className="text-gray-600 font-semibold">📝 Descrição:</span>
-                                                            <p className="text-gray-800">{prop.ufCrmPropertyDescription}</p>
+                                                            <span className="text-gray-500">📄 Matrícula:</span>
+                                                            <p className="text-gray-800">{property.ufCrmPropertyMatricula}</p>
                                                         </div>
                                                     )}
                                                 </div>
                                             </div>
-                                        ))}
+                                            <Badge variant={property.hasAuthorization ? 'success' : 'warning'}>
+                                                {property.hasAuthorization ? 'Com Autorização' : 'Sem Autorização'}
+                                            </Badge>
+                                        </div>
                                     </div>
-                                )}
+                                ))}
                             </div>
-                        </>
-                    ) : (
-                        <div className="card text-center py-12">
-                            <div className="text-6xl mb-4">🔒</div>
-                            <h2 className="text-2xl font-bold mb-2">Acesso Restrito</h2>
-                            <p className="text-gray-600 mb-4">
-                                {data.message || 'Esta autorização foi criada por outro corretor'}
-                            </p>
-                            <div className="text-left max-w-md mx-auto mt-6 p-4 bg-gray-50 rounded">
-                                <p className="text-sm text-gray-700 mb-2">
-                                    <strong>Informações disponíveis:</strong>
-                                </p>
-                                <ul className="text-sm text-gray-600 space-y-1">
-                                    <li>✓ Nome: {data.company.TITLE}</li>
-                                    <li>✓ Data de criação: {formatDate(data.company.DATE_CREATE)}</li>
-                                    <li>✓ Imóveis: {data.properties.length}</li>
-                                </ul>
+                        ) : (
+                            <div className="text-center py-8 text-gray-500">
+                                <p>Nenhum imóvel vinculado a esta empresa</p>
                             </div>
-                        </div>
-                    )}
-                </>
+                        )}
+                    </div>
+                </div>
             )}
-        </div>
+        </div >
     );
 }
