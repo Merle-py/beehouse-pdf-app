@@ -211,9 +211,9 @@ export default function DashboardPage() {
             if (response.ok) {
                 const data = await response.json();
                 if (data.success) {
-                    setCurrentUserId(data.user.ID);
-                    setIsAdmin(data.user.IS_ADMIN || false);
-                    console.log('[Dashboard] User info loaded:', { id: data.user.ID, isAdmin: data.user.IS_ADMIN });
+                    setCurrentUserId(data.user.id);
+                    setIsAdmin(data.isAdmin || false);
+                    console.log('[Dashboard] User info loaded:', { id: data.user.id, isAdmin: data.isAdmin });
                 }
             }
         } catch (err) {

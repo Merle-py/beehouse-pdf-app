@@ -37,6 +37,18 @@ export default function CompanyList({ companies, onCreateProperty, onCreateAutho
 
     // Verifica se o usuário pode ver o contato de uma empresa
     const canViewContact = (company: Company) => {
+        // Debug
+        if (process.env.NODE_ENV === 'development') {
+            console.log('[CompanyList] canViewContact?', {
+                companyId: company.ID,
+                companyTitle: company.TITLE,
+                isAdmin,
+                currentUserId,
+                companyAssignedById: company.ASSIGNED_BY_ID,
+                match: currentUserId === company.ASSIGNED_BY_ID
+            });
+        }
+
         // Admin pode ver tudo
         if (isAdmin) return true;
         // Criador da empresa pode ver
