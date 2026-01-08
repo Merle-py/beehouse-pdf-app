@@ -1,8 +1,9 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
 import Badge from '@/components/ui/Badge';
+import { useBitrix24 } from '@/lib/bitrix/client-sdk';
 
 interface Property {
     id: string;
@@ -20,9 +21,13 @@ interface PropertyListProps {
     properties: Property[];
     onCreateAuthorization: (propertyId: string) => void;
     isAdmin?: boolean;
+    onPropertyUpdate?: () => void;
 }
 
-export default function PropertyList({ properties, onCreateAuthorization, isAdmin = false }: PropertyListProps) {
+export default function PropertyList({ properties, onCreateAuthorization, isAdmin = false, onPropertyUpdate }: PropertyListProps) {
+    const bitrix = useBitrix24();
+    const [updatingProperty, setUpdatingProperty] = useState<string | null>(null);
+
     const formatCurrency = (value: number) => {
         return new Intl.NumberFormat('pt-BR', {
             style: 'currency',
@@ -31,9 +36,39 @@ export default function PropertyList({ properties, onCreateAuthorization, isAdmi
     };
 
     const handleToggleManualAuth = async (propertyId: string, currentValue: any) => {
-        // TODO: Implementar chamada à API para atualizar flag
-        console.log('Toggle manual auth:', propertyId, !currentValue);
-        alert('Funcionalidade em desenvolvimento: Marcar autorização manual');
+        const newValue = !(currentValue === 'Y' || currentValue === true);
+
+        try {
+            setUpdatingProperty(propertyId);
+
+            const response = await fetch(
+                `/api/bitrix/properties/${propertyId}/manual-auth?accessToken=${bitrix.authId}&domain=${bitrix.domain}`,
+                {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ hasAuthorization: newValue })
+                }
+            );
+
+            const result = await response.json();
+
+            if (!response.ok || !result.success) {
+                throw new Error(result.error || 'Erro ao atualizar autorização');
+            }
+
+            console.log('[PropertyList] Autorização manual atualizada:', result);
+
+            // Atualiza a lista de imóveis
+            if (onPropertyUpdate) {
+                onPropertyUpdate();
+            }
+
+        } catch (err: any) {
+            console.error('[PropertyList] Erro ao atualizar:', err);
+            alert(`Erro: ${err.message}`);
+        } finally {
+            setUpdatingProperty(null);
+        }
     };
 
     const getAuthorizationStatus = (property: Property) => {
