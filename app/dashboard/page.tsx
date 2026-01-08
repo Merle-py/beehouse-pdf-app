@@ -30,6 +30,10 @@ export default function DashboardPage() {
     const [error, setError] = useState<string | null>(null);
     const [isAdmin, setIsAdmin] = useState(false);
 
+    // Filtros
+    const [selectedCompany, setSelectedCompany] = useState<string>('all');
+    const [selectedAuthStatus, setSelectedAuthStatus] = useState<string>('all');
+
     const CACHE_KEY = 'dashboard_cache';
     const CACHE_DURATION = 5 * 60 * 1000; // 5 minutos em millisegundos
 
@@ -245,6 +249,70 @@ export default function DashboardPage() {
                         color="red"
                         subtitle="Sem autorização"
                     />
+                </div>
+
+                {/* Filtros */}
+                <div className="bg-white rounded-lg shadow p-4 mb-6">
+                    <div className="flex flex-wrap gap-4 items-center">
+                        <div className="flex-1 min-w-[200px]">
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                                Filtrar por Empresa
+                            </label>
+                            <select
+                                value={selectedCompany}
+                                onChange={(e) => setSelectedCompany(e.target.value)}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            >
+                                <option value="all">Todas as empresas</option>
+                                {companies.map((company) => (
+                                    <option key={company.ID} value={company.ID}>
+                                        {company.TITLE}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+
+                        <div className="flex-1 min-w-[200px]">
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                                Status de Autorização
+                            </label>
+                            <select
+                                value={selectedAuthStatus}
+                                onChange={(e) => setSelectedAuthStatus(e.target.value)}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            >
+                                <option value="all">Todos</option>
+                                <option value="with">Com Autorização</option>
+                                <option value="without">Sem Autorização</option>
+                            </select>
+                        </div>
+
+                        {(selectedCompany !== 'all' || selectedAuthStatus !== 'all') && (
+                            <div className="flex items-end">
+                                <button
+                                    onClick={() => {
+                                        setSelectedCompany('all');
+                                        setSelectedAuthStatus('all');
+                                    }}
+                                    className="px-4 py-2 text-sm text-gray-600 hover:text-gray-900 border border-gray-300 rounded-md hover:bg-gray-50"
+                                >
+                                    Limpar Filtros
+                                </button>
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Contador de resultados */}
+                    {activeTab === 'properties' && (
+                        <div className="mt-3 text-sm text-gray-600">
+                            Mostrando {filteredAndSortedProperties.length} de {properties.length} imóveis
+                        </div>
+                    )}
+                    {activeTab === 'companies' && (
+                        <div className="mt-3 text-sm text-gray-600">
+                            Mostrando {filteredCompanies.length} de {companies.length} empresas
+                        </div>
+                    )}
                 </div>
 
                 {/* Tabs */}
