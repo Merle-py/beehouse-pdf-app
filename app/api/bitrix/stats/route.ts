@@ -37,27 +37,68 @@ export async function GET(request: NextRequest) {
             );
         }
 
-        // Busca total de empresas
-        const companiesResponse: any = await callBitrixAPI('crm.company.list', {
-            select: ['ID']
-        });
-        const totalCompanies = companiesResponse.total || 0;
+        console.log('[API Stats] Calculando estatísticas...');
 
-        // Busca total de imóveis
-        const propertiesResponse: any = await callBitrixAPI('crm.item.list', {
-            entityTypeId: parseInt(entityTypeId),
-            select: ['id']
-        });
-        const totalProperties = propertiesResponse.total || 0;
+        // Conta total de empresas (paginado)
+        let totalCompanies = 0;
+        let start = 0;
+        let hasMore = true;
 
-        // Busca total de autorizações (empresas com campo UF_CRM_AUTHORIZATION_PDF preenchido)
-        const authorizationsResponse: any = await callBitrixAPI('crm.company.list', {
-            filter: { '!UF_CRM_AUTHORIZATION_PDF': '' },
-            select: ['ID']
-        });
-        const totalAuthorizations = authorizationsResponse.total || 0;
+        while (hasMore && start < 1000) {
+            const companiesResponse: any = await callBitrixAPI('crm.company.list', {
+                select: ['ID'],
+                start,
+                limit: 50
+            });
+            const companies = companiesResponse || [];
+            totalCompanies += companies.length;
+            hasMore = companies.length === 50;
+            start += 50;
+        }
 
-        // Calcula autorizações pendentes (empresas sem PDF)
+        console.log(`[API Stats] Total de empresas: ${totalCompanies}`);
+
+        // Conta total de imóveis (paginado)
+        let totalProperties = 0;
+        start = 0;
+        hasMore = true;
+
+        while (hasMore && start < 1000) {
+            const propertiesResponse: any = await callBitrixAPI('crm.item.list', {
+                entityTypeId: parseInt(entityTypeId),
+                select: ['id'],
+                start,
+                limit: 50
+            });
+            const properties = propertiesResponse?.items || [];
+            totalProperties += properties.length;
+            hasMore = properties.length === 50;
+            start += 50;
+        }
+
+        console.log(`[API Stats] Total de imóveis: ${totalProperties}`);
+
+        // Conta total de autorizações (empresas com PDF)
+        let totalAuthorizations = 0;
+        start = 0;
+        hasMore = true;
+
+        while (hasMore && start < 1000) {
+            const authorizationsResponse: any = await callBitrixAPI('crm.company.list', {
+                filter: { '!UF_CRM_AUTHORIZATION_PDF': '' },
+                select: ['ID'],
+                start,
+                limit: 50
+            });
+            const authorizations = authorizationsResponse || [];
+            totalAuthorizations += authorizations.length;
+            hasMore = authorizations.length === 50;
+            start += 50;
+        }
+
+        console.log(`[API Stats] Total de autorizações: ${totalAuthorizations}`);
+
+        // Calcula autorizações pendentes
         const pendingAuthorizations = totalCompanies - totalAuthorizations;
 
         return NextResponse.json({

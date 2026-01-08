@@ -41,24 +41,48 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
             filter['%TITLE'] = searchTerm;
         }
 
-        // Busca empresas no Bitrix24
-        const response: any = await callBitrixAPI('crm.company.list', {
-            filter,
-            select: [
-                'ID',
-                'TITLE',
-                'COMPANY_TYPE',
-                'UF_CRM_*', // Todos os campos customizados
-                'EMAIL',
-                'PHONE',
-                'CREATED_TIME'
-            ],
-            order: { CREATED_TIME: 'DESC' }
-        });
+        // Busca TODAS as empresas com paginação
+        let allCompanies: any[] = [];
+        let start = 0;
+        const limit = 50; // Limite por página do Bitrix24
+        let hasMore = true;
 
-        let companies = response || [];
+        while (hasMore) {
+            const response: any = await callBitrixAPI('crm.company.list', {
+                filter,
+                select: [
+                    'ID',
+                    'TITLE',
+                    'COMPANY_TYPE',
+                    'UF_CRM_*', // Todos os campos customizados
+                    'EMAIL',
+                    'PHONE',
+                    'CREATED_TIME'
+                ],
+                order: { CREATED_TIME: 'DESC' },
+                start,
+                limit
+            });
 
-        console.log('[API Companies] Encontradas:', companies.length, 'empresas');
+            const companies = response || [];
+            allCompanies = allCompanies.concat(companies);
+
+            console.log(`[API Companies] Página ${Math.floor(start / limit) + 1}: ${companies.length} empresas`);
+
+            // Verifica se há mais páginas
+            hasMore = companies.length === limit;
+            start += limit;
+
+            // Proteção contra loop infinito
+            if (start > 1000) {
+                console.warn('[API Companies] Limite de 1000 empresas atingido');
+                break;
+            }
+        }
+
+        let companies = allCompanies;
+
+        console.log('[API Companies] Total encontrado:', companies.length, 'empresas');
 
         // Busca contagem de imóveis para cada empresa
         const entityTypeId = process.env.B24_PROPERTY_ENTITY_TYPE_ID;
