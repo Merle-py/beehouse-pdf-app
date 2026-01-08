@@ -71,10 +71,14 @@ export default function PropertyList({ properties, onCreateAuthorization, isAdmi
         }
     };
 
-    const getAuthorizationStatus = (property: Property) => {
-        const hasManualAuth = property.ufCrmPropertyHasAuthorization === 'Y' ||
-            property.ufCrmPropertyHasAuthorization === true ||
-            property.ufCrmPropertyHasAuthorization === '1';
+    const getAuthorizationStatus = (property: any) => {
+        // Verifica usando o ID exato do campo que o Bitrix24 retorna
+        const fieldValue = (property as any).ufCrm15_1767879091919 || property.ufCrmPropertyHasAuthorization;
+
+        const hasManualAuth = fieldValue === 'Y' ||
+            fieldValue === true ||
+            fieldValue === '1' ||
+            fieldValue === 1;
 
         return property.hasAuthorization || hasManualAuth;
     };
