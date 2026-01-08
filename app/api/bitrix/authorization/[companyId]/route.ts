@@ -58,8 +58,9 @@ export async function GET(
         const company = companyResponse;
 
         // Verifica se o usuário é o responsável pela empresa (ASSIGNED_BY_ID)
-        const assignedById = company.ASSIGNED_BY_ID ? parseInt(String(company.ASSIGNED_BY_ID)) : null;
-        const isOwner = assignedById === userInfo.userId;
+        const assignedById = company.ASSIGNED_BY_ID ? String(company.ASSIGNED_BY_ID) : null;
+        const userId = String(userInfo.userId);
+        const isOwner = assignedById !== null && assignedById === userId;
 
         console.log('[API Authorization] Verificação de acesso:', {
             userId: userInfo.userId,
