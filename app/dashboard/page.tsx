@@ -7,14 +7,17 @@ import type { DashboardStats } from '@/types/dashboard';
 import { useBitrix24 } from '@/lib/bitrix/client-sdk';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { toast } from '@/lib/toast';
 import StatsCard from '@/components/ui/StatsCard';
 import Dropdown from '@/components/ui/Dropdown';
 import CompanySelectionModal from '@/components/modals/CompanySelectionModal';
 import TabNavigation from '@/components/ui/TabNavigation';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
+import { CardSkeleton } from '@/components/ui/Skeleton';
 import EmptyState from '@/components/ui/EmptyState';
 import CompanyList from '@/components/dashboard/CompanyList';
 import PropertyList from '@/components/dashboard/PropertyList';
+import AuthorizationList from '@/components/dashboard/AuthorizationList';
 
 export default function DashboardPage() {
     const bitrix = useBitrix24();
@@ -31,7 +34,9 @@ export default function DashboardPage() {
     });
     const [companies, setCompanies] = useState<Company[]>([]);
     const [properties, setProperties] = useState<Property[]>([]);
+    const [authorizations, setAuthorizations] = useState<any[]>([]); // Lista para aba de autorizações
     const [loading, setLoading] = useState(true);
+    const [authorizationsLoading, setAuthorizationsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [isAdmin, setIsAdmin] = useState(false);
 
@@ -58,6 +63,13 @@ export default function DashboardPage() {
             loadFromCacheOrFetch();
         }
     }, [bitrix.isInitialized, bitrix.authId, bitrix.domain]);
+
+    // Carrega autorizações quando a aba "Autorizações" é ativada
+    useEffect(() => {
+        if (activeTab === 'authorizations' && authorizations.length === 0 && bitrix.isInitialized) {
+            loadAuthorizations();
+        }
+    }, [activeTab, bitrix.isInitialized]);
 
     const loadFromCacheOrFetch = (forceRefresh = false) => {
         if (!forceRefresh) {
@@ -160,8 +172,33 @@ export default function DashboardPage() {
         } catch (err: any) {
             console.error('[Dashboard] Error loading dashboard:', err);
             setError('Erro ao carregar dados do dashboard');
+            toast.error('Erro ao carregar dados do dashboard');
         } finally {
             setLoading(false);
+        }
+    };
+
+    // Carrega autorizações para a aba
+    const loadAuthorizations = async () => {
+        if (!bitrix.isInitialized) return;
+
+        try {
+            setAuthorizationsLoading(true);
+            const response = await fetch(`/api/bitrix/all-authorizations?accessToken=${bitrix.authId}&domain=${bitrix.domain}`);
+
+            if (response.ok) {
+                const data = await response.json();
+                if (data.success) {
+                    setAuthorizations(data.authorizations || []);
+                }
+            } else {
+                toast.error('Erro ao carregar autorizações');
+            }
+        } catch (err) {
+            console.error('[Dashboard] Erro ao carregar autorizações:', err);
+            toast.error('Erro ao carregar autorizações');
+        } finally {
+            setAuthorizationsLoading(false);
         }
     };
 
