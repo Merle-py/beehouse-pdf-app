@@ -3,6 +3,7 @@
 import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useBitrix24 } from '@/lib/bitrix/client-sdk';
+import toast from 'react-hot-toast';
 import Input from '@/components/forms/Input';
 import Select from '@/components/forms/Select';
 import Textarea from '@/components/forms/Textarea';
@@ -175,14 +176,14 @@ function NovaAutorizacaoForm() {
             const result = await response.json();
 
             if (result.success) {
-                alert('Autorização criada com sucesso!');
+                toast.success('Autorização criada com sucesso!');
                 router.push('/dashboard');
             } else {
-                alert('Erro ao criar autorização: ' + result.error);
+                toast.error('Erro ao criar autorização: ' + result.error);
             }
         } catch (error) {
             console.error('Erro:', error);
-            alert('Erro ao criar autorização');
+            toast.error('Erro ao criar autorização');
         } finally {
             setLoading(false);
         }

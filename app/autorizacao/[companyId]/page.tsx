@@ -3,21 +3,11 @@
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useBitrix24 } from '@/lib/bitrix/client-sdk';
+import { extractBitrixField, getCompanyTypeBadge } from '@/lib/utils/bitrix';
+import type { AuthorizationDetail } from '@/types/dashboard';
 import Link from 'next/link';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import Badge from '@/components/ui/Badge';
-
-interface AuthorizationDetail {
-    success: boolean;
-    isOwner: boolean;
-    isAdmin: boolean;
-    hasAccess: boolean;
-    company: any;
-    properties: any[];
-    canEdit: boolean;
-    canDelete: boolean;
-    message?: string;
-}
 
 export default function AutorizacaoDetalhesPage() {
     const params = useParams();
@@ -56,15 +46,7 @@ export default function AutorizacaoDetalhesPage() {
         }
     };
 
-    const getCompanyTypeBadge = (type: string) => {
-        const types: Record<string, { label: string; variant: any }> = {
-            'CUSTOMER': { label: 'PF Solteiro', variant: 'info' },
-            'PARTNER': { label: 'PF Casado', variant: 'success' },
-            'SUPPLIER': { label: 'Sócios', variant: 'warning' },
-            'COMPETITOR': { label: 'PJ', variant: 'default' }
-        };
-        return types[type] || { label: 'Outro', variant: 'default' };
-    };
+
 
     const formatDate = (dateString: string) => {
         if (!dateString) return '-';
@@ -112,7 +94,9 @@ export default function AutorizacaoDetalhesPage() {
         );
     }
 
-    const typeBadge = getCompanyTypeBadge(data.company.COMPANY_TYPE);
+    const typeBadge = data?.company?.COMPANY_TYPE
+        ? getCompanyTypeBadge(data.company.COMPANY_TYPE)
+        : { label: 'Outro', variant: 'default' as const };
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-8 px-4">
@@ -229,9 +213,7 @@ export default function AutorizacaoDetalhesPage() {
                                 <div>
                                     <dt className="text-sm text-gray-500">Telefone</dt>
                                     <dd className="text-base font-medium">
-                                        {Array.isArray(data.company.PHONE)
-                                            ? (typeof data.company.PHONE[0] === 'object' ? data.company.PHONE[0]?.VALUE : data.company.PHONE[0])
-                                            : data.company.PHONE}
+                                        {extractBitrixField(data.company.PHONE)}
                                     </dd>
                                 </div>
                             )}
@@ -239,9 +221,7 @@ export default function AutorizacaoDetalhesPage() {
                                 <div>
                                     <dt className="text-sm text-gray-500">Email</dt>
                                     <dd className="text-base font-medium">
-                                        {Array.isArray(data.company.EMAIL)
-                                            ? (typeof data.company.EMAIL[0] === 'object' ? data.company.EMAIL[0]?.VALUE : data.company.EMAIL[0])
-                                            : data.company.EMAIL}
+                                        {extractBitrixField(data.company.EMAIL)}
                                     </dd>
                                 </div>
                             )}

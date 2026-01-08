@@ -525,14 +525,23 @@ export default function DashboardPage() {
                                 )}
 
                                 {activeTab === 'authorizations' && (
-                                    <div className="text-center py-12">
-                                        <p className="text-gray-600 mb-4">
-                                            Lista de autorizações em desenvolvimento
-                                        </p>
-                                        <Link href="/nova-autorizacao" className="btn-primary">
-                                            Nova Autorização
-                                        </Link>
-                                    </div>
+                                    authorizationsLoading ? (
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            <CardSkeleton />
+                                            <CardSkeleton />
+                                            <CardSkeleton />
+                                            <CardSkeleton />
+                                        </div>
+                                    ) : authorizations.length > 0 ? (
+                                        <AuthorizationList authorizations={authorizations} />
+                                    ) : (
+                                        <div className="text-center py-12">
+                                            <p className="text-gray-600 mb-4">📄 Nenhuma autorização encontrada</p>
+                                            <Link href="/nova-autorizacao" className="btn-primary">
+                                                Nova Autorização
+                                            </Link>
+                                        </div>
+                                    )
                                 )}
                             </>
                         )}

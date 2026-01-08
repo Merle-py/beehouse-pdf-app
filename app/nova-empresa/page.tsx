@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useBitrix24 } from '@/lib/bitrix/client-sdk';
+import toast from 'react-hot-toast';
 import Input from '@/components/forms/Input';
 import Select from '@/components/forms/Select';
 
@@ -47,7 +48,7 @@ function NovaEmpresaForm() {
             const result = await response.json();
 
             if (result.success) {
-                alert('Empresa criada com sucesso!');
+                toast.success('Empresa criada com sucesso!');
 
                 // Se tem redirect, vai para a página com o ID da empresa
                 if (redirectTo && result.companyId) {
@@ -56,11 +57,11 @@ function NovaEmpresaForm() {
                     router.push('/dashboard');
                 }
             } else {
-                alert('Erro ao criar empresa: ' + result.error);
+                toast.error('Erro ao criar empresa: ' + result.error);
             }
         } catch (error) {
             console.error('Erro:', error);
-            alert('Erro ao criar empresa');
+            toast.error('Erro ao criar empresa');
         } finally {
             setLoading(false);
         }

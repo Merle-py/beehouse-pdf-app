@@ -3,6 +3,7 @@
 import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useBitrix24 } from '@/lib/bitrix/client-sdk';
+import toast from 'react-hot-toast';
 import Input from '@/components/forms/Input';
 import Textarea from '@/components/forms/Textarea';
 import PropertyFinancialFields from '@/components/forms/PropertyFinancialFields';
@@ -49,7 +50,7 @@ function NovoImovelForm() {
         e.preventDefault();
 
         if (!companyId) {
-            alert('ID da empresa não fornecido');
+            toast.error('ID da empresa não fornecido');
             return;
         }
 
@@ -70,14 +71,14 @@ function NovoImovelForm() {
             const result = await response.json();
 
             if (result.success) {
-                alert('Imóvel criado com sucesso!');
+                toast.success('Imóvel criado com sucesso!');
                 router.push('/dashboard');
             } else {
-                alert('Erro ao criar imóvel: ' + result.error);
+                toast.error('Erro ao criar imóvel: ' + result.error);
             }
         } catch (error) {
             console.error('Erro:', error);
-            alert('Erro ao criar imóvel');
+            toast.error('Erro ao criar imóvel');
         } finally {
             setLoading(false);
         }

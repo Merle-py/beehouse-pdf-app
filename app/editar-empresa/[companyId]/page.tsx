@@ -3,6 +3,8 @@
 import { useState, useEffect, Suspense } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useBitrix24 } from '@/lib/bitrix/client-sdk';
+import { extractBitrixField } from '@/lib/utils/bitrix';
+import toast from 'react-hot-toast';
 import Input from '@/components/forms/Input';
 import Select from '@/components/forms/Select';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
@@ -51,14 +53,9 @@ function EditarEmpresaForm() {
 
             const company = result.company;
 
-            // Extrai email e telefone
-            const email = Array.isArray(company.EMAIL)
-                ? (typeof company.EMAIL[0] === 'object' ? company.EMAIL[0]?.VALUE : company.EMAIL[0])
-                : company.EMAIL;
-
-            const telefone = Array.isArray(company.PHONE)
-                ? (typeof company.PHONE[0] === 'object' ? company.PHONE[0]?.VALUE : company.PHONE[0])
-                : company.PHONE;
+            // Extrai email e telefone usando função utilitária
+            const email = extractBitrixField(company.EMAIL);
+            const telefone = extractBitrixField(company.PHONE);
 
             setFormData({
                 nome: company.TITLE || '',
@@ -93,14 +90,14 @@ function EditarEmpresaForm() {
             const result = await response.json();
 
             if (result.success) {
-                alert('Empresa atualizada com sucesso!');
+                toast.success('Empresa atualizada com sucesso!');
                 router.push(`/autorizacao/${companyId}`);
             } else {
-                alert('Erro ao atualizar empresa: ' + result.error);
+                toast.error('Erro ao atualizar empresa: ' + result.error);
             }
         } catch (error) {
             console.error('Erro:', error);
-            alert('Erro ao atualizar empresa');
+            toast.error('Erro ao atualizar empresa');
         } finally {
             setSaving(false);
         }
