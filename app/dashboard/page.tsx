@@ -28,45 +28,65 @@ export default function DashboardPage() {
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
-        if (bitrix.isReady && bitrix.authId && bitrix.domain) {
+        console.log('[Dashboard] Bitrix state:', {
+            isInitialized: bitrix.isInitialized,
+            authId: bitrix.authId,
+            domain: bitrix.domain
+        });
+
+        if (bitrix.isInitialized && bitrix.authId && bitrix.domain) {
             loadDashboardData();
         }
-    }, [bitrix.isReady, bitrix.authId, bitrix.domain]);
+    }, [bitrix.isInitialized, bitrix.authId, bitrix.domain]);
 
     const loadDashboardData = async () => {
         try {
             setLoading(true);
             setError(null);
 
+            console.log('[Dashboard] Loading data...');
+
             // Carrega estatísticas
+            console.log('[Dashboard] Fetching stats...');
             const statsResponse = await fetch(
                 `/api/bitrix/stats?accessToken=${bitrix.authId}&domain=${bitrix.domain}`
             );
             if (statsResponse.ok) {
                 const statsData = await statsResponse.json();
+                console.log('[Dashboard] Stats loaded:', statsData);
                 setStats(statsData.stats);
+            } else {
+                console.error('[Dashboard] Stats error:', await statsResponse.text());
             }
 
             // Carrega empresas
+            console.log('[Dashboard] Fetching companies...');
             const companiesResponse = await fetch(
                 `/api/bitrix/companies?accessToken=${bitrix.authId}&domain=${bitrix.domain}`
             );
             if (companiesResponse.ok) {
                 const companiesData = await companiesResponse.json();
+                console.log('[Dashboard] Companies loaded:', companiesData);
                 setCompanies(companiesData.companies || []);
+            } else {
+                console.error('[Dashboard] Companies error:', await companiesResponse.text());
             }
 
             // Carrega imóveis
+            console.log('[Dashboard] Fetching properties...');
             const propertiesResponse = await fetch(
                 `/api/bitrix/properties?accessToken=${bitrix.authId}&domain=${bitrix.domain}`
             );
             if (propertiesResponse.ok) {
                 const propertiesData = await propertiesResponse.json();
+                console.log('[Dashboard] Properties loaded:', propertiesData);
                 setProperties(propertiesData.properties || []);
+            } else {
+                console.error('[Dashboard] Properties error:', await propertiesResponse.text());
             }
 
         } catch (err: any) {
-            console.error('Erro ao carregar dashboard:', err);
+            console.error('[Dashboard] Error loading dashboard:', err);
             setError('Erro ao carregar dados do dashboard');
         } finally {
             setLoading(false);
@@ -89,7 +109,7 @@ export default function DashboardPage() {
         alert('Funcionalidade em desenvolvimento: Criar Autorização para Imóvel');
     };
 
-    if (!bitrix.isReady) {
+    if (!bitrix.isInitialized) {
         return (
             <div className="min-h-screen flex items-center justify-center">
                 <LoadingSpinner size="lg" text="Conectando ao Bitrix24..." />
