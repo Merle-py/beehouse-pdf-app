@@ -1,12 +1,13 @@
 'use client';
 
 import React, { ChangeEvent } from 'react';
-import { maskCPF, maskCNPJ, maskPhone, validateCPF, validateCNPJ, validateEmail, validatePhone } from '@/lib/utils/validators';
+import { maskCPF, maskCNPJ, maskCPFCNPJ, maskPhone, validateCPF, validateCNPJ, validateCPFCNPJ, validateEmail, validatePhone } from '@/lib/utils/validators';
 
-type MaskType = 'cpf' | 'cnpj' | 'phone' | 'none';
-type ValidationType = 'cpf' | 'cnpj' | 'email' | 'phone' | 'none';
+type MaskType = 'cpf' | 'cnpj' | 'cpfCnpj' | 'phone' | 'none';
+type ValidationType = 'cpf' | 'cnpj' | 'cpfCnpj' | 'email' | 'phone' | 'none';
 
 interface MaskedInputProps {
+    label?: string;
     value: string;
     onChange: (value: string) => void;
     mask?: MaskType;
@@ -18,6 +19,7 @@ interface MaskedInputProps {
 }
 
 export default function MaskedInput({
+    label,
     value,
     onChange,
     mask = 'none',
@@ -36,6 +38,8 @@ export default function MaskedInput({
                 return maskCPF(rawValue);
             case 'cnpj':
                 return maskCNPJ(rawValue);
+            case 'cpfCnpj':
+                return maskCPFCNPJ(rawValue);
             case 'phone':
                 return maskPhone(rawValue);
             default:
@@ -51,6 +55,8 @@ export default function MaskedInput({
                 return validateCPF(val) ? '' : 'CPF inválido';
             case 'cnpj':
                 return validateCNPJ(val) ? '' : 'CNPJ inválido';
+            case 'cpfCnpj':
+                return validateCPFCNPJ(val) ? '' : 'CPF/CNPJ inválido';
             case 'email':
                 return validateEmail(val) ? '' : 'Email inválido';
             case 'phone':
@@ -76,7 +82,13 @@ export default function MaskedInput({
     };
 
     return (
-        <div className="w-full">
+        <div className="mb-4">
+            {label && (
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    {label}
+                    {required && <span className="text-red-500 ml-1">*</span>}
+                </label>
+            )}
             <input
                 type={type}
                 value={value}
@@ -84,7 +96,11 @@ export default function MaskedInput({
                 onBlur={handleBlur}
                 placeholder={placeholder}
                 required={required}
-                className={`${className} ${error ? 'border-red-500 focus:border-red-500' : ''}`}
+                className={`w-full px-4 py-3 border-2 rounded-lg 
+                           focus:border-blue-500 focus:ring-2 focus:ring-blue-200 focus:outline-none
+                           transition-all duration-200 bg-white text-gray-900 
+                           placeholder-gray-400 hover:border-gray-400
+                           ${error ? 'border-red-500 focus:border-red-500' : 'border-gray-300'}`}
             />
             {error && (
                 <p className="text-red-600 text-sm mt-1">

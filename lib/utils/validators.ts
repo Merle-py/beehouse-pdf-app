@@ -51,6 +51,30 @@ export function maskPhone(value: string): string {
 }
 
 /**
+ * Aplica máscara inteligente de CPF/CNPJ baseado no comprimento
+ * - Até 11 dígitos: aplica máscara de CPF (000.000.000-00)
+ * - Mais de 11 dígitos: aplica máscara de CNPJ (00.000.000/0000-00)
+ */
+export function maskCPFCNPJ(value: string): string {
+    const cleaned = value.replace(/\D/g, '').substring(0, 14); // Limita a 14 dígitos
+
+    if (cleaned.length <= 11) {
+        // Aplica máscara de CPF
+        return cleaned
+            .replace(/(\d{3})(\d)/, '$1.$2')
+            .replace(/(\d{3})(\d)/, '$1.$2')
+            .replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+    } else {
+        // Aplica máscara de CNPJ
+        return cleaned
+            .replace(/(\d{2})(\d)/, '$1.$2')
+            .replace(/(\d{3})(\d)/, '$1.$2')
+            .replace(/(\d{3})(\d)/, '$1/$2')
+            .replace(/(\d{4})(\d{1,2})$/, '$1-$2');
+    }
+}
+
+/**
  * Aplica máscara de Valor: R$ 0.000,00
  */
 export function maskCurrency(value: string | number): string {
@@ -153,6 +177,21 @@ export function validateEmail(email: string): boolean {
 export function validatePhone(phone: string): boolean {
     const cleaned = unmask(phone);
     return cleaned.length === 10 || cleaned.length === 11;
+}
+
+/**
+ * Valida CPF ou CNPJ dinamicamente baseado no comprimento
+ */
+export function validateCPFCNPJ(value: string): boolean {
+    const cleaned = unmask(value);
+
+    if (cleaned.length === 11) {
+        return validateCPF(value);
+    } else if (cleaned.length === 14) {
+        return validateCNPJ(value);
+    }
+
+    return false;
 }
 
 /**

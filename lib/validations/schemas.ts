@@ -28,13 +28,8 @@ export const companySchema = z.object({
         .refine((val) => {
             const cleaned = val.replace(/\D/g, '');
             // CPF tem 11 dígitos, CNPJ tem 14
-            if (cleaned.length === 11) {
-                return cpfRegex.test(val) || cpfSimpleRegex.test(cleaned);
-            } else if (cleaned.length === 14) {
-                return cnpjRegex.test(val) || cnpjSimpleRegex.test(cleaned);
-            }
-            return false;
-        }, 'CPF/CNPJ inválido'),
+            return cleaned.length === 11 || cleaned.length === 14;
+        }, 'CPF/CNPJ inválido - deve conter 11 ou 14 dígitos'),
 
     email: z.string()
         .email('Email inválido')
@@ -85,7 +80,12 @@ export const authorizationSchema = z.object({
 
     contratante: z.object({
         nome: z.string().min(3, 'Nome muito curto'),
-        cpfCnpj: z.string().min(11, 'CPF/CNPJ inválido'),
+        cpfCnpj: z.string()
+            .min(11, 'CPF/CNPJ inválido')
+            .refine((val) => {
+                const cleaned = val.replace(/\D/g, '');
+                return cleaned.length === 11 || cleaned.length === 14;
+            }, 'CPF/CNPJ deve conter 11 ou 14 dígitos'),
         telefone: z.string().min(10, 'Telefone inválido'),
         email: z.string().email('Email inválido'),
         estadoCivil: z.string().min(1, 'Selecione o estado civil'),

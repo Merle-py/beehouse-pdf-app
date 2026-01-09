@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useBitrix24 } from '@/lib/bitrix/client-sdk';
 import toast from 'react-hot-toast';
 import Input from '@/components/forms/Input';
+import MaskedInput from '@/components/forms/MaskedInput';
 import Select from '@/components/forms/Select';
 import Textarea from '@/components/forms/Textarea';
 import SpouseSection from '@/components/forms/SpouseSection';
@@ -143,7 +144,7 @@ function NovaAutorizacaoForm() {
                 authType,
                 contratante: {
                     ...contratante,
-                    cpf: contratante.cpfCnpj
+                    cpf: contratante.cpfCnpj.replace(/\D/g, '') // Remove formatação antes de enviar
                 },
                 ...(authType === 'pf-casado' && { conjuge }),
                 ...(authType === 'pj' && { socios }),
@@ -240,11 +241,13 @@ function NovaAutorizacaoForm() {
                                     placeholder="Digite o nome completo"
                                     required
                                 />
-                                <Input
-                                    label={authType === 'pj' ? 'CNPJ' : 'CPF'}
+                                <MaskedInput
+                                    label={authType === 'pj' ? 'CNPJ' : 'CPF/CNPJ'}
                                     value={contratante.cpfCnpj}
                                     onChange={(v) => setContratante({ ...contratante, cpfCnpj: v })}
-                                    placeholder={authType === 'pj' ? '00.000.000/0000-00' : '000.000.000-00'}
+                                    mask="cpfCnpj"
+                                    validation="cpfCnpj"
+                                    placeholder={authType === 'pj' ? '00.000.000/0000-00' : '000.000.000-00 ou 00.000.000/0000-00'}
                                     required
                                 />
                                 <Input
@@ -253,11 +256,12 @@ function NovaAutorizacaoForm() {
                                     onChange={(v) => setContratante({ ...contratante, endereco: v })}
                                     placeholder="Endereço completo"
                                 />
-                                <Input
+                                <MaskedInput
                                     label="Telefone"
-                                    type="tel"
                                     value={contratante.telefone}
                                     onChange={(v) => setContratante({ ...contratante, telefone: v })}
+                                    mask="phone"
+                                    validation="phone"
                                     placeholder="(00) 00000-0000"
                                     required
                                 />
