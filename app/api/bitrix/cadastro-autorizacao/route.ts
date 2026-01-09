@@ -35,8 +35,8 @@ export async function POST(request: NextRequest): Promise<NextResponse<Authoriza
         // 1. Parse dos dados
         const body = await request.json();
         const formData: AuthorizationFormData = body.formData || body;
-        const brokerDomain = body.Domain; // domain do Bitrix24
-        const brokerAccessToken = body.AccessToken; // access_token do corretor
+        const domain = body.domain; // domain do Bitrix24
+        const accessToken = body.accessToken; // access_token do corretor
 
         if (!formData || !formData.authType || !formData.contrato) {
             return NextResponse.json({
@@ -46,7 +46,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<Authoriza
         }
 
         // 🔒 VALIDAÇÃO SEGURA: Valida token ANTES de usar
-        if (!brokerAccessToken || !brokerDomain) {
+        if (!accessToken || !domain) {
             return NextResponse.json({
                 success: false,
                 error: 'Token de autenticação não fornecido'
@@ -56,23 +56,23 @@ export async function POST(request: NextRequest): Promise<NextResponse<Authoriza
         console.log('[API] Validando token do corretor...');
 
         // Valida token e obtém userId REAL (impossível falsificar)
-        const userInfo = await validateUserToken(brokerAccessToken, brokerDomain);
+        const userInfo = await validateUserToken(accessToken, domain);
         const validatedBrokerId = userInfo.userId;
 
         console.log('[API] Token validado - Broker ID:', validatedBrokerId, 'Nome:', userInfo.name);
 
         // 2. Obter dados do corretor para rastreamento
         let brokerInfo: any = null;
-        if (validatedBrokerId && brokerAccessToken) {
+        if (validatedBrokerId && accessToken) {
             try {
                 // Salvar tokens temporariamente
-                if (brokerDomain && brokerAccessToken) {
+                if (domain && accessToken) {
                     await saveUserTokens({
                         member_id: validatedBrokerId,
-                        access_token: brokerAccessToken,
+                        access_token: accessToken,
                         refresh_token: '', // Será atualizado no fluxo OAuth completo
                         expires_in: Math.floor(Date.now() / 1000) + 3600,
-                        domain: brokerDomain
+                        domain: domain
                     });
                 }
 

@@ -33,31 +33,17 @@ export default function SpouseSection({ spouse, onChange }: SpouseSectionProps) 
                 />
             </div>
 
-            {/* CPF e RG */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                    <label className="block text-sm font-semibold mb-2">CPF *</label>
-                    <MaskedInput
-                        value={spouse.cpf || ''}
-                        onChange={(value) => handleChange('cpf', value)}
-                        mask="cpf"
-                        validation="cpf"
-                        placeholder="000.000.000-00"
-                        required
-                    />
-                </div>
-
-                <div>
-                    <label className="block text-sm font-semibold mb-2">RG *</label>
-                    <input
-                        type="text"
-                        value={spouse.rg || ''}
-                        onChange={(e) => handleChange('rg', e.target.value)}
-                        className="input"
-                        placeholder="00.000.000-0"
-                        required
-                    />
-                </div>
+            {/* CPF */}
+            <div>
+                <label className="block text-sm font-semibold mb-2">CPF *</label>
+                <MaskedInput
+                    value={spouse.cpf || ''}
+                    onChange={(value) => handleChange('cpf', value)}
+                    mask="cpf"
+                    validation="cpf"
+                    placeholder="000.000.000-00"
+                    required
+                />
             </div>
 
             {/* Profissão e Email */}

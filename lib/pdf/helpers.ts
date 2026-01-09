@@ -51,7 +51,6 @@ export function convertFormDataToPDFData(formData: any): any {
         if (formData.contratante) {
             pdfData.contratanteNome = formData.contratante.nome;
             pdfData.contratanteCpf = formData.contratante.cpf;
-            pdfData.contratanteRg = formData.contratante.rg;
             pdfData.contratanteProfissao = formData.contratante.profissao;
             pdfData.contratanteEstadoCivil = formData.contratante.estadoCivil;
             pdfData.contratanteRegimeCasamento = formData.contratante.regimeCasamento;
@@ -62,7 +61,6 @@ export function convertFormDataToPDFData(formData: any): any {
         if (formData.authType === 'pf-casado' && formData.conjuge) {
             pdfData.conjugeNome = formData.conjuge.nome;
             pdfData.conjugeCpf = formData.conjuge.cpf;
-            pdfData.conjugeRg = formData.conjuge.rg;
             pdfData.conjugeProfissao = formData.conjuge.profissao;
             pdfData.conjugeEmail = formData.conjuge.email;
         }
@@ -75,7 +73,6 @@ export function convertFormDataToPDFData(formData: any): any {
             const i = index + 1;
             pdfData[`socio${i}Nome`] = socio.nome;
             pdfData[`socio${i}Cpf`] = socio.cpf;
-            pdfData[`socio${i}Rg`] = socio.rg;
             pdfData[`socio${i}Profissao`] = socio.profissao;
             pdfData[`socio${i}EstadoCivil`] = socio.estadoCivil;
             pdfData[`socio${i}RegimeCasamento`] = socio.regimeCasamento;
@@ -84,31 +81,16 @@ export function convertFormDataToPDFData(formData: any): any {
         });
     }
 
-    // Converte dados de Imóvel (único)
-    if (formData.imovelUnico) {
-        pdfData.imovelDescricao = formData.imovelUnico.descricao;
-        pdfData.imovelValor = formData.imovelUnico.valor;
-        pdfData.imovelEndereco = formData.imovelUnico.endereco;
-        pdfData.imovelMatricula = formData.imovelUnico.matricula;
-        pdfData.imovelAdminCondominio = formData.imovelUnico.adminCondominio;
-        pdfData.imovelValorCondominio = formData.imovelUnico.valorCondominio;
-        pdfData.imovelChamadaCapital = formData.imovelUnico.chamadaCapital;
-        pdfData.imovelNumParcelas = formData.imovelUnico.numParcelas;
-    }
-
-    // Converte dados de Múltiplos Imóveis
-    if (formData.imoveisMultiplos) {
-        pdfData.qtdImoveis = formData.imoveisMultiplos.qtdImoveis;
-        formData.imoveisMultiplos.unidades?.forEach((unidade: any, index: number) => {
-            pdfData[`imovelDescricao_${index}`] = unidade.descricao;
-            pdfData[`imovelValor_${index}`] = unidade.valor;
-        });
-        pdfData.imovelEndereco = formData.imoveisMultiplos.enderecoEmpreendimento;
-        pdfData.imovelMatricula = formData.imoveisMultiplos.matricula;
-        pdfData.imovelAdminCondominio = formData.imoveisMultiplos.adminCondominio;
-        pdfData.imovelValorCondominio = formData.imoveisMultiplos.valorCondominio;
-        pdfData.imovelChamadaCapital = formData.imoveisMultiplos.chamadaCapital;
-        pdfData.imovelNumParcelas = formData.imoveisMultiplos.numParcelas;
+    // Converte dados de Imóvel (objeto único)
+    if (formData.imovel) {
+        pdfData.imovelDescricao = formData.imovel.descricao;
+        pdfData.imovelValor = formData.imovel.valor;
+        pdfData.imovelEndereco = formData.imovel.endereco;
+        pdfData.imovelMatricula = formData.imovel.matricula;
+        pdfData.imovelAdminCondominio = formData.imovel.adminCondominio;
+        pdfData.imovelValorCondominio = formData.imovel.valorCondominio;
+        pdfData.imovelChamadaCapital = formData.imovel.chamadaCapital;
+        pdfData.imovelNumParcelas = formData.imovel.numParcelas;
     }
 
     return pdfData;

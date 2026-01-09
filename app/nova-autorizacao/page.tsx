@@ -24,19 +24,18 @@ function NovaAutorizacaoForm() {
     const [contratante, setContratante] = useState({
         nome: '',
         cpfCnpj: '',
-        rg: '',
         telefone: '',
         email: '',
         estadoCivil: '',
         regimeCasamento: '',
-        profissao: ''
+        profissao: '',
+        endereco: ''
     });
 
     // Estado para cônjuge (se casado)
     const [conjuge, setConjuge] = useState<SpouseData>({
         nome: '',
         cpf: '',
-        rg: '',
         profissao: '',
         email: ''
     });
@@ -57,7 +56,6 @@ function NovaAutorizacaoForm() {
     const [socios, setSocios] = useState<PersonData[]>([{
         nome: '',
         cpf: '',
-        rg: '',
         estadoCivil: '',
         profissao: ''
     }]);
@@ -122,12 +120,12 @@ function NovaAutorizacaoForm() {
                 setContratante({
                     nome: company.TITLE || '',
                     cpfCnpj: company.UF_CRM_CPF_CNPJ || '',
-                    rg: '',
                     telefone: telefone || '',
                     email: email || '',
                     estadoCivil: '',
                     regimeCasamento: '',
-                    profissao: ''
+                    profissao: '',
+                    endereco: ''
                 });
             }
         } catch (error) {
@@ -143,17 +141,27 @@ function NovaAutorizacaoForm() {
         try {
             const formData = {
                 authType,
-                contratante,
+                contratante: {
+                    ...contratante,
+                    cpf: contratante.cpfCnpj
+                },
                 ...(authType === 'pf-casado' && { conjuge }),
                 ...(authType === 'pj' && { socios }),
-                imovel
+                imovel: {
+                    ...imovel,
+                    valor: parseFloat(imovel.valor) || 0
+                },
+                contrato: {
+                    prazo: 90,
+                    comissaoPct: 6
+                }
             };
 
             const response = await fetch('/api/bitrix/cadastro-autorizacao', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    ...formData,
+                    formData,
                     accessToken: bitrix.authId,
                     domain: bitrix.domain
                 })
@@ -179,9 +187,9 @@ function NovaAutorizacaoForm() {
         setSocios([...socios, {
             nome: '',
             cpf: '',
-            rg: '',
             estadoCivil: '',
-            profissao: ''
+            profissao: '',
+            endereco: ''
         }]);
     };
 
@@ -240,10 +248,10 @@ function NovaAutorizacaoForm() {
                                     required
                                 />
                                 <Input
-                                    label="RG"
-                                    value={contratante.rg}
-                                    onChange={(v) => setContratante({ ...contratante, rg: v })}
-                                    placeholder="00.000.000-0"
+                                    label="Endereço Residencial"
+                                    value={contratante.endereco}
+                                    onChange={(v) => setContratante({ ...contratante, endereco: v })}
+                                    placeholder="Endereço completo"
                                 />
                                 <Input
                                     label="Telefone"

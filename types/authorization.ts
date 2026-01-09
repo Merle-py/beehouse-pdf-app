@@ -6,7 +6,6 @@ export type ContractorType = 'pf-solteiro' | 'pf-casado' | 'socios' | 'pj';
 export interface PersonData {
     nome?: string;
     cpf?: string; // Usado para CPF e CNPJ
-    rg?: string;
     profissao?: string;
     estadoCivil?: string;
     regimeCasamento?: string;
@@ -19,7 +18,6 @@ export interface PersonData {
 export interface SpouseData {
     nome?: string;
     cpf?: string;
-    rg?: string;
     profissao?: string;
     email?: string;
 }
@@ -134,7 +132,6 @@ export interface PDFGenerationData {
     numSocios?: number;
     contratanteNome?: string;
     contratanteCpf?: string;
-    contratanteRg?: string;
     contratanteProfissao?: string;
     contratanteEstadoCivil?: string;
     contratanteRegimeCasamento?: string;
@@ -144,7 +141,6 @@ export interface PDFGenerationData {
     // Sócios (dinâmico)
     [key: `socio${number}Nome`]: string;
     [key: `socio${number}Cpf`]: string;
-    [key: `socio${number}Rg`]: string;
     [key: `socio${number}Profissao`]: string;
     [key: `socio${number}EstadoCivil`]: string;
     [key: `socio${number}RegimeCasamento`]: string;
@@ -154,7 +150,6 @@ export interface PDFGenerationData {
     // Cônjuge
     conjugeNome?: string;
     conjugeCpf?: string;
-    conjugeRg?: string;
     conjugeProfissao?: string;
     conjugeEmail?: string;
 
