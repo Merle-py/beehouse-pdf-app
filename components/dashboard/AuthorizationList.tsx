@@ -4,15 +4,7 @@ import React from 'react';
 import Link from 'next/link';
 import Badge from '@/components/ui/Badge';
 import { getCompanyTypeBadge } from '@/lib/utils/bitrix';
-
-interface Authorization {
-    id: string;
-    companyName: string;
-    companyType: string;
-    createdTime: string;
-    createdBy: string;
-    cpfCnpj?: string;
-}
+import type { Authorization } from '@/types/authorization';
 
 interface AuthorizationListProps {
     authorizations: Authorization[];
@@ -65,13 +57,13 @@ export default function AuthorizationList({ authorizations }: AuthorizationListP
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
                     {authorizations.map((auth) => {
-                        const badge = getCompanyTypeBadge(auth.companyType);
+                        const badge = getCompanyTypeBadge(auth.COMPANY_TYPE || 'CUSTOMER');
 
                         return (
-                            <tr key={auth.id} className="hover:bg-gray-50">
+                            <tr key={auth.ID} className="hover:bg-gray-50">
                                 <td className="px-6 py-4">
                                     <div className="text-sm font-medium text-gray-900">
-                                        {auth.companyName}
+                                        {auth.TITLE}
                                     </div>
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap">
@@ -80,22 +72,22 @@ export default function AuthorizationList({ authorizations }: AuthorizationListP
                                     </Badge>
                                 </td>
                                 <td className="px-6 py-4 text-sm text-gray-500">
-                                    {auth.cpfCnpj || '-'}
+                                    {auth.UF_CRM_CPF_CNPJ || '-'}
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                    {formatDate(auth.createdTime)}
+                                    {formatDate(auth.DATE_CREATE || auth.CREATED_TIME || '')}
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                     <div className="flex justify-end gap-2">
                                         <Link
-                                            href={`/autorizacao/${auth.id}`}
+                                            href={`/autorizacao/${auth.ID}`}
                                             className="text-blue-600 hover:text-blue-900"
                                             title="Ver Detalhes"
                                         >
                                             👁️
                                         </Link>
                                         <Link
-                                            href={`/editar-empresa/${auth.id}`}
+                                            href={`/editar-empresa/${auth.ID}`}
                                             className="text-gray-600 hover:text-gray-900"
                                             title="Editar"
                                         >

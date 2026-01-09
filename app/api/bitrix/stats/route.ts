@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { callBitrixAPI } from '@/lib/bitrix/server-client';
+import { getCachedData, generateCacheKey } from '@/lib/cache/vercel-kv';
 
 // Force dynamic rendering to use searchParams
 export const dynamic = 'force-dynamic';
@@ -42,144 +43,143 @@ export async function GET(request: NextRequest) {
 
         console.log('[API Stats] Calculando estatísticas...');
 
-        // Conta total de empresas (paginado)
-        let totalCompanies = 0;
-        let start = 0;
-        let hasMore = true;
+        // Gera chave de cache
+        const cacheKey = generateCacheKey(domain, 'stats', 'dashboard');
 
-        while (hasMore && start < 1000) {
-            const companiesResponse: any = await callBitrixAPI('crm.company.list', {
-                select: ['ID'],
-                start,
-                limit: 50
-            });
-            const companies = companiesResponse || [];
-            totalCompanies += companies.length;
-            hasMore = companies.length === 50;
-            start += 50;
-        }
+        const fetchStatsData = async () => {
+            // Conta total de empresas (paginado)
+            let totalCompanies = 0;
+            let start = 0;
+            let hasMore = true;
 
-        console.log(`[API Stats] Total de empresas: ${totalCompanies}`);
+            while (hasMore && start < 1000) {
+                const companiesResponse: any = await callBitrixAPI('crm.company.list', {
+                    select: ['ID'],
+                    start,
+                    limit: 50
+                });
+                const companies = companiesResponse || [];
+                totalCompanies += companies.length;
+                hasMore = companies.length === 50;
+                start += 50;
+            }
 
-        // Conta total de imóveis (paginado)
-        let totalProperties = 0;
-        start = 0;
-        hasMore = true;
+            console.log(`[API Stats] Total de empresas: ${totalCompanies}`);
 
-        while (hasMore && start < 1000) {
-            const propertiesResponse: any = await callBitrixAPI('crm.item.list', {
-                entityTypeId: parseInt(entityTypeId),
-                select: ['id'],
-                start,
-                limit: 50
-            });
-            const properties = propertiesResponse?.items || [];
-            totalProperties += properties.length;
-            hasMore = properties.length === 50;
-            start += 50;
-        }
+            // Conta total de imóveis (paginado)
+            let totalProperties = 0;
+            start = 0;
+            hasMore = true;
 
-        console.log(`[API Stats] Total de imóveis: ${totalProperties}`);
+            while (hasMore && start < 1000) {
+                const propertiesResponse: any = await callBitrixAPI('crm.item.list', {
+                    entityTypeId: parseInt(entityTypeId),
+                    select: ['id'],
+                    start,
+                    limit: 50
+                });
+                const properties = propertiesResponse?.items || [];
+                totalProperties += properties.length;
+                hasMore = properties.length === 50;
+                start += 50;
+            }
 
-        // Conta total de autorizações (empresas com PDF de autorização)
-        // Busca empresas e verifica manualmente quais têm PDF válido
-        let totalAuthorizations = 0;
-        start = 0;
-        hasMore = true;
+            console.log(`[API Stats] Total de imóveis: ${totalProperties}`);
 
-        while (hasMore && start < 1000) {
-            const companiesResponse: any = await callBitrixAPI('crm.company.list', {
-                select: ['ID', 'UF_CRM_AUTHORIZATION_PDF'],
-                start,
-                limit: 50
-            });
-            const allCompanies = companiesResponse || [];
+            // Conta total de autorizações (empresas com PDF de autorização)
+            let totalAuthorizations = 0;
+            start = 0;
+            hasMore = true;
 
-            // Conta apenas empresas com PDF válido (não vazio e não null)
-            const companiesWithPDF = allCompanies.filter((company: any) => {
-                const pdf = company.UF_CRM_AUTHORIZATION_PDF;
-                return pdf && pdf.trim() !== '' && pdf !== 'null' && pdf !== 'undefined';
-            });
+            while (hasMore && start < 1000) {
+                const companiesResponse: any = await callBitrixAPI('crm.company.list', {
+                    select: ['ID', 'UF_CRM_AUTHORIZATION_PDF'],
+                    start,
+                    limit: 50
+                });
+                const allCompanies = companiesResponse || [];
 
-            totalAuthorizations += companiesWithPDF.length;
-            hasMore = allCompanies.length === 50;
-            start += 50;
-        }
+                const companiesWithPDF = allCompanies.filter((company: any) => {
+                    const pdf = company.UF_CRM_AUTHORIZATION_PDF;
+                    return pdf && pdf.trim() !== '' && pdf !== 'null' && pdf !== 'undefined';
+                });
 
-        console.log(`[API Stats] Total de autorizações: ${totalAuthorizations}`);
+                totalAuthorizations += companiesWithPDF.length;
+                hasMore = allCompanies.length === 50;
+                start += 50;
+            }
 
-        // Conta imóveis SEM autorização (nem PDF nem flag manual)
-        // Para calcular pendentes corretamente
-        let propertiesWithAuthorization = 0;
-        start = 0;
-        hasMore = true;
+            console.log(`[API Stats] Total de autorizações: ${totalAuthorizations}`);
 
-        while (hasMore && start < 1000) {
-            const propertiesResponse: any = await callBitrixAPI('crm.item.list', {
-                entityTypeId: parseInt(entityTypeId),
-                select: ['id', 'ufCrm15_1767879091919'], // Campo customizado para flag manual (ID exato)
-                start,
-                limit: 50
-            });
-            const properties = propertiesResponse?.items || [];
+            // Conta imóveis SEM autorização
+            let propertiesWithAuthorization = 0;
+            start = 0;
+            hasMore = true;
 
-            // Conta imóveis que têm flag de autorização manual marcada
-            const withAuth = properties.filter((prop: any) => {
-                const fieldValue = prop.ufCrm15_1767879091919;
-                return fieldValue === 'Y' || fieldValue === true || fieldValue === '1' || fieldValue === 1;
-            });
+            while (hasMore && start < 1000) {
+                const propertiesResponse: any = await callBitrixAPI('crm.item.list', {
+                    entityTypeId: parseInt(entityTypeId),
+                    select: ['id', 'ufCrm15_1767879091919'],
+                    start,
+                    limit: 50
+                });
+                const properties = propertiesResponse?.items || [];
 
-            propertiesWithAuthorization += withAuth.length;
-            hasMore = properties.length === 50;
-            start += 50;
-        }
+                const withAuth = properties.filter((prop: any) => {
+                    const fieldValue = prop.ufCrm15_1767879091919;
+                    return fieldValue === 'Y' || fieldValue === true || fieldValue === '1' || fieldValue === 1;
+                });
 
-        console.log(`[API Stats] Imóveis com autorização manual: ${propertiesWithAuthorization}`);
+                propertiesWithAuthorization += withAuth.length;
+                hasMore = properties.length === 50;
+                start += 50;
+            }
 
-        // Conta imóveis com arquivo de autorização assinado
-        let propertiesWithSignedAuth = 0;
-        start = 0;
-        hasMore = true;
+            console.log(`[API Stats] Imóveis com autorização manual: ${propertiesWithAuthorization}`);
 
-        while (hasMore && start < 1000) {
-            const propertiesResponse: any = await callBitrixAPI('crm.item.list', {
-                entityTypeId: parseInt(entityTypeId),
-                select: ['id', 'ufCrm15_1767882267145'], // Campo de arquivo de autorização (ID correto)
-                start,
-                limit: 50
-            });
-            const properties = propertiesResponse?.items || [];
+            // Conta imóveis com arquivo de autorização assinado
+            let propertiesWithSignedAuth = 0;
+            start = 0;
+            hasMore = true;
 
-            // Conta imóveis que têm arquivo de autorização enviado
-            const withFile = properties.filter((prop: any) => {
-                const fileField = prop.ufCrm15_1767882267145;
-                // Verifica se tem arquivo (não vazio, não null, não undefined)
-                return fileField && fileField !== '' && fileField !== 'null' && fileField !== 'undefined';
-            });
+            while (hasMore && start < 1000) {
+                const propertiesResponse: any = await callBitrixAPI('crm.item.list', {
+                    entityTypeId: parseInt(entityTypeId),
+                    select: ['id', 'ufCrm15_1767882267145'],
+                    start,
+                    limit: 50
+                });
+                const properties = propertiesResponse?.items || [];
 
-            propertiesWithSignedAuth += withFile.length;
-            hasMore = properties.length === 50;
-            start += 50;
-        }
+                const withFile = properties.filter((prop: any) => {
+                    const fileField = prop.ufCrm15_1767882267145;
+                    return fileField && fileField !== '' && fileField !== 'null' && fileField !== 'undefined';
+                });
 
-        console.log(`[API Stats] Imóveis com autorização assinada: ${propertiesWithSignedAuth}`);
+                propertiesWithSignedAuth += withFile.length;
+                hasMore = properties.length === 50;
+                start += 50;
+            }
 
-        // Pendentes = Total de imóveis - (Autorizações com PDF + Autorizações manuais)
-        const pendingAuthorizations = Math.max(0, totalProperties - totalAuthorizations - propertiesWithAuthorization);
+            console.log(`[API Stats] Imóveis com autorização assinada: ${propertiesWithSignedAuth}`);
 
-        // Pendentes de assinatura = Imóveis com autorização - Imóveis com arquivo assinado
-        const pendingSignatures = Math.max(0, (totalAuthorizations + propertiesWithAuthorization) - propertiesWithSignedAuth);
+            const pendingAuthorizations = Math.max(0, totalProperties - totalAuthorizations - propertiesWithAuthorization);
+            const pendingSignatures = Math.max(0, (totalAuthorizations + propertiesWithAuthorization) - propertiesWithSignedAuth);
 
-        return NextResponse.json({
-            stats: {
+            return {
                 totalCompanies,
                 totalProperties,
-                totalAuthorizations: totalAuthorizations + propertiesWithAuthorization, // Total inclui ambos
+                totalAuthorizations: totalAuthorizations + propertiesWithAuthorization,
                 pendingAuthorizations,
                 signedAuthorizations: propertiesWithSignedAuth,
                 pendingSignatures
-            }
-        });
+            };
+        };
+
+        // Usa cache com TTL de 1 minuto
+        const stats = await getCachedData(cacheKey, fetchStatsData, { ttl: 60 });
+
+        return NextResponse.json({ stats });
 
     } catch (error: any) {
         console.error('Erro ao buscar estatísticas:', error);

@@ -10,22 +10,7 @@ import Textarea from '@/components/forms/Textarea';
 import SpouseSection from '@/components/forms/SpouseSection';
 import PropertyFinancialFields from '@/components/forms/PropertyFinancialFields';
 import SocioFields from '@/components/forms/SocioFields';
-
-interface SpouseData {
-    nome: string;
-    cpf: string;
-    rg: string;
-    profissao: string;
-    email: string;
-}
-
-interface SocioData {
-    nome: string;
-    cpf: string;
-    rg: string;
-    estadoCivil: string;
-    profissao: string;
-}
+import { PersonData, SpouseData } from '@/types/authorization';
 
 function NovaAutorizacaoForm() {
     const router = useRouter();
@@ -69,7 +54,7 @@ function NovaAutorizacaoForm() {
     });
 
     // Estado para sócios (se PJ)
-    const [socios, setSocios] = useState<SocioData[]>([{
+    const [socios, setSocios] = useState<PersonData[]>([{
         nome: '',
         cpf: '',
         rg: '',
@@ -147,6 +132,7 @@ function NovaAutorizacaoForm() {
             }
         } catch (error) {
             console.error('Erro ao carregar dados da empresa:', error);
+            toast.error('Erro ao carregar dados da empresa');
         }
     };
 
@@ -333,10 +319,10 @@ function NovaAutorizacaoForm() {
                                 <SocioFields
                                     key={index}
                                     index={index}
-                                    socio={socio as any}
+                                    socio={socio}
                                     onChange={(updatedSocio) => {
                                         const newSocios = [...socios];
-                                        newSocios[index] = updatedSocio as any;
+                                        newSocios[index] = updatedSocio;
                                         setSocios(newSocios);
                                     }}
                                     onRemove={() => removeSocio(index)}

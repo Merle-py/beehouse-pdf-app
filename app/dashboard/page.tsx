@@ -1,9 +1,10 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import type { Company } from '@/types/company';
 import type { Property } from '@/types/property';
 import type { DashboardStats } from '@/types/dashboard';
+import type { Authorization } from '@/types/authorization';
 import { useBitrix24 } from '@/lib/bitrix/client-sdk';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -34,7 +35,7 @@ export default function DashboardPage() {
     });
     const [companies, setCompanies] = useState<Company[]>([]);
     const [properties, setProperties] = useState<Property[]>([]);
-    const [authorizations, setAuthorizations] = useState<any[]>([]); // Lista para aba de autorizações
+    const [authorizations, setAuthorizations] = useState<Authorization[]>([]); // Lista para aba de autorizações
     const [loading, setLoading] = useState(true);
     const [authorizationsLoading, setAuthorizationsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -221,20 +222,20 @@ export default function DashboardPage() {
         }
     };
 
-    // Handlers para o dropdown "+ Novo"
-    const handleNovaEmpresa = () => {
+    // Handlers para o dropdown "+ Novo" (memoized)
+    const handleNovaEmpresa = useCallback(() => {
         router.push('/nova-empresa');
-    };
+    }, [router]);
 
-    const handleNovoImovel = () => {
+    const handleNovoImovel = useCallback(() => {
         setModalAction('property');
         setShowCompanyModal(true);
-    };
+    }, []);
 
-    const handleNovaAutorizacao = () => {
+    const handleNovaAutorizacao = useCallback(() => {
         setModalAction('authorization');
         setShowCompanyModal(true);
-    };
+    }, []);
 
     const handleCompanySelected = (companyId: string) => {
         setShowCompanyModal(false);
@@ -254,20 +255,20 @@ export default function DashboardPage() {
         }
     };
 
-    const handleCreateProperty = (companyId: string) => {
+    const handleCreateProperty = useCallback((companyId: string) => {
         router.push(`/novo-imovel?companyId=${companyId}`);
-    };
+    }, [router]);
 
-    const handleCreateAuthorization = (companyId: string) => {
+    const handleCreateAuthorization = useCallback((companyId: string) => {
         router.push(`/nova-autorizacao?companyId=${companyId}`);
-    };
+    }, [router]);
 
     const handleCreateAuthorizationForProperty = (propertyId: string) => {
         const property = properties.find(p => p.id === propertyId);
         if (property && property.companyId) {
             router.push(`/nova-autorizacao?propertyId=${propertyId}&companyId=${property.companyId}`);
         } else {
-            alert('Erro: Imóvel não possui empresa vinculada');
+            toast.error('Erro: Imóvel não possui empresa vinculada');
         }
     };
 

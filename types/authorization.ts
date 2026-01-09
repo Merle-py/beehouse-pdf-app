@@ -1,17 +1,18 @@
 // Tipos de contratante
 export type ContractorType = 'pf-solteiro' | 'pf-casado' | 'socios' | 'pj';
 
-// Dados de Pessoa Física
+// types/authorization.ts
+
 export interface PersonData {
     nome?: string;
-    cpf?: string;
+    cpf?: string; // Usado para CPF e CNPJ
     rg?: string;
     profissao?: string;
     estadoCivil?: string;
     regimeCasamento?: string;
-    endereco?: string;
+    endereco?: string; // Endereço residencial do contratante
     email?: string;
-    telefone?: string; // Para sócios
+    telefone?: string;
 }
 
 // Dados de Cônjuge
@@ -74,27 +75,14 @@ export interface ContractData {
     comissaoPct: number; // percentual de comissão
 }
 
-// Formulário completo de Autorização
 export interface AuthorizationFormData {
     authType: ContractorType;
-
-    // PJ
     empresa?: CompanyData;
     repLegal?: LegalRepData;
-
-    // PF
     contratante?: PersonData;
     conjuge?: SpouseData;
-
-    // Sócios (múltiplos)
-    numSocios?: number;
     socios?: PersonData[];
-
-    // Imóvel (único ou múltiplo)
-    imovelUnico?: PropertyData;
-    imoveisMultiplos?: MultiplePropertyData;
-
-    // Contrato
+    imovel: PropertyData; // Removido imovelUnico/imoveisMultiplos
     contrato: ContractData;
 }
 
@@ -107,6 +95,22 @@ export interface AuthorizationApiResponse {
     pdfFileName?: string;
     error?: string;
     details?: string;
+}
+
+// Interface para autorização na lista do dashboard
+export interface Authorization {
+    ID: string;
+    TITLE: string;
+    COMPANY_ID?: string;
+    COMPANY_NAME?: string;
+    COMPANY_TYPE?: string;
+    DATE_CREATE?: string;
+    CREATED_TIME?: string;
+    HAS_AUTHORIZATION?: boolean | string;
+    HAS_SIGNED?: boolean | string;
+    AUTHORIZATION_FILE?: string;
+    UF_CRM_PROPERTY_ID?: string;
+    UF_CRM_CPF_CNPJ?: string;
 }
 
 // Dados para geração de PDF (formato legado compatível)

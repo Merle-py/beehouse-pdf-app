@@ -78,7 +78,7 @@ export default function MyAuthorizationsPage() {
                     </div>
 
                     <Link
-                        href="/"
+                        href="/nova-autorizacao"
                         className="btn-secondary"
                     >
                         ← Nova Autorização
@@ -133,7 +133,7 @@ export default function MyAuthorizationsPage() {
                                 <p className="text-gray-600 text-lg mb-4">
                                     Você ainda não criou nenhuma autorização
                                 </p>
-                                <Link href="/" className="btn-primary inline-block">
+                                <Link href="/nova-autorizacao" className="btn-primary inline-block">
                                     Criar Primeira Autorização
                                 </Link>
                             </div>

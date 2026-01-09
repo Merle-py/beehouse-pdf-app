@@ -1,5 +1,6 @@
 import axios from 'axios';
 import type { BitrixApiResponse, BitrixCompanyCreateData, BitrixPropertyItemData } from '@/types/authorization';
+import { PROPERTY_FIELDS } from './field-mapping';
 
 const ADMIN_WEBHOOK_URL = process.env.B24_ADMIN_WEBHOOK_URL || '';
 const PROPERTY_ENTITY_TYPE_ID = parseInt(process.env.B24_PROPERTY_ENTITY_TYPE_ID || '0', 10);
@@ -229,7 +230,7 @@ export async function attachFileToItem(itemId: number, fileId: number): Promise<
         id: itemId,
         fields: {
             // Adiciona o arquivo aos campos do item (campo específico do seu SPA)
-            UF_CRM_FILE: fileId
+            [PROPERTY_FIELDS.ARQUIVO_AUTORIZACAO]: fileId
         }
     });
 
