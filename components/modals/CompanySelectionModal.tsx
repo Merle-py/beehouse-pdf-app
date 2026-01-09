@@ -51,7 +51,7 @@ export default function CompanySelectionModal({
     };
 
     const filteredCompanies = companies.filter(company =>
-        company.title.toLowerCase().includes(searchTerm.toLowerCase())
+        company.title?.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
     if (!isOpen) return null;

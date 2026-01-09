@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useBitrix24 } from '@/lib/bitrix/client-sdk';
 import toast from 'react-hot-toast';
 import Input from '@/components/forms/Input';
+import MaskedInput from '@/components/forms/MaskedInput';
 import Select from '@/components/forms/Select';
 
 function NovaEmpresaForm() {
@@ -104,10 +105,12 @@ function NovaEmpresaForm() {
                                 required
                             />
 
-                            <Input
+                            <MaskedInput
                                 label={formData.tipo === 'pj' ? 'CNPJ' : 'CPF'}
                                 value={formData.cpfCnpj}
                                 onChange={(v) => setFormData({ ...formData, cpfCnpj: v })}
+                                mask="cpfCnpj"
+                                validation="cpfCnpj"
                                 placeholder={formData.tipo === 'pj' ? '00.000.000/0000-00' : '000.000.000-00'}
                                 required
                             />
@@ -121,11 +124,12 @@ function NovaEmpresaForm() {
                                 required
                             />
 
-                            <Input
+                            <MaskedInput
                                 label="Telefone"
-                                type="tel"
                                 value={formData.telefone}
                                 onChange={(v) => setFormData({ ...formData, telefone: v })}
+                                mask="phone"
+                                validation="phone"
                                 placeholder="(00) 00000-0000"
                                 required
                             />
