@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { callAsUser } from '@/lib/bitrix/oauth-manager';
+import { extractBitrixCredentials } from '@/lib/utils/api-headers';
 
 // Força a rota a ser dinâmica (necessário para usar searchParams)
 export const dynamic = 'force-dynamic';
@@ -9,9 +10,22 @@ export const dynamic = 'force-dynamic';
  * 
  * Retorna Companies e Items criados pelo corretor específico
  * (filtrado pelo campo COMMENTS que contém o brokerId)
+ * 
+ * Headers (recomendado):
+ *   X-Bitrix-Token: <accessToken>
+ *   X-Bitrix-Domain: <domain>
  */
 export async function GET(request: NextRequest): Promise<NextResponse> {
     try {
+        const credentials = extractBitrixCredentials(request);
+
+        if (!credentials) {
+            return NextResponse.json({
+                success: false,
+                error: 'Credenciais Bitrix24 não fornecidas'
+            }, { status: 401 });
+        }
+
         const searchParams = request.nextUrl.searchParams;
         const brokerId = searchParams.get('brokerId');
 

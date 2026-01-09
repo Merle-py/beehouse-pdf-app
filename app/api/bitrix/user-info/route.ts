@@ -1,24 +1,29 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { validateUserToken } from '@/lib/bitrix/server-client';
+import { extractBitrixCredentials } from '@/lib/utils/api-headers';
 
 export const dynamic = 'force-dynamic';
 
 /**
- * API Route: Verifica se o usuário atual é Administrador
- * Valida o access_token server-side - IMPOSSÍVEL de falsificar
+ * GET /api/bitrix/user-info
+ * Retorna informações do usuário atual
+ * 
+ * Headers (recomendado):
+ *   X-Bitrix-Token: <accessToken>
+ *   X-Bitrix-Domain: <domain>
  */
-export async function GET(request: NextRequest): Promise<NextResponse> {
+export async function GET(request: NextRequest) {
     try {
-        const { searchParams } = new URL(request.url);
-        const accessToken = searchParams.get('accessToken');
-        const domain = searchParams.get('domain');
+        const credentials = extractBitrixCredentials(request);
 
-        if (!accessToken || !domain) {
+        if (!credentials) {
             return NextResponse.json({
                 success: false,
-                error: 'Access token e domain são obrigatórios'
-            }, { status: 400 });
+                error: 'Credenciais Bitrix24 não fornecidas'
+            }, { status: 401 });
         }
+
+        const { accessToken, domain } = credentials;
 
         console.log(`[API User Info] Validando token...`);
 

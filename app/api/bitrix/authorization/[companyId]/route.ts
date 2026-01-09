@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { callBitrixAPI, validateUserToken } from '@/lib/bitrix/server-client';
+import { extractBitrixCredentials } from '@/lib/utils/api-headers';
 
 // Força a rota a ser dinâmica
 export const dynamic = 'force-dynamic';
@@ -9,15 +10,17 @@ export const dynamic = 'force-dynamic';
  * 
  * Retorna dados completos se o usuário for o criador ou admin
  * Retorna apenas informações básicas para outros corretores
+ * 
+ * Headers (recomendado):
+ *   X-Bitrix-Token: <accessToken>
+ *   X-Bitrix-Domain: <domain>
  */
 export async function GET(
     request: NextRequest,
     { params }: { params: { companyId: string } }
 ): Promise<NextResponse> {
     try {
-        const { searchParams } = new URL(request.url);
-        const accessToken = searchParams.get('accessToken');
-        const domain = searchParams.get('domain');
+        const credentials = extractBitrixCredentials(request);
         const companyId = params.companyId;
 
         if (!companyId) {
@@ -27,12 +30,14 @@ export async function GET(
             }, { status: 400 });
         }
 
-        if (!accessToken || !domain) {
+        if (!credentials) {
             return NextResponse.json({
                 success: false,
                 error: 'Token de autenticação não fornecido'
-            }, { status: 400 });
+            }, { status: 401 });
         }
+
+        const { accessToken, domain } = credentials;
 
         console.log(`[API Detail] Buscando Company ${companyId}...`);
 

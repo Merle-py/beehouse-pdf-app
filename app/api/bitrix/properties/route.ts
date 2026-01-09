@@ -1,36 +1,39 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { callBitrixAPI } from '@/lib/bitrix/server-client';
+import { callBitrixAPI, validateUserToken } from '@/lib/bitrix/server-client';
 import { getCachedData, generateCacheKey } from '@/lib/cache/vercel-kv';
+import { extractBitrixCredentials } from '@/lib/utils/api-headers';
 
 // Force dynamic rendering to use searchParams
 export const dynamic = 'force-dynamic';
 
 /**
  * GET /api/bitrix/properties
- * Lista todos os imóveis (SPA Items) cadastrados
+ * Lista todos os imóveis do Bitrix24
+ * 
+ * Headers (recomendado):
+ *   X-Bitrix-Token: <accessToken>
+ *   X-Bitrix-Domain: <domain>
  */
 export async function GET(request: NextRequest) {
     try {
-        const searchParams = request.nextUrl.searchParams;
-        const accessToken = searchParams.get('accessToken');
-        const domain = searchParams.get('domain');
+        const credentials = extractBitrixCredentials(request);
 
-        if (!accessToken || !domain) {
-            return NextResponse.json(
-                { error: 'accessToken e domain são obrigatórios' },
-                { status: 400 }
-            );
+        if (!credentials) {
+            return NextResponse.json({
+                success: false,
+                error: 'Credenciais Bitrix24 não fornecidas'
+            }, { status: 401 });
         }
 
-        // Valida o token do usuário
-        const { validateUserToken } = await import('@/lib/bitrix/server-client');
-        const user = await validateUserToken(accessToken, domain);
+        const { accessToken, domain } = credentials;
 
+        // Valida o token do usuário
+        const user = await validateUserToken(accessToken, domain);
         if (!user) {
-            return NextResponse.json(
-                { error: 'Token inválido' },
-                { status: 401 }
-            );
+            return NextResponse.json({
+                success: false,
+                error: 'Token inválido'
+            }, { status: 401 });
         }
 
         const entityTypeId = process.env.B24_PROPERTY_ENTITY_TYPE_ID;

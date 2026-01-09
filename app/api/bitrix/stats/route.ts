@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { callBitrixAPI } from '@/lib/bitrix/server-client';
 import { getCachedData, generateCacheKey } from '@/lib/cache/vercel-kv';
+import { extractBitrixCredentials } from '@/lib/utils/api-headers';
 
 // Force dynamic rendering to use searchParams
 export const dynamic = 'force-dynamic';
@@ -8,19 +9,23 @@ export const dynamic = 'force-dynamic';
 /**
  * GET /api/bitrix/stats
  * Retorna estatísticas do dashboard
+ * 
+ * Headers (recomendado):
+ *   X-Bitrix-Token: <accessToken>
+ *   X-Bitrix-Domain: <domain>
  */
 export async function GET(request: NextRequest) {
     try {
-        const searchParams = request.nextUrl.searchParams;
-        const accessToken = searchParams.get('accessToken');
-        const domain = searchParams.get('domain');
+        const credentials = extractBitrixCredentials(request);
 
-        if (!accessToken || !domain) {
+        if (!credentials) {
             return NextResponse.json(
-                { error: 'accessToken e domain são obrigatórios' },
-                { status: 400 }
+                { error: 'Credenciais Bitrix24 não fornecidas' },
+                { status: 401 }
             );
         }
+
+        const { accessToken, domain } = credentials;
 
         // Valida o token do usuário
         const { validateUserToken } = await import('@/lib/bitrix/server-client');

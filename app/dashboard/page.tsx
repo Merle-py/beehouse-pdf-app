@@ -5,10 +5,10 @@ import type { Company } from '@/types/company';
 import type { Property } from '@/types/property';
 import type { DashboardStats } from '@/types/dashboard';
 import type { Authorization } from '@/types/authorization';
-import { useBitrix24 } from '@/lib/bitrix/client-sdk';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { toast } from '@/lib/toast';
+import { useApiClient } from '@/lib/utils/api-client';
 import StatsCard from '@/components/ui/StatsCard';
 import Dropdown from '@/components/ui/Dropdown';
 import CompanySelectionModal from '@/components/modals/CompanySelectionModal';
@@ -21,7 +21,7 @@ import PropertyList from '@/components/dashboard/PropertyList';
 import AuthorizationList from '@/components/dashboard/AuthorizationList';
 
 export default function DashboardPage() {
-    const bitrix = useBitrix24();
+    const { client, bitrix } = useApiClient();
     const router = useRouter();
 
     const [activeTab, setActiveTab] = useState('companies');
@@ -116,9 +116,7 @@ export default function DashboardPage() {
 
             // Carrega estatísticas
             console.log('[Dashboard] Fetching stats...');
-            const statsResponse = await fetch(
-                `/api/bitrix/stats?accessToken=${bitrix.authId}&domain=${bitrix.domain}`
-            );
+            const statsResponse = await client('/api/bitrix/stats');
             if (statsResponse.ok) {
                 const statsData = await statsResponse.json();
                 console.log('[Dashboard] Stats loaded:', statsData);
@@ -130,9 +128,7 @@ export default function DashboardPage() {
 
             // Carrega empresas
             console.log('[Dashboard] Fetching companies...');
-            const companiesResponse = await fetch(
-                `/api/bitrix/companies?accessToken=${bitrix.authId}&domain=${bitrix.domain}`
-            );
+            const companiesResponse = await client('/api/bitrix/companies');
             if (companiesResponse.ok) {
                 const companiesData = await companiesResponse.json();
                 console.log('[Dashboard] Companies loaded:', companiesData);
@@ -144,9 +140,7 @@ export default function DashboardPage() {
 
             // Carrega imóveis
             console.log('[Dashboard] Fetching properties...');
-            const propertiesResponse = await fetch(
-                `/api/bitrix/properties?accessToken=${bitrix.authId}&domain=${bitrix.domain}`
-            );
+            const propertiesResponse = await client('/api/bitrix/properties');
             if (propertiesResponse.ok) {
                 const propertiesData = await propertiesResponse.json();
                 console.log('[Dashboard] Properties loaded:', propertiesData);
@@ -187,7 +181,7 @@ export default function DashboardPage() {
 
         try {
             setAuthorizationsLoading(true);
-            const response = await fetch(`/api/bitrix/all-authorizations?accessToken=${bitrix.authId}&domain=${bitrix.domain}`);
+            const response = await client('/api/bitrix/all-authorizations');
 
             if (response.ok) {
                 const data = await response.json();
@@ -208,7 +202,7 @@ export default function DashboardPage() {
     // Carrega informações do usuário atual (ID e se é admin)
     const loadUserInfo = async () => {
         try {
-            const response = await fetch(`/api/bitrix/user-info?accessToken=${bitrix.authId}&domain=${bitrix.domain}`);
+            const response = await client('/api/bitrix/user-info');
             if (response.ok) {
                 const data = await response.json();
                 if (data.success) {

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { callBitrixAPI } from '@/lib/bitrix/server-client';
+import { extractBitrixCredentials } from '@/lib/utils/api-headers';
 
 // Force dynamic rendering
 export const dynamic = 'force-dynamic';
@@ -7,22 +8,26 @@ export const dynamic = 'force-dynamic';
 /**
  * GET /api/bitrix/companies/[companyId]
  * Busca dados de uma empresa específica
+ * 
+ * Headers (recomendado):
+ *   X-Bitrix-Token: <accessToken>
+ *   X-Bitrix-Domain: <domain>
  */
 export async function GET(
     request: NextRequest,
     { params }: { params: { companyId: string } }
 ): Promise<NextResponse> {
     try {
-        const searchParams = request.nextUrl.searchParams;
-        const accessToken = searchParams.get('accessToken');
-        const domain = searchParams.get('domain');
+        const credentials = extractBitrixCredentials(request);
 
-        if (!accessToken || !domain) {
+        if (!credentials) {
             return NextResponse.json({
                 success: false,
-                error: 'accessToken e domain são obrigatórios'
-            }, { status: 400 });
+                error: 'Credenciais Bitrix24 não fornecidas'
+            }, { status: 401 });
         }
+
+        const { accessToken, domain } = credentials;
 
         // Valida o token do usuário
         const { validateUserToken } = await import('@/lib/bitrix/server-client');
@@ -86,15 +91,18 @@ export async function PATCH(
     { params }: { params: { companyId: string } }
 ): Promise<NextResponse> {
     try {
-        const body = await request.json();
-        const { accessToken, domain, ...updateData } = body;
+        const credentials = extractBitrixCredentials(request);
 
-        if (!accessToken || !domain) {
+        if (!credentials) {
             return NextResponse.json({
                 success: false,
-                error: 'accessToken e domain são obrigatórios'
-            }, { status: 400 });
+                error: 'Credenciais Bitrix24 não fornecidas'
+            }, { status: 401 });
         }
+
+        const { accessToken, domain } = credentials;
+        const body = await request.json();
+        const updateData = body;
 
         // Valida o token do usuário
         const { validateUserToken } = await import('@/lib/bitrix/server-client');

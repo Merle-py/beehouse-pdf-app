@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createCompany, createPropertyItem, validateUserToken } from '@/lib/bitrix/server-client';
+import { extractBitrixCredentials } from '@/lib/utils/api-headers';
 import { generateAuthorizationPdf } from '@/lib/pdf/authorization-generator';
 import { convertFormDataToPDFData } from '@/lib/pdf/helpers';
 import { saveUserTokens, callAsUser } from '@/lib/bitrix/oauth-manager';
@@ -35,22 +36,24 @@ export async function POST(request: NextRequest): Promise<NextResponse<Authoriza
         // 1. Parse dos dados
         const body = await request.json();
         const formData: AuthorizationFormData = body.formData || body;
-        const domain = body.domain; // domain do Bitrix24
-        const accessToken = body.accessToken; // access_token do corretor
+
+        // Extrai credenciais (suporta headers e body)
+        const credentials = extractBitrixCredentials(request, body);
+
+        if (!credentials) {
+            return NextResponse.json({
+                success: false,
+                error: 'Token de autenticação não fornecido'
+            }, { status: 401 });
+        }
+
+        const { accessToken, domain } = credentials;
 
         if (!formData || !formData.authType || !formData.contrato) {
             return NextResponse.json({
                 success: false,
                 error: 'Dados inválidos: authType e contrato são obrigatórios'
             }, { status: 400 });
-        }
-
-        // 🔒 VALIDAÇÃO SEGURA: Valida token ANTES de usar
-        if (!accessToken || !domain) {
-            return NextResponse.json({
-                success: false,
-                error: 'Token de autenticação não fornecido'
-            }, { status: 401 });
         }
 
         console.log('[API] Validando token do corretor...');

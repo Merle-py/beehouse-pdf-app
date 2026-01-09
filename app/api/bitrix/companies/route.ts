@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { callBitrixAPI } from '@/lib/bitrix/server-client';
 import { getCachedData, generateCacheKey } from '@/lib/cache/vercel-kv';
+import { extractBitrixCredentials } from '@/lib/utils/api-headers';
 
 // Force dynamic rendering to use searchParams
 export const dynamic = 'force-dynamic';
@@ -10,21 +11,29 @@ export const dynamic = 'force-dynamic';
  * 
  * GET /api/bitrix/companies - Lista todas as empresas
  * GET /api/bitrix/companies?search=termo - Busca empresas por termo
+ * 
+ * Headers (recomendado):
+ *   X-Bitrix-Token: <accessToken>
+ *   X-Bitrix-Domain: <domain>
+ * 
+ * Query Params (deprecated):
+ *   accessToken=<accessToken>&domain=<domain>
  */
 export async function GET(request: NextRequest): Promise<NextResponse> {
     try {
-        const searchParams = request.nextUrl.searchParams;
-        const searchTerm = searchParams.get('search');
-        const accessToken = searchParams.get('accessToken');
-        const domain = searchParams.get('domain');
+        // Extrai credenciais (suporta headers E query params com warning)
+        const credentials = extractBitrixCredentials(request);
 
-        // Valida autenticação
-        if (!accessToken || !domain) {
+        if (!credentials) {
             return NextResponse.json({
                 success: false,
-                error: 'accessToken e domain são obrigatórios'
-            }, { status: 400 });
+                error: 'Credenciais Bitrix24 não fornecidas. Use headers X-Bitrix-Token e X-Bitrix-Domain.'
+            }, { status: 401 });
         }
+
+        const { accessToken, domain } = credentials;
+        const searchParams = request.nextUrl.searchParams;
+        const searchTerm = searchParams.get('search');
 
         // Valida o token do usuário
         const { validateUserToken } = await import('@/lib/bitrix/server-client');
