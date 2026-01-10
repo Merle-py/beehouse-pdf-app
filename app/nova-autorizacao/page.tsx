@@ -62,8 +62,9 @@ function NovaAutorizacaoForm() {
     }]);
 
     const authTypeOptions = [
-        { value: 'pf', label: 'Pessoa Física' },
+        { value: 'pf-solteiro', label: 'Pessoa Física Solteiro' },
         { value: 'pf-casado', label: 'Pessoa Física Casado' },
+        { value: 'socios', label: 'Sociedade (Múltiplos Sócios)' },
         { value: 'pj', label: 'Pessoa Jurídica' }
     ];
 

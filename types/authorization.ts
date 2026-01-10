@@ -4,8 +4,8 @@ export type ContractorType = 'pf-solteiro' | 'pf-casado' | 'socios' | 'pj';
 // types/authorization.ts
 
 export interface PersonData {
-    nome?: string;
-    cpf?: string; // Usado para CPF e CNPJ
+    nome: string;  // Obrigatório
+    cpf: string;   // Obrigatório - Usado para CPF e CNPJ
     profissao?: string;
     estadoCivil?: string;
     regimeCasamento?: string;

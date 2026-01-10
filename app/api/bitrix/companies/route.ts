@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { callBitrixAPI } from '@/lib/bitrix/server-client';
 import { getCachedData, generateCacheKey } from '@/lib/cache/vercel-kv';
 import { extractBitrixCredentials } from '@/lib/utils/api-headers';
+import { companyFormDataSchema } from '@/lib/validations/api-schemas';
+import type { BitrixCompany, BitrixPropertyItem } from '@/types/bitrix-api';
 
 // Force dynamic rendering to use searchParams
 export const dynamic = 'force-dynamic';
@@ -56,7 +58,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 
         const fetchCompaniesData = async () => {
             // Monta filtro de busca
-            const filter: any = {};
+            const filter: Record<string, any> = {};
             if (searchTerm && searchTerm.length >= 2) {
                 filter['%TITLE'] = searchTerm;
             }
@@ -68,7 +70,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
             let hasMore = true;
 
             while (hasMore) {
-                const response: any = await callBitrixAPI('crm.company.list', {
+                const response = await callBitrixAPI('crm.company.list', {
                     filter,
                     select: [
                         'ID',
@@ -118,7 +120,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
                     let hasMore = true;
 
                     while (hasMore) {
-                        const propertiesResponse: any = await callBitrixAPI('crm.item.list', {
+                        const propertiesResponse = await callBitrixAPI('crm.item.list', {
                             entityTypeId: parseInt(entityTypeId),
                             select: ['id', 'companyId'],
                             start,
@@ -145,14 +147,14 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 
                     // Conta imóveis por empresa
                     const propertyCountMap: Record<string, number> = {};
-                    allProperties.forEach((property: any) => {
+                    allProperties.forEach((property: BitrixPropertyItem) => {
                         if (property.companyId) {
                             propertyCountMap[property.companyId] = (propertyCountMap[property.companyId] || 0) + 1;
                         }
                     });
 
                     // Adiciona contagem aos dados das empresas
-                    companies = companies.map((company: any) => ({
+                    companies = companies.map((company: BitrixCompany) => ({
                         ...company,
                         propertyCount: propertyCountMap[company.ID] || 0
                     }));

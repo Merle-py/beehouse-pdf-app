@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useBitrix24 } from '@/lib/bitrix/client-sdk';
 import Link from 'next/link';
+import { useApiClient } from '@/lib/utils/api-client';
 
 interface Authorization {
     ID: string;
@@ -14,7 +14,7 @@ interface Authorization {
 
 export default function MyAuthorizationsPage() {
     const router = useRouter();
-    const bitrix = useBitrix24();
+    const { client, bitrix } = useApiClient();
     const [authorizations, setAuthorizations] = useState<Authorization[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -33,7 +33,7 @@ export default function MyAuthorizationsPage() {
             setLoading(true);
             setError(null);
 
-            const response = await fetch(`/api/bitrix/my-authorizations?brokerId=${bitrix.authId}`);
+            const response = await client(`/api/bitrix/my-authorizations?brokerId=${bitrix.authId}`);
             const data = await response.json();
 
             if (!response.ok || !data.success) {

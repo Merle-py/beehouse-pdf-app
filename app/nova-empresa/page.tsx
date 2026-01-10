@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useBitrix24 } from '@/lib/bitrix/client-sdk';
+import { useApiClient } from '@/lib/utils/api-client';
 import toast from 'react-hot-toast';
 import Input from '@/components/forms/Input';
 import MaskedInput from '@/components/forms/MaskedInput';
@@ -12,7 +12,7 @@ import Select from '@/components/forms/Select';
 function NovaEmpresaForm() {
     const router = useRouter();
     const searchParams = useSearchParams();
-    const bitrix = useBitrix24();
+    const { client } = useApiClient();
     const [loading, setLoading] = useState(false);
 
     const redirectTo = searchParams.get('redirect'); // novo-imovel ou nova-autorizacao
@@ -36,14 +36,10 @@ function NovaEmpresaForm() {
         setLoading(true);
 
         try {
-            const response = await fetch('/api/bitrix/companies', {
+            const response = await client('/api/bitrix/companies', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    ...formData,
-                    accessToken: bitrix.authId,
-                    domain: bitrix.domain
-                })
+                body: JSON.stringify(formData)
             });
 
             const result = await response.json();

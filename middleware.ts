@@ -18,18 +18,18 @@ export function middleware(request: NextRequest) {
         const response = NextResponse.redirect(url, 303);
 
         // Aplicamos os headers de segurança no redirecionamento também
-        adicionarHeadersDeSeguranca(response);
+        adicionarHeadersDeSeguranca(response, request);
         return response;
     }
 
     // 2. Requisições normais (GET)
     const response = NextResponse.next();
-    adicionarHeadersDeSeguranca(response);
+    adicionarHeadersDeSeguranca(response, request);
     return response;
 }
 
 // Função auxiliar para aplicar as permissões de Iframe (Tela Branca)
-function adicionarHeadersDeSeguranca(response: NextResponse) {
+function adicionarHeadersDeSeguranca(response: NextResponse, request: NextRequest) {
     // Remove bloqueio antigo
     response.headers.delete('X-Frame-Options');
 
@@ -39,10 +39,25 @@ function adicionarHeadersDeSeguranca(response: NextResponse) {
         "frame-ancestors * data: https: http:;"
     );
 
-    // Permissões de origem (CORS)
-    response.headers.set('Access-Control-Allow-Origin', '*');
-    response.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-    response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    // Permissões de origem (CORS) - Restrito a domínios Bitrix24
+    const origin = request.headers.get('origin');
+    const allowedOrigins = [
+        /^https:\/\/.*\.bitrix24\.com$/,
+        /^https:\/\/.*\.bitrix24\.com\.br$/,
+        /^https:\/\/.*\.bitrix24\.net$/,
+    ];
+
+    // Verifica se a origem é permitida
+    if (origin) {
+        const isAllowed = allowedOrigins.some(pattern => pattern.test(origin));
+        if (isAllowed) {
+            response.headers.set('Access-Control-Allow-Origin', origin);
+        }
+    }
+
+    response.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
+    response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Bitrix-Token, X-Bitrix-Domain');
+    response.headers.set('Access-Control-Allow-Credentials', 'true');
 }
 
 export const config = {

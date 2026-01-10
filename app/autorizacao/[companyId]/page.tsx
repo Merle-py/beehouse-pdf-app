@@ -1,8 +1,8 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { useBitrix24 } from '@/lib/bitrix/client-sdk';
+import { useApiClient } from '@/lib/utils/api-client';
 import { extractBitrixField, getCompanyTypeBadge } from '@/lib/utils/bitrix';
 import type { AuthorizationDetail } from '@/types/dashboard';
 import Link from 'next/link';
@@ -12,7 +12,7 @@ import Badge from '@/components/ui/Badge';
 export default function AutorizacaoDetalhesPage() {
     const params = useParams();
     const router = useRouter();
-    const bitrix = useBitrix24();
+    const { client, bitrix } = useApiClient();
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [data, setData] = useState<AuthorizationDetail | null>(null);
@@ -30,7 +30,7 @@ export default function AutorizacaoDetalhesPage() {
             setLoading(true);
             setError(null);
 
-            const response = await fetch(`/api/bitrix/authorization/${companyId}?accessToken=${bitrix.authId}&domain=${bitrix.domain}`);
+            const response = await client(`/api/bitrix/authorization/${companyId}`);
             const result = await response.json();
 
             if (!response.ok || !result.success) {

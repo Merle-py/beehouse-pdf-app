@@ -2,7 +2,7 @@
 
 import { useState, useEffect, Suspense } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { useBitrix24 } from '@/lib/bitrix/client-sdk';
+import { useApiClient } from '@/lib/utils/api-client';
 import { extractBitrixField } from '@/lib/utils/bitrix';
 import toast from 'react-hot-toast';
 import Input from '@/components/forms/Input';
@@ -10,9 +10,9 @@ import Select from '@/components/forms/Select';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
 
 function EditarEmpresaForm() {
-    const params = useParams();
     const router = useRouter();
-    const bitrix = useBitrix24();
+    const params = useParams();
+    const { client, bitrix } = useApiClient();
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -44,7 +44,7 @@ function EditarEmpresaForm() {
             setLoading(true);
             setError(null);
 
-            const response = await fetch(`/api/bitrix/companies/${companyId}?accessToken=${bitrix.authId}&domain=${bitrix.domain}`);
+            const response = await client(`/api/bitrix/companies/${companyId}`);
             const result = await response.json();
 
             if (!result.success) {
@@ -77,14 +77,10 @@ function EditarEmpresaForm() {
         setSaving(true);
 
         try {
-            const response = await fetch(`/api/bitrix/companies/${companyId}`, {
+            const response = await client(`/api/bitrix/companies/${companyId}`, {
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    ...formData,
-                    accessToken: bitrix.authId,
-                    domain: bitrix.domain
-                })
+                body: JSON.stringify(formData)
             });
 
             const result = await response.json();

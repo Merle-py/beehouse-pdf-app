@@ -58,7 +58,7 @@ export async function GET(request: NextRequest) {
             let hasMore = true;
 
             while (hasMore && start < 1000) {
-                const companiesResponse: any = await callBitrixAPI('crm.company.list', {
+                const companiesResponse = await callBitrixAPI('crm.company.list', {
                     select: ['ID'],
                     start,
                     limit: 50
@@ -77,7 +77,7 @@ export async function GET(request: NextRequest) {
             hasMore = true;
 
             while (hasMore && start < 1000) {
-                const propertiesResponse: any = await callBitrixAPI('crm.item.list', {
+                const propertiesResponse = await callBitrixAPI('crm.item.list', {
                     entityTypeId: parseInt(entityTypeId),
                     select: ['id'],
                     start,
@@ -97,14 +97,14 @@ export async function GET(request: NextRequest) {
             hasMore = true;
 
             while (hasMore && start < 1000) {
-                const companiesResponse: any = await callBitrixAPI('crm.company.list', {
+                const companiesResponse = await callBitrixAPI('crm.company.list', {
                     select: ['ID', 'UF_CRM_AUTHORIZATION_PDF'],
                     start,
                     limit: 50
                 });
                 const allCompanies = companiesResponse || [];
 
-                const companiesWithPDF = allCompanies.filter((company: any) => {
+                const companiesWithPDF = allCompanies.filter((company: BitrixCompany) => {
                     const pdf = company.UF_CRM_AUTHORIZATION_PDF;
                     return pdf && pdf.trim() !== '' && pdf !== 'null' && pdf !== 'undefined';
                 });
@@ -122,7 +122,7 @@ export async function GET(request: NextRequest) {
             hasMore = true;
 
             while (hasMore && start < 1000) {
-                const propertiesResponse: any = await callBitrixAPI('crm.item.list', {
+                const propertiesResponse = await callBitrixAPI('crm.item.list', {
                     entityTypeId: parseInt(entityTypeId),
                     select: ['id', 'ufCrm15_1767879091919'],
                     start,
@@ -130,7 +130,7 @@ export async function GET(request: NextRequest) {
                 });
                 const properties = propertiesResponse?.items || [];
 
-                const withAuth = properties.filter((prop: any) => {
+                const withAuth = properties.filter((prop: BitrixPropertyItem) => {
                     const fieldValue = prop.ufCrm15_1767879091919;
                     return fieldValue === 'Y' || fieldValue === true || fieldValue === '1' || fieldValue === 1;
                 });
@@ -148,7 +148,7 @@ export async function GET(request: NextRequest) {
             hasMore = true;
 
             while (hasMore && start < 1000) {
-                const propertiesResponse: any = await callBitrixAPI('crm.item.list', {
+                const propertiesResponse = await callBitrixAPI('crm.item.list', {
                     entityTypeId: parseInt(entityTypeId),
                     select: ['id', 'ufCrm15_1767882267145'],
                     start,
@@ -156,7 +156,7 @@ export async function GET(request: NextRequest) {
                 });
                 const properties = propertiesResponse?.items || [];
 
-                const withFile = properties.filter((prop: any) => {
+                const withFile = properties.filter((prop: BitrixPropertyItem) => {
                     const fileField = prop.ufCrm15_1767882267145;
                     return fileField && fileField !== '' && fileField !== 'null' && fileField !== 'undefined';
                 });

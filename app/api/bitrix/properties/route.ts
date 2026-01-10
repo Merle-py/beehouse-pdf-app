@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { callBitrixAPI, validateUserToken } from '@/lib/bitrix/server-client';
 import { getCachedData, generateCacheKey } from '@/lib/cache/vercel-kv';
 import { extractBitrixCredentials } from '@/lib/utils/api-headers';
+import type { BitrixCompany, BitrixPropertyItem } from '@/types/bitrix-api';
 
 // Force dynamic rendering to use searchParams
 export const dynamic = 'force-dynamic';
@@ -51,13 +52,13 @@ export async function GET(request: NextRequest) {
 
         const fetchPropertiesData = async () => {
             // Busca TODOS os imóveis com paginação
-            let allProperties: any[] = [];
+            let allProperties: BitrixPropertyItem[] = [];
             let start = 0;
             const limit = 50;
             let hasMore = true;
 
             while (hasMore && start < 1000) {
-                const response: any = await callBitrixAPI('crm.item.list', {
+                const response = await callBitrixAPI('crm.item.list', {
                     entityTypeId: parseInt(entityTypeId),
                     select: [
                         'id',
@@ -66,9 +67,7 @@ export async function GET(request: NextRequest) {
                         'companyId',
                         'assignedById',  // ID do usuário que criou o imóvel
                         'createdTime',
-                        'updatedTime',
-                        'ufCrm15_1767879091919', // Campo de autorização manual (ID exato)
-                        'ufCrm15_1767882267145'  // Campo de arquivo de autorização (ID correto)
+                        'updatedTime'
                     ],
                     order: { createdTime: 'DESC' },
                     start,
@@ -97,10 +96,10 @@ export async function GET(request: NextRequest) {
 
             // Busca informações das empresas vinculadas
             const companyIds = allProperties
-                .map((item: any) => item.companyId)
+                .map((item: BitrixPropertyItem) => item.companyId)
                 .filter((id: any) => id);
 
-            let companiesMap: Record<string, any> = {};
+            let companiesMap: Record<string, BitrixCompany> = {};
 
             if (companyIds.length > 0) {
                 // Remove duplicatas
@@ -109,31 +108,35 @@ export async function GET(request: NextRequest) {
                 // Busca empresas em lotes de 50
                 for (let i = 0; i < uniqueCompanyIds.length; i += 50) {
                     const batch = uniqueCompanyIds.slice(i, i + 50);
-                    const companiesResponse: any = await callBitrixAPI('crm.company.list', {
+                    const companiesResponse = await callBitrixAPI('crm.company.list', {
                         filter: { ID: batch },
                         select: ['ID', 'TITLE', 'COMPANY_TYPE']
                     });
 
                     if (companiesResponse) {
-                        companiesResponse.forEach((company: any) => {
+                        companiesResponse.forEach((company: BitrixCompany) => {
                             companiesMap[company.ID] = company;
                         });
                     }
                 }
             }
 
+            // Obtém IDs dos campos customizados das variáveis de ambiente
+            const hasAuthFieldId = process.env.B24_PROPERTY_HAS_AUTHORIZATION_FIELD || 'ufCrm15_1767879091919';
+            const authFileFieldId = process.env.B24_PROPERTY_AUTHORIZATION_FILE_FIELD || 'ufCrm15_1767882267145';
+
             // Formata os dados dos imóveis
-            const properties = allProperties.map((item: any) => {
+            const properties = allProperties.map((item: BitrixPropertyItem) => {
                 const company = item.companyId ? companiesMap[item.companyId] : null;
 
-                // Verifica autorização manual usando o ID exato do campo
-                const hasManualAuth = item.ufCrm15_1767879091919 === 'Y' ||
-                    item.ufCrm15_1767879091919 === true ||
-                    item.ufCrm15_1767879091919 === '1' ||
-                    item.ufCrm15_1767879091919 === 1;
+                // Verifica autorização manual usando o ID configurável do campo
+                const hasManualAuth = item[hasAuthFieldId] === 'Y' ||
+                    item[hasAuthFieldId] === true ||
+                    item[hasAuthFieldId] === '1' ||
+                    item[hasAuthFieldId] === 1;
 
                 // Verifica se tem arquivo de autorização assinado
-                const authFile = item.ufCrm15_1767882267145;
+                const authFile = item[authFileFieldId];
                 const hasSigned = authFile && authFile !== '' && authFile !== 'null' && authFile !== 'undefined';
 
                 return {
@@ -150,7 +153,7 @@ export async function GET(request: NextRequest) {
                     createdTime: item.createdTime,
                     updatedTime: item.updatedTime,
                     hasAuthorization: hasManualAuth,
-                    ufCrmPropertyHasAuthorization: item.ufCrm15_1767879091919,
+                    ufCrmPropertyHasAuthorization: item[hasAuthFieldId],
                     hasSigned,
                     authorizationFile: authFile
                 };
