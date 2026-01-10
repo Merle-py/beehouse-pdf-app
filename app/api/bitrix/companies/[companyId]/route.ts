@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { callBitrixAPI } from '@/lib/bitrix/server-client';
 import { extractBitrixCredentials } from '@/lib/utils/api-headers';
+import { companyFormDataSchema } from '@/lib/validations/api-schemas';
 
 // Force dynamic rendering
 export const dynamic = 'force-dynamic';
@@ -45,7 +46,7 @@ export async function GET(
         console.log(`[API Companies/${companyId}] Buscando empresa...`);
 
         // Busca empresa específica
-        const companies: any = await callBitrixAPI('crm.company.list', {
+        const companies = await callBitrixAPI('crm.company.list', {
             filter: { ID: companyId },
             select: [
                 'ID',
@@ -56,7 +57,7 @@ export async function GET(
                 'PHONE',
                 'CREATED_TIME'
             ]
-        });
+        }) as any[];
 
         if (!companies || companies.length === 0) {
             return NextResponse.json({
@@ -102,7 +103,18 @@ export async function PATCH(
 
         const { accessToken, domain } = credentials;
         const body = await request.json();
-        const updateData = body;
+
+        // Validação Zod
+        const validation = companyFormDataSchema.partial().safeParse(body);
+        if (!validation.success) {
+            return NextResponse.json({
+                success: false,
+                error: 'Dados inválidos',
+                details: validation.error.errors
+            }, { status: 400 });
+        }
+
+        const updateData = validation.data;
 
         // Valida o token do usuário
         const { validateUserToken } = await import('@/lib/bitrix/server-client');
@@ -141,7 +153,7 @@ export async function PATCH(
         console.log(`[API Companies/${companyId}] Empresa atualizada com sucesso`);
 
         // Busca empresa atualizada
-        const companies: any = await callBitrixAPI('crm.company.list', {
+        const companies = await callBitrixAPI('crm.company.list', {
             filter: { ID: companyId },
             select: [
                 'ID',
@@ -152,7 +164,7 @@ export async function PATCH(
                 'PHONE',
                 'CREATED_TIME'
             ]
-        });
+        }) as any[];
 
         return NextResponse.json({
             success: true,

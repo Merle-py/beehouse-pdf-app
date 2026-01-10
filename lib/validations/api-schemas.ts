@@ -10,7 +10,7 @@ import { z } from 'zod';
 
 export const companyFormDataSchema = z.object({
     nome: z.string().min(3, 'Nome deve ter pelo menos 3 caracteres'),
-    tipo: z.enum(['pf', 'pf-casado', 'pj', 'CUSTOMER', 'PARTNER', 'COMPETITOR']),
+    tipo: z.enum(['pf-solteiro', 'pf-casado', 'pj', 'socios', 'CUSTOMER', 'PARTNER', 'COMPETITOR']),
     cpfCnpj: z.string().min(11, 'CPF/CNPJ inválido'),
     email: z.string().email('Email inválido'),
     telefone: z.string().min(10, 'Telefone inválido'),
@@ -49,8 +49,8 @@ export type PropertyFormData = z.infer<typeof propertyFormDataSchema>;
 // ============================================
 
 const personDataSchema = z.object({
-    nome: z.string().optional(),
-    cpf: z.string().optional(),
+    nome: z.string().min(1, 'Nome é obrigatório'),
+    cpf: z.string().min(11, 'CPF é obrigatório'),
     profissao: z.string().optional(),
     estadoCivil: z.string().optional(),
     regimeCasamento: z.string().optional(),
@@ -83,7 +83,7 @@ const contractDataSchema = z.object({
 });
 
 export const authorizationFormDataSchema = z.object({
-    authType: z.enum(['pf', 'pf-casado', 'pj', 'pf-solteiro', 'socios']),
+    authType: z.enum(['pf-solteiro', 'pf-casado', 'pj', 'socios']),
     contratante: personDataSchema.optional(),
     conjuge: spouseDataSchema.optional(),
     socios: z.array(personDataSchema).optional(),

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { callBitrixAPI } from '@/lib/bitrix/server-client';
 import { getCachedData, generateCacheKey } from '@/lib/cache/vercel-kv';
 import { extractBitrixCredentials } from '@/lib/utils/api-headers';
+import type { BitrixCompany, BitrixPropertyItem } from '@/types/bitrix-api';
 
 // Force dynamic rendering to use searchParams
 export const dynamic = 'force-dynamic';
