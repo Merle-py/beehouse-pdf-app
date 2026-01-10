@@ -16,6 +16,7 @@ function EditarImovelForm() {
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [notFound, setNotFound] = useState(false);
     const [companyName, setCompanyName] = useState('');
     const [companyId, setCompanyId] = useState('');
 
@@ -42,8 +43,16 @@ function EditarImovelForm() {
         try {
             setLoading(true);
             setError(null);
+            setNotFound(false);
 
             const response = await client(`/api/bitrix/properties/${propertyId}`);
+
+            if (response.status === 404) {
+                setNotFound(true);
+                toast.error('Imóvel não encontrado');
+                return;
+            }
+
             const data = await response.json();
 
             if (!data.success) {
@@ -67,9 +76,11 @@ function EditarImovelForm() {
             setCompanyName(property.companyName);
             setCompanyId(property.companyId);
 
-        } catch (err: any) {
-            console.error('Erro ao carregar imóvel:', err);
-            setError(err.message);
+        } catch (err) {
+            const error = err as Error;
+            console.error('Erro ao carregar imóvel:', error);
+            setError(error.message);
+            toast.error(`Erro ao carregar imóvel: ${error.message}`);
         } finally {
             setLoading(false);
         }

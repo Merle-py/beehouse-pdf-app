@@ -4,6 +4,7 @@ import { useState, useEffect, Suspense } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useApiClient } from '@/lib/utils/api-client';
 import { extractBitrixField } from '@/lib/utils/bitrix';
+import { formatCPFOrCNPJ, validateCPFOrCNPJ, formatPhone } from '@/lib/utils/formatters';
 import toast from 'react-hot-toast';
 import Input from '@/components/forms/Input';
 import Select from '@/components/forms/Select';
@@ -16,6 +17,7 @@ function EditarEmpresaForm() {
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [notFound, setNotFound] = useState(false);
 
     const companyId = params.companyId as string;
 
@@ -43,8 +45,16 @@ function EditarEmpresaForm() {
         try {
             setLoading(true);
             setError(null);
+            setNotFound(false);
 
             const response = await client(`/api/bitrix/companies/${companyId}`);
+
+            if (response.status === 404) {
+                setNotFound(true);
+                toast.error('Empresa não encontrada');
+                return;
+            }
+
             const result = await response.json();
 
             if (!result.success) {
@@ -64,9 +74,11 @@ function EditarEmpresaForm() {
                 email: email || '',
                 telefone: telefone || ''
             });
-        } catch (err: any) {
-            console.error('Erro ao carregar empresa:', err);
-            setError(err.message);
+        } catch (err) {
+            const error = err as Error;
+            console.error('Erro ao carregar empresa:', error);
+            setError(error.message);
+            toast.error(`Erro ao carregar empresa: ${error.message}`);
         } finally {
             setLoading(false);
         }
@@ -103,6 +115,25 @@ function EditarEmpresaForm() {
         return (
             <div className="min-h-screen flex items-center justify-center">
                 <LoadingSpinner size="lg" text="Carregando dados da empresa..." />
+            </div>
+        );
+    }
+
+    if (notFound) {
+        return (
+            <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-8 px-4">
+                <div className="max-w-2xl mx-auto">
+                    <div className="card text-center">
+                        <div className="text-6xl mb-4">🔍</div>
+                        <h2 className="text-2xl font-bold text-gray-900 mb-2">Empresa não encontrada</h2>
+                        <p className="text-gray-600 mb-6">
+                            A empresa que você está tentando editar não existe ou foi removida.
+                        </p>
+                        <button onClick={() => router.push('/dashboard')} className="btn-primary">
+                            ← Voltar ao Dashboard
+                        </button>
+                    </div>
+                </div>
             </div>
         );
     }

@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useApiClient } from '@/lib/utils/api-client';
+import { formatCPFOrCNPJ, validateCPFOrCNPJ, formatPhone } from '@/lib/utils/formatters';
 import toast from 'react-hot-toast';
 import Input from '@/components/forms/Input';
 import MaskedInput from '@/components/forms/MaskedInput';
@@ -33,6 +34,13 @@ function NovaEmpresaForm() {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+
+        // Validação de CPF/CNPJ
+        if (!validateCPFOrCNPJ(formData.cpfCnpj)) {
+            toast.error('CPF/CNPJ inválido. Verifique os dígitos.');
+            return;
+        }
+
         setLoading(true);
 
         try {
@@ -57,8 +65,9 @@ function NovaEmpresaForm() {
                 toast.error('Erro ao criar empresa: ' + result.error);
             }
         } catch (error) {
-            console.error('Erro:', error);
-            toast.error('Erro ao criar empresa');
+            const err = error as Error;
+            console.error('Erro:', err);
+            toast.error(`Erro ao criar empresa: ${err.message || 'Erro desconhecido'}`);
         } finally {
             setLoading(false);
         }

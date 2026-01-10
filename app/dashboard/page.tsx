@@ -96,6 +96,8 @@ export default function DashboardPage() {
                 }
             } catch (err) {
                 console.error('[Dashboard] Erro ao ler cache:', err);
+                // localStorage pode falhar em modo privado ou quando cheio
+                toast.error('Erro ao carregar cache local. Carregando dados da API...');
             }
         }
 
@@ -124,6 +126,7 @@ export default function DashboardPage() {
                 fetchedStats = statsData.stats;
             } else {
                 console.error('[Dashboard] Stats error:', await statsResponse.text());
+                toast.error('Erro ao carregar estatísticas');
             }
 
             // Carrega empresas
@@ -136,6 +139,7 @@ export default function DashboardPage() {
                 fetchedCompanies = companiesData.companies || [];
             } else {
                 console.error('[Dashboard] Companies error:', await companiesResponse.text());
+                toast.error('Erro ao carregar empresas');
             }
 
             // Carrega imóveis
@@ -148,6 +152,7 @@ export default function DashboardPage() {
                 fetchedProperties = propertiesData.properties || [];
             } else {
                 console.error('[Dashboard] Properties error:', await propertiesResponse.text());
+                toast.error('Erro ao carregar imóveis');
             }
 
             // Salva no localStorage com timestamp
@@ -164,12 +169,14 @@ export default function DashboardPage() {
                 console.log('[Dashboard] Dados salvos no cache localStorage');
             } catch (err) {
                 console.error('[Dashboard] Erro ao salvar cache:', err);
+                // Falha silenciosa - não é crítico se o cache não puder ser salvo
             }
 
-        } catch (err: any) {
-            console.error('[Dashboard] Error loading dashboard:', err);
+        } catch (err) {
+            const error = err as Error;
+            console.error('[Dashboard] Error loading dashboard:', error);
             setError('Erro ao carregar dados do dashboard');
-            toast.error('Erro ao carregar dados do dashboard');
+            toast.error(`Erro ao carregar dashboard: ${error.message || 'Erro desconhecido'}`);
         } finally {
             setLoading(false);
         }
