@@ -447,7 +447,21 @@
                 const a = document.createElement('a');
                 a.style.display = 'none';
                 a.href = url;
-                a.download = `Autorizacao_${payload.authType}_${new Date().getTime()}.pdf`;
+
+                // Determine filename based on name
+                let name = 'Autorizacao';
+                if (payload.authType === 'pj') {
+                    name = payload.empresaRazaoSocial;
+                } else if (payload.authType === 'socios') {
+                    name = payload.socio1Nome;
+                } else {
+                    name = payload.contratanteNome;
+                }
+                
+                // Sanitize name
+                const safeName = (name || 'Autorizacao').replace(/[^a-z0-9]/gi, '_').toLowerCase();
+                a.download = `autorizacao_${safeName}_${new Date().getTime()}.pdf`;
+
                 document.body.appendChild(a);
                 a.click();
                 window.URL.revokeObjectURL(url);
