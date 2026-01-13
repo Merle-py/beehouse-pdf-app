@@ -9,11 +9,11 @@ function formatCurrency(value) {
 }
 
 // --- CONSTANTES ---
-const MARGIN_LEFT = 30; 
-const MARGIN = 50; 
-const PAGE_WIDTH = 612; 
-const CONTENT_WIDTH = PAGE_WIDTH - MARGIN_LEFT - MARGIN; 
-const PAGE_END = PAGE_WIDTH - MARGIN; 
+const MARGIN_LEFT = 30;
+const MARGIN = 50;
+const PAGE_WIDTH = 612;
+const CONTENT_WIDTH = PAGE_WIDTH - MARGIN_LEFT - MARGIN;
+const PAGE_END = PAGE_WIDTH - MARGIN;
 
 // --- HEADER ---
 function drawHeader(doc) {
@@ -25,28 +25,28 @@ function drawHeader(doc) {
         const logoPath = path.join(__dirname, '..', 'images', 'logo.jpeg');
         doc.image(logoPath, MARGIN_LEFT, MARGIN - 20, { width: 180 });
     } catch (imageError) {
-         doc.font('Helvetica-Bold').fontSize(10).text('Beehouse', MARGIN_LEFT, MARGIN + 10);
+        doc.font('Helvetica-Bold').fontSize(10).text('Beehouse', MARGIN_LEFT, MARGIN + 10);
     }
 
-    const rightAlignX = PAGE_WIDTH - MARGIN - 250; 
-    const blockWidth = 250; 
-    const initialY = MARGIN - 20; 
+    const rightAlignX = PAGE_WIDTH - MARGIN - 250;
+    const blockWidth = 250;
+    const initialY = MARGIN - 20;
 
     doc.font('Helvetica-Bold').fontSize(10).text('Autorização de Venda', rightAlignX, initialY, { width: blockWidth, align: 'right' });
     doc.font('Helvetica-Bold').fontSize(10).text('Beehouse Investimentos Imobiliários', rightAlignX, initialY + 12, { width: blockWidth, align: 'right' });
     doc.font('Helvetica').fontSize(8).text('R. Jacob Eisenhut, 223 - SL 801 - Atiradores - Joinville/SC', rightAlignX, initialY + 24, { width: blockWidth, align: 'right' });
-    doc.text('www.beehouse.imb.br | Fone: (47) 99287-9066', rightAlignX, initialY + 36, { width: blockWidth, align: 'right' }); 
-    doc.y = initialY + 60; 
+    doc.text('www.beehouse.imb.br | Fone: (47) 99287-9066', rightAlignX, initialY + 36, { width: blockWidth, align: 'right' });
+    doc.y = initialY + 60;
 }
 
 // --- FUNÇÃO PRINCIPAL ---
 async function generatePdfPromise(data) {
     return new Promise((resolve, reject) => {
-        const doc = new PDFDocument({ 
-            margins: { top: MARGIN - 20, right: MARGIN, bottom: MARGIN - 35, left: MARGIN_LEFT }, 
-            size: 'A4' 
+        const doc = new PDFDocument({
+            margins: { top: MARGIN - 20, right: MARGIN, bottom: MARGIN - 35, left: MARGIN_LEFT },
+            size: 'A4'
         });
-        
+
         const buffers = [];
         doc.on('data', buffers.push.bind(buffers));
         doc.on('error', (err) => reject(err));
@@ -71,10 +71,10 @@ async function generatePdfPromise(data) {
             if (authType === 'pj') {
                 // --- PJ Logic ---
                 const yC = y;
-                const hC = rowHeight * 4; 
+                const hC = rowHeight * 4;
                 doc.rect(MARGIN_LEFT, yC, CONTENT_WIDTH, hC).stroke();
                 doc.rect(MARGIN_LEFT, yC, labelBoxWidth, hC).stroke();
-                doc.save().translate(MARGIN_LEFT + labelBoxWidth/2, yC + hC/2).rotate(-90).font('Helvetica-Bold').fontSize(9).text('CONTRATANTE', -hC / 2, -4, { width: hC, align: 'center' }).restore();
+                doc.save().translate(MARGIN_LEFT + labelBoxWidth / 2, yC + hC / 2).rotate(-90).font('Helvetica-Bold').fontSize(9).text('CONTRATANTE', -hC / 2, -4, { width: hC, align: 'center' }).restore();
 
                 const xC_1 = fieldBoxX;
                 const xC_2 = fieldBoxX + (CONTENT_WIDTH - labelBoxWidth) / 2 - 10;
@@ -112,8 +112,8 @@ async function generatePdfPromise(data) {
                 const hR = rowHeight * 3;
                 doc.rect(MARGIN_LEFT, yR, CONTENT_WIDTH, hR).stroke();
                 doc.rect(MARGIN_LEFT, yR, labelBoxWidth, hR).stroke();
-                doc.save().translate(MARGIN_LEFT + labelBoxWidth/2, yR + hR/2).rotate(-90).font('Helvetica-Bold').fontSize(9).text('REP. LEGAL', -hR / 2, -4, { width: hR, align: 'center' }).restore();
-                
+                doc.save().translate(MARGIN_LEFT + labelBoxWidth / 2, yR + hR / 2).rotate(-90).font('Helvetica-Bold').fontSize(9).text('REP. LEGAL', -hR / 2, -4, { width: hR, align: 'center' }).restore();
+
                 let yRowR = yR;
                 doc.moveTo(fieldBoxX, yRowR + rowHeight).lineTo(endX, yRowR + rowHeight).stroke();
                 doc.font('Helvetica-Bold').fontSize(8).text('Nome:', fieldBoxX + textPad, yRowR + textYPad);
@@ -133,18 +133,18 @@ async function generatePdfPromise(data) {
                 // --- PF / Sócios Logic ---
                 const numSocios = parseInt(data.numSocios, 10) || 1;
                 for (let i = 0; i < numSocios; i++) {
-                    const prefix = numSocios > 1 ? `socio${i+1}` : 'contratante';
-                    const titulo = numSocios > 1 ? `CONTRATANTE ${i+1}` : 'CONTRATANTE';
+                    const prefix = numSocios > 1 ? `socio${i + 1}` : 'contratante';
+                    const titulo = numSocios > 1 ? `CONTRATANTE ${i + 1}` : 'CONTRATANTE';
                     if (i > 0) y += 20;
 
                     const yC = y;
-                    const hC = rowHeight * 5; 
+                    const hC = rowHeight * 5;
                     doc.rect(MARGIN_LEFT, yC, CONTENT_WIDTH, hC).stroke();
                     doc.rect(MARGIN_LEFT, yC, labelBoxWidth, hC).stroke();
-                    doc.save().translate(MARGIN_LEFT + labelBoxWidth/2, yC + hC/2).rotate(-90).font('Helvetica-Bold').fontSize(9).text(titulo, -hC / 2, -4, { width: hC, align: 'center' }).restore();
+                    doc.save().translate(MARGIN_LEFT + labelBoxWidth / 2, yC + hC / 2).rotate(-90).font('Helvetica-Bold').fontSize(9).text(titulo, -hC / 2, -4, { width: hC, align: 'center' }).restore();
 
                     const xC_1 = fieldBoxX;
-                    const xC_2 = fieldBoxX + (CONTENT_WIDTH - labelBoxWidth) / 2 - 10; 
+                    const xC_2 = fieldBoxX + (CONTENT_WIDTH - labelBoxWidth) / 2 - 10;
                     let yRow = yC;
 
                     // Linha 1
@@ -184,33 +184,33 @@ async function generatePdfPromise(data) {
                 }
 
                 if (authType === 'casado') {
-                     y += 15;
-                     const yConj = y;
-                     const hConj = rowHeight * 3;
-                     doc.rect(MARGIN_LEFT, yConj, CONTENT_WIDTH, hConj).stroke();
-                     doc.rect(MARGIN_LEFT, yConj, labelBoxWidth, hConj).stroke();
-                     doc.save().translate(MARGIN_LEFT + labelBoxWidth/2, yConj + hConj/2).rotate(-90).font('Helvetica-Bold').fontSize(9).text('CÔNJUGE', -hConj / 2, -4, { width: hConj, align: 'center' }).restore();
-                     
-                     let yRowConj = yConj;
-                     const xConj_1 = fieldBoxX;
-                     const xConj_2 = fieldBoxX + (CONTENT_WIDTH - labelBoxWidth) / 2; 
+                    y += 15;
+                    const yConj = y;
+                    const hConj = rowHeight * 3;
+                    doc.rect(MARGIN_LEFT, yConj, CONTENT_WIDTH, hConj).stroke();
+                    doc.rect(MARGIN_LEFT, yConj, labelBoxWidth, hConj).stroke();
+                    doc.save().translate(MARGIN_LEFT + labelBoxWidth / 2, yConj + hConj / 2).rotate(-90).font('Helvetica-Bold').fontSize(9).text('CÔNJUGE', -hConj / 2, -4, { width: hConj, align: 'center' }).restore();
 
-                     doc.moveTo(fieldBoxX, yRowConj + rowHeight).lineTo(endX, yRowConj + rowHeight).stroke();
-                     doc.moveTo(xConj_2, yRowConj).lineTo(xConj_2, yRowConj + rowHeight).stroke();
-                     doc.font('Helvetica-Bold').fontSize(8).text('Nome:', xConj_1 + textPad, yRowConj + textYPad);
-                     doc.font('Helvetica').fontSize(8).text(data.conjugeNome || '', xConj_1 + textPad + doc.widthOfString('Nome:') + textPad, yRowConj + textYPad);
-                     doc.font('Helvetica-Bold').fontSize(8).text('CPF:', xConj_2 + textPad, yRowConj + textYPad);
-                     doc.font('Helvetica').fontSize(8).text(data.conjugeCpf || '', xConj_2 + textPad + doc.widthOfString('CPF:') + textPad, yRowConj + textYPad);
-                     yRowConj += rowHeight;
+                    let yRowConj = yConj;
+                    const xConj_1 = fieldBoxX;
+                    const xConj_2 = fieldBoxX + (CONTENT_WIDTH - labelBoxWidth) / 2;
 
-                     doc.moveTo(fieldBoxX, yRowConj + rowHeight).lineTo(endX, yRowConj + rowHeight).stroke();
-                     doc.font('Helvetica-Bold').fontSize(8).text('Profissão:', xConj_1 + textPad, yRowConj + textYPad);
-                     doc.font('Helvetica').fontSize(8).text(data.conjugeProfissao || '', xConj_1 + textPad + doc.widthOfString('Profissão:') + textPad, yRowConj + textYPad);
-                     yRowConj += rowHeight;
+                    doc.moveTo(fieldBoxX, yRowConj + rowHeight).lineTo(endX, yRowConj + rowHeight).stroke();
+                    doc.moveTo(xConj_2, yRowConj).lineTo(xConj_2, yRowConj + rowHeight).stroke();
+                    doc.font('Helvetica-Bold').fontSize(8).text('Nome:', xConj_1 + textPad, yRowConj + textYPad);
+                    doc.font('Helvetica').fontSize(8).text(data.conjugeNome || '', xConj_1 + textPad + doc.widthOfString('Nome:') + textPad, yRowConj + textYPad);
+                    doc.font('Helvetica-Bold').fontSize(8).text('CPF:', xConj_2 + textPad, yRowConj + textYPad);
+                    doc.font('Helvetica').fontSize(8).text(data.conjugeCpf || '', xConj_2 + textPad + doc.widthOfString('CPF:') + textPad, yRowConj + textYPad);
+                    yRowConj += rowHeight;
 
-                     doc.font('Helvetica-Bold').fontSize(8).text('Email:', xConj_1 + textPad, yRowConj + textYPad);
-                     doc.font('Helvetica').fontSize(8).text(data.conjugeEmail || '', xConj_1 + textPad + doc.widthOfString('Email:') + textPad, yRowConj + textYPad);
-                     y = yConj + hConj;
+                    doc.moveTo(fieldBoxX, yRowConj + rowHeight).lineTo(endX, yRowConj + rowHeight).stroke();
+                    doc.font('Helvetica-Bold').fontSize(8).text('Profissão:', xConj_1 + textPad, yRowConj + textYPad);
+                    doc.font('Helvetica').fontSize(8).text(data.conjugeProfissao || '', xConj_1 + textPad + doc.widthOfString('Profissão:') + textPad, yRowConj + textYPad);
+                    yRowConj += rowHeight;
+
+                    doc.font('Helvetica-Bold').fontSize(8).text('Email:', xConj_1 + textPad, yRowConj + textYPad);
+                    doc.font('Helvetica').fontSize(8).text(data.conjugeEmail || '', xConj_1 + textPad + doc.widthOfString('Email:') + textPad, yRowConj + textYPad);
+                    y = yConj + hConj;
                 }
                 y += 15;
             }
@@ -218,19 +218,19 @@ async function generatePdfPromise(data) {
             // ==================================================================
             // 2. BLOCO IMÓVEL (DINÂMICO - MÚLTIPLAS UNIDADES)
             // ==================================================================
-            
+
             const qtdImoveis = parseInt(data.qtdImoveis || 1, 10);
-            
+
             // Altura total: N linhas de unidades + 5 linhas fixas
             const yI = y;
-            const rHI = 20; 
+            const rHI = 20;
             const fixedRows = 5;
             const totalRows = qtdImoveis + fixedRows;
             const hI = rHI * totalRows;
 
             doc.rect(MARGIN_LEFT, yI, CONTENT_WIDTH, hI).stroke();
             doc.rect(MARGIN_LEFT, yI, labelBoxWidth, hI).stroke();
-            doc.save().translate(MARGIN_LEFT + labelBoxWidth/2, yI + hI/2).rotate(-90).font('Helvetica-Bold').fontSize(9).text('IMÓVEIS', -hI / 2, -4, { width: hI, align: 'center' }).restore();
+            doc.save().translate(MARGIN_LEFT + labelBoxWidth / 2, yI + hI / 2).rotate(-90).font('Helvetica-Bold').fontSize(9).text('IMÓVEIS', -hI / 2, -4, { width: hI, align: 'center' }).restore();
 
             const xI_1 = fieldBoxX;
             const xI_2 = fieldBoxX + 318;
@@ -242,13 +242,13 @@ async function generatePdfPromise(data) {
                 const valorVal = data[`imovelValor_${i}`];
 
                 // Linha Horizontal da Unidade
-                doc.moveTo(fieldBoxX, yIRow + rHI).lineTo(endX, yIRow + rHI).stroke(); 
+                doc.moveTo(fieldBoxX, yIRow + rHI).lineTo(endX, yIRow + rHI).stroke();
                 // Linha Vertical (separando valor)
-                doc.moveTo(xI_2, yIRow).lineTo(xI_2, yIRow + rHI).stroke(); 
+                doc.moveTo(xI_2, yIRow).lineTo(xI_2, yIRow + rHI).stroke();
 
                 // Unidade
-                doc.font('Helvetica-Bold').fontSize(8).text(`Imóvel ${i+1}:`, xI_1 + textPad, yIRow + textYPad);
-                labelWidth = doc.widthOfString(`Imóvel ${i+1}:`);
+                doc.font('Helvetica-Bold').fontSize(8).text(`Imóvel ${i + 1}:`, xI_1 + textPad, yIRow + textYPad);
+                labelWidth = doc.widthOfString(`Imóvel ${i + 1}:`);
                 doc.font('Helvetica').fontSize(8).text(descVal, xI_1 + textPad + labelWidth + textPad, yIRow + textYPad);
 
                 // Valor
@@ -260,7 +260,7 @@ async function generatePdfPromise(data) {
             }
 
             // --- CAMPOS COMUNS ---
-            
+
             // Endereço
             doc.moveTo(fieldBoxX, yIRow + rHI).lineTo(endX, yIRow + rHI).stroke();
             doc.font('Helvetica-Bold').fontSize(8).text('Endereço do Empreendimento:', xI_1 + textPad, yIRow + textYPad);
@@ -275,8 +275,8 @@ async function generatePdfPromise(data) {
 
             // Admin
             doc.moveTo(fieldBoxX, yIRow + rHI).lineTo(endX, yIRow + rHI).stroke();
-            doc.font('Helvetica-Bold').fontSize(8).text('Administradora de Condomínio:', xI_1 + textPad, yIRow + textYPad);
-            doc.font('Helvetica').fontSize(8).text(data.imovelAdminCondominio || '', xI_1 + textPad + doc.widthOfString('Administradora de Condomínio:') + textPad, yIRow + textYPad);
+            doc.font('Helvetica-Bold').fontSize(8).text('Administradora do Condomínio:', xI_1 + textPad, yIRow + textYPad);
+            doc.font('Helvetica').fontSize(8).text(data.imovelAdminCondominio || '', xI_1 + textPad + 10 + doc.widthOfString('Administradora de Condomínio:') + textPad, yIRow + textYPad);
             yIRow += rHI;
 
             // Condomínio e Parcelas
@@ -285,20 +285,20 @@ async function generatePdfPromise(data) {
             doc.moveTo(fieldBoxX, yIRow + rHI).lineTo(endX, yIRow + rHI).stroke();
             doc.moveTo(xI_L5_2, yIRow).lineTo(xI_L5_2, yIRow + rHI).stroke();
             doc.moveTo(xI_L5_3, yIRow).lineTo(xI_L5_3, yIRow + rHI).stroke();
-            
+
             doc.font('Helvetica-Bold').fontSize(8).text('Valor Condomínio:', xI_1 + textPad, yIRow + textYPad);
-            doc.font('Helvetica').fontSize(8).text(formatCurrency(data.imovelValorCondominio) || '', xI_1 + textPad + doc.widthOfString('Valor Condomínio:') + textPad, yIRow + textYPad);
-            
+            doc.font('Helvetica').fontSize(8).text(formatCurrency(data.imovelValorCondominio) || '', xI_1 + 10 + textPad + doc.widthOfString('Valor Condomínio:') + textPad, yIRow + textYPad);
+
             doc.font('Helvetica-Bold').fontSize(8).text('Chamada Capital:', xI_L5_2 + textPad, yIRow + textYPad);
             doc.font('Helvetica').fontSize(8).text(data.imovelChamadaCapital || '', xI_L5_2 + textPad + doc.widthOfString('Chamada Capital:') + textPad, yIRow + textYPad);
-            
+
             doc.font('Helvetica-Bold').fontSize(8).text('Parcelas:', xI_L5_3 + textPad, yIRow + textYPad);
             doc.font('Helvetica').fontSize(8).text(data.imovelNumParcelas || '', xI_L5_3 + textPad + doc.widthOfString('Parcelas:') + textPad, yIRow + textYPad);
             yIRow += rHI;
 
             // Exclusividade
             const xI_L6_2 = fieldBoxX + 220;
-            doc.moveTo(xI_L6_2, yIRow).lineTo(xI_L6_2, yIRow + rHI).stroke(); 
+            doc.moveTo(xI_L6_2, yIRow).lineTo(xI_L6_2, yIRow + rHI).stroke();
             doc.font('Helvetica-Bold').fontSize(8).text('Exclusividade(*):', xI_1 + textPad, yIRow + textYPad);
 
             const prazoNum = parseInt(data.contratoPrazo, 10);
@@ -307,7 +307,7 @@ async function generatePdfPromise(data) {
             const xNao = xI_1 + 130;
             const yCheck = yIRow + textYPad - 2;
             const checkSize = 8;
-            
+
             doc.rect(xSim, yCheck, checkSize, checkSize).stroke();
             doc.font('Helvetica').fontSize(8).text('SIM', xSim + checkSize + 2, yIRow + textYPad);
             doc.rect(xNao, yCheck, checkSize, checkSize).stroke();
@@ -332,41 +332,30 @@ async function generatePdfPromise(data) {
             doc.y = y;
             doc.x = MARGIN_LEFT;
             doc.font('Helvetica').fontSize(8);
-            
+
             const preambuloTexto = (authType === 'pj')
                 ? 'A Contratante autoriza a Beehouse Investimentos Imobiliários, inscrita no '
                 : 'O(s) Contratante(s) autoriza(m) a Beehouse Investimentos Imobiliários, inscrita no ';
-                
+
             doc.text(preambuloTexto, { continued: true, align: 'justify', width: CONTENT_WIDTH });
             doc.font('Helvetica-Bold').text('CNPJ sob nº 14.477.349/0001-23', { continued: true });
             doc.font('Helvetica').text(', com inscrição no ', { continued: true });
             doc.font('Helvetica-Bold').text('CRECI/SC sob o nº 7.965-J', { continued: true });
             doc.font('Helvetica').text(', situada nesta cidade, na Rua Jacob Eisenhut, 223 - SL 801 Bairro Atiradores, Cep: 89.203-070 - Joinville-SC, a promover a venda dos imóveis com as descrições acima, mediante as seguintes condições:');
-            
+
             doc.moveDown(1);
 
             // CLÁUSULAS
             const clausulaIndent = 10;
-            const clausulaNumWidth = 20; 
+            const clausulaNumWidth = 20;
             const clausulaTextWidth = CONTENT_WIDTH - clausulaNumWidth;
             const clausulaNumX = MARGIN_LEFT;
             const clausulaTextX = MARGIN_LEFT + clausulaNumWidth;
 
-            const comissaoTexto = (authType === 'pj') ? 'A Contratante pagará a Contratada' : 'O(s) Contratante(s) pagará(ão) a Contratada';
-            const declaracaoTexto = (authType === 'pj') 
-                ? 'A Contratante declara que os imóveis encontram-se livres e desembaraçados...'
-                : 'O(s) Contratante(s) declara(m) que os imóveis encontram-se livres e desembaraçados...';
-
-            const addClause = (num, text) => {
-                doc.font('Helvetica-Bold').text(num, clausulaNumX, doc.y, { width: clausulaNumWidth });
-                doc.font('Helvetica').text(text, clausulaTextX, doc.y - doc.heightOfString(num), { align: 'justify', width: clausulaTextWidth });
-                doc.moveDown(0.5);
-            };
-
             addClause('1º', 'A venda é concebida a contar desta data pelo prazo e forma acima definidos. Após esse período o contrato se encerra.');
-            addClause('2º', `${comissaoTexto} ${data.contratoComissaoPct || '6'}% (seis por cento) sobre o valor da venda, no ato do recebimento do sinal. Esta comissão é devida também mesmo fora do prazo desta autorização desde que a venda do imóvel seja efetuado por cliente apresentado pela Contratada ou nos caso em que, comprovadamente, a negociação tiver sido por esta iniciada, observando também o artigo 727 do Código Civil Brasileiro.`);
-            addClause('3º', 'A Contratada compromete-se a fazer publicidade dos imóveis, podendo colocar placas, anunciar em jornais e meios de divulgação do imóvel ao público.');
-            addClause('4º', declaracaoTexto);
+            addClause('2º', `O(s) CONTRATANTE(S) pagará(ão) à CONTRATADA comissão de ${data.contratoComissaoPct || '6'}% sobre o valor da venda, devida no recebimento do sinal. Sendo o sinal inferior ao valor da comissão, esta será paga em 50% no ato do sinal e 50% na parcela subsequente. A comissão será devida ainda que a venda ocorra fora do prazo desta autorização, desde que com cliente apresentado ou negociação iniciada pela CONTRATADA, nos termos do art. 727 do Código Civil Brasileiro.`);
+            addClause('3º', 'A Contratada compromete-se a fazer publicidade do imóvel, podendo colocar placas, anunciar em jornais e meios de divulgação do imóvel ao público.');
+            addClause('4º', 'O(s) Contratante(s) declara(m) que o imóvel encontra-se livre e desembaraçado, inexistindo quaisquer impedimento judicial e/ou extra judicial que impeça a transferência de posse, comprometendo-se a fornecer cópia do Registro de Imóveis, documentos pessoais e demais informações pertinentes a negociação.');
             addClause('5º', 'Em caso de qualquer controversia decorrente deste contrato, as partes elegem o Foro da Comarca de Joinville/SC para dirimir quaisquer dúvidas deste contrato, renunciando qualquer outro, por mais privilégio que seja.');
 
             doc.moveDown(0.5);
@@ -375,23 +364,23 @@ async function generatePdfPromise(data) {
 
             // DATA
             const dataHoje = new Date().toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' });
-            doc.font('Helvetica-Bold').fontSize(8).text('Local e data:', MARGIN_LEFT, doc.y, { continued: true});
+            doc.font('Helvetica-Bold').fontSize(8).text('Local e data:', MARGIN_LEFT, doc.y, { continued: true });
             doc.font('Helvetica').fontSize(8).text(` Joinville, ${dataHoje}`, MARGIN_LEFT + 10, doc.y);
 
             // ASSINATURAS
             const sigWidth = 240;
-            const sigBlockHeight = 55; 
-            const pageBottom = doc.page.height - doc.page.margins.bottom; 
+            const sigBlockHeight = 55;
+            const pageBottom = doc.page.height - doc.page.margins.bottom;
             const col1_X = MARGIN_LEFT;
             const col2_X = MARGIN_LEFT + sigWidth + 20;
 
             const checkAndSetY = (proposedY) => {
                 if (proposedY + sigBlockHeight > pageBottom) {
                     doc.addPage();
-                    drawHeader(doc); 
-                    return doc.y + 60; 
+                    drawHeader(doc);
+                    return doc.y + 60;
                 }
-                return proposedY; 
+                return proposedY;
             };
 
             // *** ALTERAÇÃO AQUI: + 55 PIXELS (era + 40) ***
@@ -410,7 +399,7 @@ async function generatePdfPromise(data) {
             // 2. Contratante(s)
             if (authType === 'pj') {
                 drawSig('CONTRATANTE', data.empresaRazaoSocial, `p.p. ${data.repNome} - CPF: ${data.repCpf}`, col2_X, currentY);
-            } 
+            }
             else if (authType === 'casado') {
                 drawSig('CONTRATANTE', data.contratanteNome, `CPF: ${data.contratanteCpf}`, col2_X, currentY);
                 let nextY = currentY + sigBlockHeight + 30;
@@ -420,12 +409,12 @@ async function generatePdfPromise(data) {
             else if (authType === 'socios') {
                 const ns = parseInt(data.numSocios, 10) || 1;
                 drawSig('CONTRATANTE 1', data.socio1Nome, `CPF: ${data.socio1Cpf}`, col2_X, currentY);
-                
-                for(let k=1; k<ns; k++) {
+
+                for (let k = 1; k < ns; k++) {
                     let nextY = currentY + sigBlockHeight + 30;
                     currentY = checkAndSetY(nextY);
-                    const p = `socio${k+1}`;
-                    drawSig(`CONTRATANTE ${k+1}`, data[`${p}Nome`], `CPF: ${data[`${p}Cpf`]}`, col2_X, currentY);
+                    const p = `socio${k + 1}`;
+                    drawSig(`CONTRATANTE ${k + 1}`, data[`${p}Nome`], `CPF: ${data[`${p}Cpf`]}`, col2_X, currentY);
                 }
             } else {
                 // Solteiro
