@@ -10,7 +10,7 @@ function formatCurrency(value) {
 
 // --- CONSTANTES ---
 const MARGIN_LEFT = 30;
-const MARGIN = 30; // Reduzido de 50
+const MARGIN = 40; // Reduzido de 50
 const PAGE_WIDTH = 612;
 const CONTENT_WIDTH = PAGE_WIDTH - MARGIN_LEFT - MARGIN;
 const PAGE_END = PAGE_WIDTH - MARGIN;
@@ -384,7 +384,7 @@ async function generatePdfPromise(data) {
                 if (proposedY + sigBlockHeight > pageBottom) {
                     doc.addPage();
                     drawHeader(doc);
-                    return doc.y + 60;
+                    return doc.y + 50;
                 }
                 return proposedY;
             };
@@ -440,9 +440,20 @@ async function generatePdfPromise(data) {
 export default async function handler(req, res) {
     if (req.method !== 'POST') return res.status(405).send('Metodo nao permitido');
     try {
-        const pdfBuffer = await generatePdfPromise(req.body);
+        const data = req.body;
+        const pdfBuffer = await generatePdfPromise(data);
+
+        // Determinar nome do arquivo para o Header (Fallback)
+        let name = 'Autorizacao';
+        if (data.empresaRazaoSocial) name = data.empresaRazaoSocial;
+        else if (data.socio1Nome) name = data.socio1Nome;
+        else if (data.contratanteNome) name = data.contratanteNome;
+
+        // Remove acentos e caracteres especiais
+        const safeName = name.normalize('NFD').replace(/[\u0300-\u036f]/g, "").replace(/[^a-zA-Z0-9]/g, "_");
+
         res.setHeader('Content-Type', 'application/pdf');
-        res.setHeader('Content-Disposition', `attachment; filename="Autorizacao_Venda.pdf"`);
+        res.setHeader('Content-Disposition', `attachment; filename="Autorizacao_${safeName}_${new Date().getTime()}.pdf"`);
         res.end(pdfBuffer);
     } catch (error) {
         console.error('Erro Handler:', error);
