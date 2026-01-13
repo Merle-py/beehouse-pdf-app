@@ -147,7 +147,6 @@ function NovoImovelForm() {
                             </div>
 
                             <PropertyFinancialFields
-                                matricula={formData.matricula}
                                 adminCondominio={formData.administradora}
                                 valorCondominio={parseFloat(formData.valorCondominio) || 0}
                                 chamadaCapital={formData.chamadaCapital}

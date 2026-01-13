@@ -3,7 +3,6 @@
 import React from 'react';
 
 interface PropertyFinancialFieldsProps {
-    matricula?: string;
     adminCondominio?: string;
     valorCondominio?: number;
     chamadaCapital?: string;
@@ -12,7 +11,6 @@ interface PropertyFinancialFieldsProps {
 }
 
 export default function PropertyFinancialFields({
-    matricula,
     adminCondominio,
     valorCondominio,
     chamadaCapital,
@@ -22,20 +20,6 @@ export default function PropertyFinancialFields({
     return (
         <div className="space-y-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
             <h4 className="font-semibold text-blue-900">📋 Informações Adicionais do Imóvel</h4>
-
-            {/* Matrícula */}
-            <div>
-                <label className="block text-sm font-semibold mb-2">
-                    Matrícula do Imóvel
-                </label>
-                <input
-                    type="text"
-                    value={matricula || ''}
-                    onChange={(e) => onChange('matricula', e.target.value)}
-                    className="input"
-                    placeholder="Número da matrícula"
-                />
-            </div>
 
             {/* Administradora e Valor do Condomínio */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

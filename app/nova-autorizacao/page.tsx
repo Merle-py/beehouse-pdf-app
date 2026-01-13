@@ -152,7 +152,17 @@ function NovaAutorizacaoForm() {
                 body: JSON.stringify({ formData })
             });
 
+            console.log('[Frontend] Resposta recebida:', response.status, response.statusText);
+
+            // Verificar se a resposta é OK antes de tentar parsear JSON
+            if (!response.ok) {
+                const errorText = await response.text();
+                console.error('[Frontend] Erro na API:', errorText);
+                throw new Error(`Erro ao gerar PDF: ${response.status} - ${errorText}`);
+            }
+
             const result = await response.json();
+            console.log('[Frontend] Resultado parseado:', { success: result.success });
 
             if (result.success) {
                 toast.success('PDF gerado com sucesso!');
@@ -168,11 +178,11 @@ function NovaAutorizacaoForm() {
                 // Opcional: redirecionar ou limpar formulário
                 toast.success('Download iniciado!');
             } else {
-                toast.error('Erro ao gerar PDF: ' + result.error);
+                toast.error('Erro ao gerar PDF: ' + (result.error || 'Erro desconhecido'));
             }
-        } catch (error) {
-            console.error('Erro:', error);
-            toast.error('Erro ao gerar PDF');
+        } catch (error: any) {
+            console.error('[Frontend] Erro capturado:', error);
+            toast.error(error.message || 'Erro ao gerar PDF');
         } finally {
             setLoading(false);
         }
@@ -254,7 +264,7 @@ function NovaAutorizacaoForm() {
                                         label="Endereço da Sede"
                                         value={empresa.endereco}
                                         onChange={(v) => setEmpresa({ ...empresa, endereco: v })}
-                                        placeholder="Endereço completo da sede"
+                                        placeholder="Rua, número, complemento, bairro, cidade, estado, CEP"
                                     />
                                     <MaskedInput
                                         label="Telefone"
@@ -331,7 +341,7 @@ function NovaAutorizacaoForm() {
                                     label="Endereço Residencial"
                                     value={contratante.endereco}
                                     onChange={(v) => setContratante({ ...contratante, endereco: v })}
-                                    placeholder="Endereço completo"
+                                    placeholder="Rua, número, complemento, bairro, cidade, estado, CEP"
                                 />
                                 <MaskedInput
                                     label="Telefone"
@@ -448,7 +458,6 @@ function NovaAutorizacaoForm() {
                                     />
                                 </div>
                                 <PropertyFinancialFields
-                                    matricula={imovel.matricula}
                                     adminCondominio={imovel.administradora}
                                     valorCondominio={parseFloat(imovel.valorCondominio) || 0}
                                     chamadaCapital={imovel.chamadaCapital}
