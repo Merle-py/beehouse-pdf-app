@@ -33,6 +33,23 @@ function NovaAutorizacaoForm() {
         endereco: ''
     });
 
+    // Estado para empresa (PJ)
+    const [empresa, setEmpresa] = useState({
+        razaoSocial: '',
+        cnpj: '',
+        ie: '',
+        endereco: '',
+        telefone: '',
+        email: ''
+    });
+
+    // Estado para representante legal (PJ)
+    const [repLegal, setRepLegal] = useState({
+        nome: '',
+        cpf: '',
+        cargo: ''
+    });
+
     // Estado para cônjuge (se casado)
     const [conjuge, setConjuge] = useState<SpouseData>({
         nome: '',
@@ -53,13 +70,22 @@ function NovaAutorizacaoForm() {
         descricao: ''
     });
 
-    // Estado para sócios (se PJ)
+    // Estado para sócios (se "socios")
     const [socios, setSocios] = useState<PersonData[]>([{
         nome: '',
         cpf: '',
         estadoCivil: '',
         profissao: ''
     }]);
+
+    // Atualizar estado civil automaticamente quando authType mudar
+    useEffect(() => {
+        if (authType === 'pf-solteiro') {
+            setContratante(prev => ({ ...prev, estadoCivil: 'solteiro' }));
+        } else if (authType === 'pf-casado') {
+            setContratante(prev => ({ ...prev, estadoCivil: 'casado' }));
+        }
+    }, [authType]);
 
     const authTypeOptions = [
         { value: 'pf-solteiro', label: 'Pessoa Física Solteiro' },
@@ -143,15 +169,32 @@ function NovaAutorizacaoForm() {
         try {
             const formData = {
                 authType,
-                contratante: {
-                    ...contratante,
-                    cpf: contratante.cpfCnpj.replace(/\D/g, '') // Remove formatação antes de enviar
-                },
-                ...(authType === 'pf-casado' && { conjuge }),
-                ...(authType === 'pj' && { socios }),
+                ...(authType === 'pj' ? {
+                    empresa: {
+                        ...empresa,
+                        cnpj: empresa.cnpj.replace(/\D/g, '')
+                    },
+                    repLegal: {
+                        ...repLegal,
+                        cpf: repLegal.cpf.replace(/\D/g, '')
+                    }
+                } : {
+                    contratante: {
+                        ...contratante,
+                        cpf: contratante.cpfCnpj.replace(/\D/g, '')
+                    }
+                }),
+                ...(authType === 'pf-casado' && {
+                    conjuge: {
+                        ...conjuge,
+                        cpf: conjuge.cpf?.replace(/\D/g, '') || ''
+                    }
+                }),
+                ...(authType === 'socios' && { socios }),
                 imovel: {
                     ...imovel,
-                    valor: parseFloat(imovel.valor) || 0
+                    valor: parseFloat(imovel.valor) || 0,
+                    valorCondominio: parseFloat(imovel.valorCondominio) || 0
                 },
                 contrato: {
                     prazo: 90,
@@ -159,27 +202,34 @@ function NovaAutorizacaoForm() {
                 }
             };
 
-            const response = await fetch('/api/bitrix/cadastro-autorizacao', {
+            // Usar nova API de geração direta de PDF
+            const response = await fetch('/api/pdf/generate-authorization', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    formData,
-                    accessToken: bitrix.authId,
-                    domain: bitrix.domain
-                })
+                body: JSON.stringify({ formData })
             });
 
             const result = await response.json();
 
             if (result.success) {
-                toast.success('Autorização criada com sucesso!');
-                router.push('/dashboard');
+                toast.success('PDF gerado com sucesso!');
+
+                // Fazer download automático do PDF
+                const link = document.createElement('a');
+                link.href = result.pdfUrl;
+                link.download = result.pdfFileName;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+
+                // Opcional: redirecionar ou limpar formulário
+                toast.success('Download iniciado!');
             } else {
-                toast.error('Erro ao criar autorização: ' + result.error);
+                toast.error('Erro ao gerar PDF: ' + result.error);
             }
         } catch (error) {
             console.error('Erro:', error);
-            toast.error('Erro ao criar autorização');
+            toast.error('Erro ao gerar PDF');
         } finally {
             setLoading(false);
         }
@@ -228,27 +278,110 @@ function NovaAutorizacaoForm() {
                         />
                     </div>
 
-                    {/* Dados do Contratante */}
-                    {authType && (
+
+                    {/* Dados da Empresa (PJ) */}
+                    {authType === 'pj' && (
+                        <>
+                            <div className="card">
+                                <h2 className="text-xl font-bold mb-4">Dados da Empresa</h2>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <Input
+                                        label="Razão Social"
+                                        value={empresa.razaoSocial}
+                                        onChange={(v) => setEmpresa({ ...empresa, razaoSocial: v })}
+                                        placeholder="Digite a razão social"
+                                        required
+                                    />
+                                    <MaskedInput
+                                        label="CNPJ"
+                                        value={empresa.cnpj}
+                                        onChange={(v) => setEmpresa({ ...empresa, cnpj: v })}
+                                        mask="cnpj"
+                                        validation="cnpj"
+                                        placeholder="00.000.000/0000-00"
+                                        required
+                                    />
+                                    <Input
+                                        label="Inscrição Estadual/Municipal"
+                                        value={empresa.ie}
+                                        onChange={(v) => setEmpresa({ ...empresa, ie: v })}
+                                        placeholder="Inscrição Estadual ou Municipal"
+                                    />
+                                    <Input
+                                        label="Endereço da Sede"
+                                        value={empresa.endereco}
+                                        onChange={(v) => setEmpresa({ ...empresa, endereco: v })}
+                                        placeholder="Endereço completo da sede"
+                                    />
+                                    <MaskedInput
+                                        label="Telefone"
+                                        value={empresa.telefone}
+                                        onChange={(v) => setEmpresa({ ...empresa, telefone: v })}
+                                        mask="phone"
+                                        validation="phone"
+                                        placeholder="(00) 00000-0000"
+                                    />
+                                    <Input
+                                        label="Email"
+                                        type="email"
+                                        value={empresa.email}
+                                        onChange={(v) => setEmpresa({ ...empresa, email: v })}
+                                        placeholder="email@empresa.com"
+                                    />
+                                </div>
+                            </div>
+
+                            {/* Dados do Representante Legal */}
+                            <div className="card">
+                                <h2 className="text-xl font-bold mb-4">Representante Legal</h2>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <Input
+                                        label="Nome Completo"
+                                        value={repLegal.nome}
+                                        onChange={(v) => setRepLegal({ ...repLegal, nome: v })}
+                                        placeholder="Nome do representante legal"
+                                        required
+                                    />
+                                    <MaskedInput
+                                        label="CPF"
+                                        value={repLegal.cpf}
+                                        onChange={(v) => setRepLegal({ ...repLegal, cpf: v })}
+                                        mask="cpf"
+                                        validation="cpf"
+                                        placeholder="000.000.000-00"
+                                        required
+                                    />
+                                    <Input
+                                        label="Cargo"
+                                        value={repLegal.cargo}
+                                        onChange={(v) => setRepLegal({ ...repLegal, cargo: v })}
+                                        placeholder="Ex: Diretor, Sócio-Administrador"
+                                        required
+                                    />
+                                </div>
+                            </div>
+                        </>
+                    )}
+
+                    {/* Dados do Contratante (PF) */}
+                    {authType && authType !== 'pj' && (
                         <div className="card">
-                            <h2 className="text-xl font-bold mb-4">
-                                {authType === 'pj' ? 'Dados da Empresa' : 'Dados do Contratante'}
-                            </h2>
+                            <h2 className="text-xl font-bold mb-4">Dados do Contratante</h2>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <Input
-                                    label={authType === 'pj' ? 'Razão Social' : 'Nome Completo'}
+                                    label="Nome Completo"
                                     value={contratante.nome}
                                     onChange={(v) => setContratante({ ...contratante, nome: v })}
                                     placeholder="Digite o nome completo"
                                     required
                                 />
                                 <MaskedInput
-                                    label={authType === 'pj' ? 'CNPJ' : 'CPF/CNPJ'}
+                                    label="CPF"
                                     value={contratante.cpfCnpj}
                                     onChange={(v) => setContratante({ ...contratante, cpfCnpj: v })}
-                                    mask="cpfCnpj"
-                                    validation="cpfCnpj"
-                                    placeholder={authType === 'pj' ? '00.000.000/0000-00' : '000.000.000-00 ou 00.000.000/0000-00'}
+                                    mask="cpf"
+                                    validation="cpf"
+                                    placeholder="000.000.000-00"
                                     required
                                 />
                                 <Input
@@ -274,32 +407,29 @@ function NovaAutorizacaoForm() {
                                     placeholder="email@exemplo.com"
                                     required
                                 />
-                                {authType !== 'pj' && (
-                                    <>
-                                        <Select
-                                            label="Estado Civil"
-                                            value={contratante.estadoCivil}
-                                            onChange={(v) => setContratante({ ...contratante, estadoCivil: v })}
-                                            options={estadoCivilOptions}
-                                            required
-                                        />
-                                        {contratante.estadoCivil === 'casado' && (
-                                            <Select
-                                                label="Regime de Casamento"
-                                                value={contratante.regimeCasamento}
-                                                onChange={(v) => setContratante({ ...contratante, regimeCasamento: v })}
-                                                options={regimeCasamentoOptions}
-                                                required
-                                            />
-                                        )}
-                                        <Input
-                                            label="Profissão"
-                                            value={contratante.profissao}
-                                            onChange={(v) => setContratante({ ...contratante, profissao: v })}
-                                            placeholder="Digite a profissão"
-                                        />
-                                    </>
+                                <Select
+                                    label="Estado Civil"
+                                    value={contratante.estadoCivil}
+                                    onChange={(v) => setContratante({ ...contratante, estadoCivil: v })}
+                                    options={estadoCivilOptions}
+                                    disabled={authType === 'pf-solteiro' || authType === 'pf-casado'}
+                                    required
+                                />
+                                {contratante.estadoCivil === 'casado' && (
+                                    <Select
+                                        label="Regime de Casamento"
+                                        value={contratante.regimeCasamento}
+                                        onChange={(v) => setContratante({ ...contratante, regimeCasamento: v })}
+                                        options={regimeCasamentoOptions}
+                                        required
+                                    />
                                 )}
+                                <Input
+                                    label="Profissão"
+                                    value={contratante.profissao}
+                                    onChange={(v) => setContratante({ ...contratante, profissao: v })}
+                                    placeholder="Digite a profissão"
+                                />
                             </div>
                         </div>
                     )}
@@ -409,7 +539,7 @@ function NovaAutorizacaoForm() {
                                 className="btn-primary"
                                 disabled={loading}
                             >
-                                {loading ? 'Salvando...' : 'Salvar Autorização'}
+                                {loading ? 'Gerando PDF...' : 'Gerar PDF'}
                             </button>
                         </div>
                     )}
