@@ -230,7 +230,7 @@ async function generatePdfPromise(data) {
 
             doc.rect(MARGIN_LEFT, yI, CONTENT_WIDTH, hI).stroke();
             doc.rect(MARGIN_LEFT, yI, labelBoxWidth, hI).stroke();
-            doc.save().translate(MARGIN_LEFT + labelBoxWidth / 2, yI + hI / 2).rotate(-90).font('Helvetica-Bold').fontSize(9).text('IMÓVEIS', -hI / 2, -4, { width: hI, align: 'center' }).restore();
+            doc.save().translate(MARGIN_LEFT + labelBoxWidth / 2, yI + hI / 2).rotate(-90).font('Helvetica-Bold').fontSize(9).text('IMÓVEL', -hI / 2, -4, { width: hI, align: 'center' }).restore();
 
             const xI_1 = fieldBoxX;
             const xI_2 = fieldBoxX + 318;
@@ -247,8 +247,8 @@ async function generatePdfPromise(data) {
                 doc.moveTo(xI_2, yIRow).lineTo(xI_2, yIRow + rHI).stroke();
 
                 // Unidade
-                doc.font('Helvetica-Bold').fontSize(8).text(`Imóvel ${i + 1}:`, xI_1 + textPad, yIRow + textYPad);
-                labelWidth = doc.widthOfString(`Imóvel ${i + 1}:`);
+                doc.font('Helvetica-Bold').fontSize(8).text(`Descrição:`, xI_1 + textPad, yIRow + textYPad);
+                labelWidth = doc.widthOfString(`Descrição`);
                 doc.font('Helvetica').fontSize(8).text(descVal, xI_1 + textPad + labelWidth + textPad, yIRow + textYPad);
 
                 // Valor
