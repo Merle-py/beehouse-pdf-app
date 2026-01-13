@@ -352,6 +352,12 @@ async function generatePdfPromise(data) {
             const clausulaNumX = MARGIN_LEFT;
             const clausulaTextX = MARGIN_LEFT + clausulaNumWidth;
 
+            const addClause = (num, text) => {
+                doc.font('Helvetica-Bold').text(num, clausulaNumX, doc.y, { width: clausulaNumWidth });
+                doc.font('Helvetica').text(text, clausulaTextX, doc.y - doc.heightOfString(num), { align: 'justify', width: clausulaTextWidth });
+                doc.moveDown(0.5);
+            };
+
             addClause('1º', 'A venda é concebida a contar desta data pelo prazo e forma acima definidos. Após esse período o contrato se encerra.');
             addClause('2º', `O(s) CONTRATANTE(S) pagará(ão) à CONTRATADA comissão de ${data.contratoComissaoPct || '6'}% sobre o valor da venda, devida no recebimento do sinal. Sendo o sinal inferior ao valor da comissão, esta será paga em 50% no ato do sinal e 50% na parcela subsequente. A comissão será devida ainda que a venda ocorra fora do prazo desta autorização, desde que com cliente apresentado ou negociação iniciada pela CONTRATADA, nos termos do art. 727 do Código Civil Brasileiro.`);
             addClause('3º', 'A Contratada compromete-se a fazer publicidade do imóvel, podendo colocar placas, anunciar em jornais e meios de divulgação do imóvel ao público.');
