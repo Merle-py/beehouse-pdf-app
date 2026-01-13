@@ -384,7 +384,7 @@ async function generatePdfPromise(data) {
                 if (proposedY + sigBlockHeight > pageBottom) {
                     doc.addPage();
                     drawHeader(doc);
-                    return doc.y + 50;
+                    return doc.y + 60;
                 }
                 return proposedY;
             };
