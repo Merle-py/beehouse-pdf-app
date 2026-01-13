@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerador de Autorização de Venda - Beehouse</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Beehouse Investimentos</h1>
+            <p>Gerador de Autorização de Venda</p>
+        </header>
+
+        <form id="authForm" onsubmit="handleSubmit(event)">
+            
+            <!-- TIPO DE AUTORIZAÇÃO -->
+            <div class="card">
+                <h2>Tipo de Contratante</h2>
+                <div class="form-group">
+                    <label for="authType">Selecione o tipo:</label>
+                    <select id="authType" name="authType" onchange="toggleSections()" required>
+                        <option value="solteiro">Pessoa Física - Solteiro(a)</option>
+                        <option value="casado">Pessoa Física - Casado(a)</option>
+                        <option value="pj">Pessoa Jurídica</option>
+                        <option value="socios">Sócios (Múltiplos Proprietários)</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- DADOS PF (SOLTEIRO) -->
+            <div id="section-solteiro" class="card">
+                <h2>Dados do Contratante</h2>
+                <div class="form-group">
+                    <label>Nome Completo</label>
+                    <input type="text" name="contratanteNome">
+                </div>
+                <div class="form-row two-col">
+                    <div>
+                        <label>CPF</label>
+                        <input type="text" name="contratanteCpf" placeholder="000.000.000-00">
+                    </div>
+                    <div>
+                        <label>Profissão</label>
+                        <input type="text" name="contratanteProfissao">
+                    </div>
+                </div>
+                <div class="form-row two-col">
+                    <div>
+                        <label>Estado Civil</label>
+                        <select name="contratanteEstadoCivil">
+                            <option value="Solteiro(a)">Solteiro(a)</option>
+                            <option value="Divorciado(a)">Divorciado(a)</option>
+                            <option value="Viúvo(a)">Viúvo(a)</option>
+                            <option value="Separado(a)">Separado(a)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label>Regime de Casamento (Se aplicável)</label>
+                        <input type="text" name="contratanteRegimeCasamento">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Endereço Completo</label>
+                    <input type="text" name="contratanteEndereco">
+                </div>
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" name="contratanteEmail">
+                </div>
+            </div>
+
+            <!-- DADOS CONJUGE (CASADO) -->
+            <div id="section-conjuge" class="card hidden">
+                <h2>Dados do Cônjuge</h2>
+                <div class="form-group">
+                    <label>Nome Completo</label>
+                    <input type="text" name="conjugeNome">
+                </div>
+                <div class="form-row two-col">
+                    <div>
+                        <label>CPF</label>
+                        <input type="text" name="conjugeCpf">
+                    </div>
+                    <div>
+                        <label>Profissão</label>
+                        <input type="text" name="conjugeProfissao">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" name="conjugeEmail">
+                </div>
+            </div>
+
+            <!-- DADOS PJ -->
+            <div id="section-pj" class="card hidden">
+                <h2>Dados da Empresa</h2>
+                <div class="form-group">
+                    <label>Razão Social</label>
+                    <input type="text" name="empresaRazaoSocial">
+                </div>
+                <div class="form-row two-col">
+                    <div>
+                        <label>CNPJ</label>
+                        <input type="text" name="empresaCnpj">
+                    </div>
+                    <div>
+                        <label>Inscrição Estadual/Municipal</label>
+                        <input type="text" name="empresaIe">
+                    </div>
+                </div>
+                <div class="form-row two-col">
+                    <div>
+                        <label>Email Corporativo</label>
+                        <input type="email" name="empresaEmail">
+                    </div>
+                    <div>
+                        <label>Telefone</label>
+                        <input type="text" name="empresaTelefone">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Endereço da Sede</label>
+                    <input type="text" name="empresaEndereco">
+                </div>
+
+                <h3>Representante Legal</h3>
+                <div class="form-group">
+                    <label>Nome do Representante</label>
+                    <input type="text" name="repNome">
+                </div>
+                <div class="form-row two-col">
+                    <div>
+                        <label>CPF</label>
+                        <input type="text" name="repCpf">
+                    </div>
+                    <div>
+                        <label>Cargo</label>
+                        <input type="text" name="repCargo">
+                    </div>
+                </div>
+            </div>
+
+            <!-- DADOS SÓCIOS -->
+            <div id="section-socios" class="card hidden">
+                <h2>Sócios / Proprietários</h2>
+                <div id="socios-container">
+                    <!-- Sócio 1 (Padrão) -->
+                    <div class="unit-card" data-socio-index="1">
+                         <div class="unit-header">
+                            <span class="unit-title">Sócio 1</span>
+                        </div>
+                        <div class="form-group">
+                            <label>Nome</label>
+                            <input type="text" name="socio1Nome">
+                        </div>
+                        <div class="form-row two-col">
+                            <div>
+                                <label>CPF</label>
+                                <input type="text" name="socio1Cpf">
+                            </div>
+                            <div>
+                                <label>Profissão</label>
+                                <input type="text" name="socio1Profissao">
+                            </div>
+                        </div>
+                         <div class="form-row two-col">
+                            <div>
+                                <label>Estado Civil</label>
+                                <input type="text" name="socio1EstadoCivil">
+                            </div>
+                            <div>
+                                <label>Regime Casamento</label>
+                                <input type="text" name="socio1RegimeCasamento">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Endereço</label>
+                            <input type="text" name="socio1Endereco">
+                        </div>
+                         <div class="form-group">
+                            <label>Email</label>
+                            <input type="email" name="socio1Email">
+                        </div>
+                    </div>
+                </div>
+                <button type="button" class="btn btn-secondary" onclick="addSocio()">+ Adicionar Sócio</button>
+            </div>
+
+            <!-- DADOS DO IMÓVEL -->
+            <div class="card">
+                <h2>Dados do(s) Imóvel(is)</h2>
+                
+                <div class="form-group">
+                    <label>Endereço do Empreendimento (Comum a todos)</label>
+                    <input type="text" name="imovelEndereco" required>
+                </div>
+                <div class="form-row two-col">
+                    <div>
+                        <label>Matrícula / Inscrição</label>
+                        <input type="text" name="imovelMatricula">
+                    </div>
+                    <div>
+                        <label>Administradora Condomínio</label>
+                        <input type="text" name="imovelAdminCondominio">
+                    </div>
+                </div>
+                 <div class="form-row three-col" style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem;">
+                    <div>
+                        <label>Valor Condomínio</label>
+                        <input type="number" step="0.01" name="imovelValorCondominio">
+                    </div>
+                    <div>
+                        <label>Chamada Capital</label>
+                        <input type="text" name="imovelChamadaCapital">
+                    </div>
+                     <div>
+                        <label>Num. Parcelas</label>
+                        <input type="text" name="imovelNumParcelas">
+                    </div>
+                </div>
+
+                <h3>Unidades</h3>
+                <div id="units-container">
+                    <!-- Unidade 1 -->
+                    <div class="unit-card" data-index="0">
+                        <div class="unit-header">
+                            <span class="unit-title">Unidade 1</span>
+                        </div>
+                        <div class="form-group">
+                            <label>Descrição (Ex: Apto 101, Bloco A)</label>
+                            <input type="text" name="imovelDescricao_0" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Valor de Venda (R$)</label>
+                            <input type="number" step="0.01" name="imovelValor_0" required>
+                        </div>
+                    </div>
+                </div>
+                <button type="button" class="btn btn-secondary" onclick="addUnit()">+ Adicionar Unidade</button>
+            </div>
+
+            <!-- CONTRATO -->
+            <div class="card">
+                <h2>Condições da Venda</h2>
+                <div class="form-row two-col">
+                    <div>
+                        <label>% Comissão</label>
+                        <input type="number" step="0.1" name="contratoComissaoPct" value="6" required>
+                    </div>
+                    <div>
+                        <label>Prazo de Exclusividade (Dias)</label>
+                        <input type="number" name="contratoPrazo" placeholder="Deixe 0 ou vazio se não houver">
+                        <small style="color: #666; display: block; margin-top: 5px;">Se preenchido (>0), marcará "SIM" em exclusividade no PDF.</small>
+                    </div>
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary" id="submitBtn">GERAR PDF</button>
+
+        </form>
+    </div>
+
+    <script>
+        // State
+        let unitCount = 1;
+        let socioCount = 1;
+
+        function toggleSections() {
+            const type = document.getElementById('authType').value;
+            
+            // Hide all specific sections first
+            document.getElementById('section-solteiro').classList.add('hidden');
+            document.getElementById('section-conjuge').classList.add('hidden');
+            document.getElementById('section-pj').classList.add('hidden');
+            document.getElementById('section-socios').classList.add('hidden');
+
+            // Show relevant sections
+            if (type === 'solteiro' || type === 'casado') {
+                const solteiroTitle = document.querySelector('#section-solteiro h2');
+                solteiroTitle.textContent = (type === 'casado') ? 'Dados do Contratante Principal' : 'Dados do Contratante';
+                
+                document.getElementById('section-solteiro').classList.remove('hidden');
+                
+                if (type === 'casado') {
+                    document.getElementById('section-conjuge').classList.remove('hidden');
+                }
+            } else if (type === 'pj') {
+                document.getElementById('section-pj').classList.remove('hidden');
+            } else if (type === 'socios') {
+                document.getElementById('section-socios').classList.remove('hidden');
+            }
+        }
+
+        function addUnit() {
+            const container = document.getElementById('units-container');
+            const index = unitCount;
+            
+            const div = document.createElement('div');
+            div.className = 'unit-card';
+            div.dataset.index = index;
+            div.innerHTML = `
+                <div class="unit-header">
+                    <span class="unit-title">Unidade ${index + 1}</span>
+                    <button type="button" class="btn btn-danger" onclick="removeElement(this)">Remover</button>
+                </div>
+                <div class="form-group">
+                    <label>Descrição</label>
+                    <input type="text" name="imovelDescricao_${index}" required>
+                </div>
+                <div class="form-group">
+                    <label>Valor de Venda (R$)</label>
+                    <input type="number" step="0.01" name="imovelValor_${index}" required>
+                </div>
+            `;
+            container.appendChild(div);
+            unitCount++;
+        }
+
+        function addSocio() {
+            const container = document.getElementById('socios-container');
+            socioCount++; // Increment first
+            const index = socioCount;
+            
+            const div = document.createElement('div');
+            div.className = 'unit-card';
+            div.dataset.socioIndex = index;
+            div.innerHTML = `
+                <div class="unit-header">
+                    <span class="unit-title">Sócio ${index}</span>
+                    <button type="button" class="btn btn-danger" onclick="removeElement(this)">Remover</button>
+                </div>
+                <div class="form-group">
+                    <label>Nome</label>
+                    <input type="text" name="socio${index}Nome">
+                </div>
+                <div class="form-row two-col">
+                    <div>
+                        <label>CPF</label>
+                        <input type="text" name="socio${index}Cpf">
+                    </div>
+                    <div>
+                        <label>Profissão</label>
+                        <input type="text" name="socio${index}Profissao">
+                    </div>
+                </div>
+                 <div class="form-row two-col">
+                    <div>
+                        <label>Estado Civil</label>
+                        <input type="text" name="socio${index}EstadoCivil">
+                    </div>
+                    <div>
+                        <label>Regime Casamento</label>
+                        <input type="text" name="socio${index}RegimeCasamento">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Endereço</label>
+                    <input type="text" name="socio${index}Endereco">
+                </div>
+                 <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" name="socio${index}Email">
+                </div>
+            `;
+            container.appendChild(div);
+        }
+
+        function removeElement(button) {
+            button.closest('.unit-card').remove();
+            // Note: Indices mapped in server are simple lookups, gaps might be ignored or handled by server loop if it uses max count.
+            // Server uses loops: for (let i = 0; i < qtdImoveis; i++). It expects sequential indices 0...N-1.
+            // So we need to re-index unit inputs before submit to ensure consistency.
+        }
+
+        function reindexUnits(formData) {
+            // Because removing elements creates gaps (imovelDescricao_0, imovelDescricao_2), 
+            // and the server loop (for i < count) expects 0, 1, 2...
+            // We need to fix this mapping in the FormData or JSON object.
+            
+            // Let's create a clean object
+            const cleanData = {};
+            const keys = Object.keys(formData);
+            
+            // Copy non-indexed keys
+            keys.forEach(k => {
+                if (!k.startsWith('imovelDescricao_') && !k.startsWith('imovelValor_') && !k.startsWith('socio')) {
+                    cleanData[k] = formData[k];
+                }
+            });
+
+            // Hande Units Re-indexing
+            const unitCards = document.querySelectorAll('#units-container .unit-card');
+            cleanData['qtdImoveis'] = unitCards.length;
+            
+            unitCards.forEach((card, newIndex) => {
+                const descInput = card.querySelector('input[name^="imovelDescricao"]');
+                const valInput = card.querySelector('input[name^="imovelValor"]');
+                
+                cleanData[`imovelDescricao_${newIndex}`] = descInput.value;
+                cleanData[`imovelValor_${newIndex}`] = valInput.value;
+            });
+
+            // Handle Socios Re-indexing
+            if (formData.authType === 'socios') {
+                const socioCards = document.querySelectorAll('#socios-container .unit-card');
+                cleanData['numSocios'] = socioCards.length;
+                
+                socioCards.forEach((card, idx) => {
+                    const realIndex = idx + 1; // 1-based for socios in backend (socio1Nome, socio2Nome)
+                    
+                    const inputs = card.querySelectorAll('input');
+                    inputs.forEach(input => {
+                        // Extract suffix from name (e.g., "socio5Nome" -> "Nome")
+                        // The original name might differ if we removed items, so we rely on input type order or just general suffix matching?
+                        // Easier: Just read values by their 'purpose' since we know the structure.
+                        
+                        // We can't rely on 'name' attr effectively if we want to re-map.
+                        // Let's rely on querySelector inside the card.
+                    });
+
+                    cleanData[`socio${realIndex}Nome`] = card.querySelector('input[name$="Nome"]').value;
+                    cleanData[`socio${realIndex}Cpf`] = card.querySelector('input[name$="Cpf"]').value;
+                    cleanData[`socio${realIndex}Profissao`] = card.querySelector('input[name$="Profissao"]').value;
+                    cleanData[`socio${realIndex}EstadoCivil`] = card.querySelector('input[name$="EstadoCivil"]').value;
+                    cleanData[`socio${realIndex}RegimeCasamento`] = card.querySelector('input[name$="RegimeCasamento"]').value;
+                    cleanData[`socio${realIndex}Endereco`] = card.querySelector('input[name$="Endereco"]').value;
+                    cleanData[`socio${realIndex}Email`] = card.querySelector('input[name$="Email"]').value;
+                });
+            } else {
+                 // Copy other socio/contratante (solteiro/casado) fields directly that might've been skipped
+                 keys.forEach(k => {
+                     if (k.startsWith('socio') || k.startsWith('contratante') || k.startsWith('conjuge')) {
+                         cleanData[k] = formData[k];
+                     }
+                 });
+            }
+
+            return cleanData;
+        }
+
+        async function handleSubmit(e) {
+            e.preventDefault();
+            const btn = document.getElementById('submitBtn');
+            const originalText = btn.textContent;
+            btn.textContent = 'Gerando...';
+            btn.disabled = true;
+
+            try {
+                // Get raw form data
+                const form = e.target;
+                const rawData = Object.fromEntries(new FormData(form).entries());
+                
+                // Process re-indexing for strict server expectation
+                const payload = reindexUnits(rawData);
+                console.log('Sending payload:', payload);
+
+                const response = await fetch('/api/generate-pdf', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) {
+                    throw new Error('Erro ao gerar PDF');
+                }
+
+                // Download Blob
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.style.display = 'none';
+                a.href = url;
+                a.download = `Autorizacao_${payload.authType}_${new Date().getTime()}.pdf`;
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+                alert('PDF Gerado com sucesso!');
+
+            } catch (error) {
+                console.error(error);
+                alert('Erro ao gerar PDF: ' + error.message);
+            } finally {
+                btn.textContent = originalText;
+                btn.disabled = false;
+            }
+        }
+
+        // Initialize
+        toggleSections();
+    </script>
+</body>
+</html>
