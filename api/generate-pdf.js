@@ -10,7 +10,7 @@ function formatCurrency(value) {
 
 // --- CONSTANTES ---
 const MARGIN_LEFT = 30;
-const MARGIN = 50;
+const MARGIN = 30; // Reduzido de 50
 const PAGE_WIDTH = 612;
 const CONTENT_WIDTH = PAGE_WIDTH - MARGIN_LEFT - MARGIN;
 const PAGE_END = PAGE_WIDTH - MARGIN;
@@ -23,27 +23,27 @@ function drawHeader(doc) {
         // Nota: Na Vercel, caminhos de arquivos podem ser complexos. 
         // Se a imagem falhar, o catch vai desenhar o texto 'Beehouse'.
         const logoPath = path.join(__dirname, '..', 'images', 'logo.jpeg');
-        doc.image(logoPath, MARGIN_LEFT, MARGIN - 20, { width: 180 });
+        doc.image(logoPath, MARGIN_LEFT, MARGIN - 10, { width: 160 }); // Subiu imagem e reduziu
     } catch (imageError) {
-        doc.font('Helvetica-Bold').fontSize(10).text('Beehouse', MARGIN_LEFT, MARGIN + 10);
+        doc.font('Helvetica-Bold').fontSize(10).text('Beehouse', MARGIN_LEFT, MARGIN);
     }
 
     const rightAlignX = PAGE_WIDTH - MARGIN - 250;
     const blockWidth = 250;
-    const initialY = MARGIN - 20;
+    const initialY = MARGIN - 10; // Subiu texto
 
     doc.font('Helvetica-Bold').fontSize(10).text('Autorização de Venda', rightAlignX, initialY, { width: blockWidth, align: 'right' });
     doc.font('Helvetica-Bold').fontSize(10).text('Beehouse Investimentos Imobiliários', rightAlignX, initialY + 12, { width: blockWidth, align: 'right' });
     doc.font('Helvetica').fontSize(8).text('R. Jacob Eisenhut, 223 - SL 801 - Atiradores - Joinville/SC', rightAlignX, initialY + 24, { width: blockWidth, align: 'right' });
     doc.text('www.beehouse.imb.br | Fone: (47) 99287-9066', rightAlignX, initialY + 36, { width: blockWidth, align: 'right' });
-    doc.y = initialY + 60;
+    doc.y = initialY + 50; // Reduzido espaço pós-header
 }
 
 // --- FUNÇÃO PRINCIPAL ---
 async function generatePdfPromise(data) {
     return new Promise((resolve, reject) => {
         const doc = new PDFDocument({
-            margins: { top: MARGIN - 20, right: MARGIN, bottom: MARGIN - 35, left: MARGIN_LEFT },
+            margins: { top: MARGIN - 10, right: MARGIN, bottom: MARGIN - 10, left: MARGIN_LEFT }, // Margens reduzidas
             size: 'A4'
         });
 
