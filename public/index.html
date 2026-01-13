@@ -21,16 +21,15 @@
                 <div class="form-group">
                     <label for="authType">Selecione o tipo:</label>
                     <select id="authType" name="authType" onchange="toggleSections()" required>
-                        <option value="solteiro">Pessoa Física - Solteiro(a)</option>
-                        <option value="casado">Pessoa Física - Casado(a)</option>
+                        <option value="pf">Pessoa Física</option>
                         <option value="pj">Pessoa Jurídica</option>
                         <option value="socios">Sócios (Múltiplos Proprietários)</option>
                     </select>
                 </div>
             </div>
 
-            <!-- DADOS PF (SOLTEIRO) -->
-            <div id="section-solteiro" class="card">
+            <!-- DADOS PF (TIPO ÚNICO) -->
+            <div id="section-pf" class="card">
                 <h2>Dados do Contratante</h2>
                 <div class="form-group">
                     <label>Nome Completo</label>
@@ -49,15 +48,24 @@
                 <div class="form-row two-col">
                     <div>
                         <label>Estado Civil</label>
-                        <select name="contratanteEstadoCivil">
+                        <select id="contratanteEstadoCivil" name="contratanteEstadoCivil" onchange="checkMaritalStatus()">
                             <option value="Solteiro(a)">Solteiro(a)</option>
+                            <option value="Casado(a)">Casado(a)</option>
+                            <option value="União Estável">União Estável</option>
                             <option value="Divorciado(a)">Divorciado(a)</option>
                             <option value="Viúvo(a)">Viúvo(a)</option>
+                            <option value="Separado(a)">Separado(a)</option>
                         </select>
                     </div>
-                    <div>
-                        <label>Regime de Casamento (Se aplicável)</label>
-                        <input type="text" name="contratanteRegimeCasamento">
+                    <div id="regime-wrapper" class="hidden">
+                        <label>Regime de Casamento</label>
+                        <select name="contratanteRegimeCasamento">
+                            <option value="">Selecione...</option>
+                            <option value="Comunhão Parcial de Bens">Comunhão Parcial de Bens</option>
+                            <option value="Comunhão Universal de Bens">Comunhão Universal de Bens</option>
+                            <option value="Separação Total de Bens">Separação Total de Bens</option>
+                            <option value="Participação Final nos Aquestos">Participação Final nos Aquestos</option>
+                        </select>
                     </div>
                 </div>
                 <div class="form-group">
@@ -263,25 +271,36 @@
             const type = document.getElementById('authType').value;
             
             // Hide all specific sections first
-            document.getElementById('section-solteiro').classList.add('hidden');
+            document.getElementById('section-pf').classList.add('hidden');
             document.getElementById('section-conjuge').classList.add('hidden');
             document.getElementById('section-pj').classList.add('hidden');
             document.getElementById('section-socios').classList.add('hidden');
 
             // Show relevant sections
-            if (type === 'solteiro' || type === 'casado') {
-                const solteiroTitle = document.querySelector('#section-solteiro h2');
-                solteiroTitle.textContent = (type === 'casado') ? 'Dados do Contratante Principal' : 'Dados do Contratante';
-                
-                document.getElementById('section-solteiro').classList.remove('hidden');
-                
-                if (type === 'casado') {
-                    document.getElementById('section-conjuge').classList.remove('hidden');
-                }
+            if (type === 'pf') {
+                document.getElementById('section-pf').classList.remove('hidden');
+                checkMaritalStatus(); // Check if spouse section is needed
             } else if (type === 'pj') {
                 document.getElementById('section-pj').classList.remove('hidden');
             } else if (type === 'socios') {
                 document.getElementById('section-socios').classList.remove('hidden');
+            }
+        }
+
+        function checkMaritalStatus() {
+            // Only relevant if authType is 'pf'
+            if (document.getElementById('authType').value !== 'pf') return;
+
+            const estadoCivil = document.getElementById('contratanteEstadoCivil').value;
+            const regimeWrapper = document.getElementById('regime-wrapper');
+            const conjugeSection = document.getElementById('section-conjuge');
+            
+            if (estadoCivil === 'Casado(a)' || estadoCivil === 'União Estável') {
+                regimeWrapper.classList.remove('hidden');
+                conjugeSection.classList.remove('hidden');
+            } else {
+                regimeWrapper.classList.add('hidden');
+                conjugeSection.classList.add('hidden');
             }
         }
 
@@ -343,9 +362,21 @@
             const cleanData = {};
             const keys = Object.keys(formData);
             
-            // 1. Copy standard fields
+            // 1. Determine correct authType for Backend
+            if (formData.authType === 'pf') {
+                const estadoCivil = formData.contratanteEstadoCivil;
+                if (estadoCivil === 'Casado(a)' || estadoCivil === 'União Estável') {
+                    cleanData['authType'] = 'casado';
+                } else {
+                    cleanData['authType'] = 'solteiro';
+                }
+            } else {
+                cleanData['authType'] = formData.authType;
+            }
+
+            // Copy standard fields
             keys.forEach(k => {
-                if (!k.startsWith('socio')) {
+                if (!k.startsWith('socio') && k !== 'authType') { // Skip authType as we handled it
                     cleanData[k] = formData[k];
                 }
             });
