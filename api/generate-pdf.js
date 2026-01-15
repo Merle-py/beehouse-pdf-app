@@ -105,7 +105,7 @@ async function generatePdfPromise(data) {
 
                 doc.font('Helvetica-Bold').fontSize(8).text('Endereço da Sede:', xC_1 + textPad, yRow + textYPad);
                 doc.font('Helvetica').fontSize(8).text(data.empresaEndereco || '', xC_1 + textPad + doc.widthOfString('Endereço da Sede:') + textPad, yRow + textYPad);
-                y = yRow + rowHeight + 15;
+                y = yRow + rowHeight + 8;
 
                 // Rep Legal
                 const yR = y;
@@ -127,7 +127,7 @@ async function generatePdfPromise(data) {
 
                 doc.font('Helvetica-Bold').fontSize(8).text('Cargo:', fieldBoxX + textPad, yRowR + textYPad);
                 doc.font('Helvetica').fontSize(8).text(data.repCargo || '', fieldBoxX + textPad + doc.widthOfString('Cargo:') + textPad, yRowR + textYPad);
-                y = yRowR + rowHeight + 15;
+                y = yRowR + rowHeight + 8;
 
             } else {
                 // --- PF / Sócios Logic ---
@@ -135,7 +135,7 @@ async function generatePdfPromise(data) {
                 for (let i = 0; i < numSocios; i++) {
                     const prefix = numSocios > 1 ? `socio${i + 1}` : 'contratante';
                     const titulo = numSocios > 1 ? `CONTRATANTE ${i + 1}` : 'CONTRATANTE';
-                    if (i > 0) y += 20;
+                    if (i > 0) y += 10;
 
                     const yC = y;
                     const hC = rowHeight * 5;
@@ -184,7 +184,7 @@ async function generatePdfPromise(data) {
                 }
 
                 if (authType === 'casado') {
-                    y += 15;
+                    y += 8;
                     const yConj = y;
                     const hConj = rowHeight * 3;
                     doc.rect(MARGIN_LEFT, yConj, CONTENT_WIDTH, hConj).stroke();
@@ -212,7 +212,7 @@ async function generatePdfPromise(data) {
                     doc.font('Helvetica').fontSize(8).text(data.conjugeEmail || '', xConj_1 + textPad + doc.widthOfString('Email:') + textPad, yRowConj + textYPad);
                     y = yConj + hConj;
                 }
-                y += 15;
+                y += 8;
             }
 
             // ==================================================================
@@ -324,7 +324,7 @@ async function generatePdfPromise(data) {
             doc.font('Helvetica-Bold').text('Prazo de exclusividade:', xI_L6_2 + textPad, yIRow + textYPad);
             doc.font('Helvetica').text((temExclusividade ? data.contratoPrazo : '0') + ' dias', xI_L6_2 + textPad + 10 + doc.widthOfString('Prazo de exclusividade:') + textPad, yIRow + textYPad);
 
-            y = yIRow + rHI + 10;
+            y = yIRow + rHI + 8;
 
             // ==================================================
             // 3. TEXTO JURÍDICO E ASSINATURAS
