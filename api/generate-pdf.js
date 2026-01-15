@@ -189,7 +189,7 @@ async function generatePdfPromise(data) {
                     const hConj = rowHeight * 3;
                     doc.rect(MARGIN_LEFT, yConj, CONTENT_WIDTH, hConj).stroke();
                     doc.rect(MARGIN_LEFT, yConj, labelBoxWidth, hConj).stroke();
-                    doc.save().translate(MARGIN_LEFT + labelBoxWidth / 2, yConj + hConj / 2).rotate(-90).font('Helvetica-Bold').fontSize(9).text('CÔNJUGE', -hConj / 2, -4, { width: hConj, align: 'center' }).restore();
+                    doc.save().translate(MARGIN_LEFT + labelBoxWidth / 2, yConj + hConj / 2).rotate(-90).font('Helvetica-Bold').fontSize(8).text('CÔNJUGE', -hConj / 2, -4, { width: hConj, align: 'center' }).restore();
 
                     let yRowConj = yConj;
                     const xConj_1 = fieldBoxX;
@@ -230,7 +230,7 @@ async function generatePdfPromise(data) {
 
             doc.rect(MARGIN_LEFT, yI, CONTENT_WIDTH, hI).stroke();
             doc.rect(MARGIN_LEFT, yI, labelBoxWidth, hI).stroke();
-            doc.save().translate(MARGIN_LEFT + labelBoxWidth / 2, yI + hI / 2).rotate(-90).font('Helvetica-Bold').fontSize(9).text('IMÓVEL', -hI / 2, -4, { width: hI, align: 'center' }).restore();
+            doc.save().translate(MARGIN_LEFT + labelBoxWidth / 2, yI + hI / 2).rotate(-90).font('Helvetica-Bold').fontSize(8).text('IMÓVEL', -hI / 2, -4, { width: hI, align: 'center' }).restore();
 
             const xI_1 = fieldBoxX;
             const xI_2 = fieldBoxX + 318;
