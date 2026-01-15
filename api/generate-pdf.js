@@ -62,7 +62,7 @@ async function generatePdfPromise(data) {
             const fieldBoxX = MARGIN_LEFT + labelBoxWidth;
             const endX = MARGIN_LEFT + CONTENT_WIDTH;
             let labelWidth = 0;
-            const rowHeight = 20;
+            const rowHeight = 16;
             const authType = data.authType;
 
             // ==================================================
@@ -223,7 +223,7 @@ async function generatePdfPromise(data) {
 
             // Altura total: N linhas de unidades + 5 linhas fixas
             const yI = y;
-            const rHI = 20;
+            const rHI = 16;
             const fixedRows = 5;
             const totalRows = qtdImoveis + fixedRows;
             const hI = rHI * totalRows;
