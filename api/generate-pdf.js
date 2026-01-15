@@ -363,6 +363,7 @@ async function generatePdfPromise(data) {
             addClause('3º', 'A Contratada compromete-se a fazer publicidade do imóvel, podendo colocar placas, anunciar em jornais e meios de divulgação do imóvel ao público.');
             addClause('4º', 'O(s) Contratante(s) declara(m) que o imóvel encontra-se livre e desembaraçado, inexistindo quaisquer impedimento judicial e/ou extra judicial que impeça a transferência de posse, comprometendo-se a fornecer cópia do Registro de Imóveis, documentos pessoais e demais informações pertinentes a negociação.');
             addClause('5º', 'Em caso de qualquer controversia decorrente deste contrato, as partes elegem o Foro da Comarca de Joinville/SC para dirimir quaisquer dúvidas deste contrato, renunciando qualquer outro, por mais privilégio que seja.');
+            addClause('6º', 'Caso não haja exclusividade, esta autorização de vendas terá validade de 90 (noventa) dias e será renovada automaticamente por períodos iguais e sucessivos, salvo manifestação expressa de cancelamento por parte do(s) Contratante(s), que deverá ser comunicada à Contratada com antecedência mínima de 15 (quinze) dias do término da vigência.');
 
             doc.moveDown(0.5);
             doc.text('Assim por estarem juntos e contratados, obrigam-se a si e seus herdeiros a cumprir e fazer cumprir o disposto neste contrato, assinando-os em duas vias de igual teor e forma a tudo presentes.', MARGIN_LEFT, doc.y, { align: 'justify', width: CONTENT_WIDTH });
