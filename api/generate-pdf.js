@@ -74,7 +74,7 @@ async function generatePdfPromise(data) {
                 const hC = rowHeight * 4;
                 doc.rect(MARGIN_LEFT, yC, CONTENT_WIDTH, hC).stroke();
                 doc.rect(MARGIN_LEFT, yC, labelBoxWidth, hC).stroke();
-                doc.save().translate(MARGIN_LEFT + labelBoxWidth / 2, yC + hC / 2).rotate(-90).font('Helvetica-Bold').fontSize(9).text('CONTRATANTE', -hC / 2, -4, { width: hC, align: 'center' }).restore();
+                doc.save().translate(MARGIN_LEFT + labelBoxWidth / 2, yC + hC / 2).rotate(-90).font('Helvetica-Bold').fontSize(8).text('CONTRATANTE', -hC / 2, -4, { width: hC, align: 'center' }).restore();
 
                 const xC_1 = fieldBoxX;
                 const xC_2 = fieldBoxX + (CONTENT_WIDTH - labelBoxWidth) / 2 - 10;
@@ -112,7 +112,7 @@ async function generatePdfPromise(data) {
                 const hR = rowHeight * 3;
                 doc.rect(MARGIN_LEFT, yR, CONTENT_WIDTH, hR).stroke();
                 doc.rect(MARGIN_LEFT, yR, labelBoxWidth, hR).stroke();
-                doc.save().translate(MARGIN_LEFT + labelBoxWidth / 2, yR + hR / 2).rotate(-90).font('Helvetica-Bold').fontSize(9).text('REP. LEGAL', -hR / 2, -4, { width: hR, align: 'center' }).restore();
+                doc.save().translate(MARGIN_LEFT + labelBoxWidth / 2, yR + hR / 2).rotate(-90).font('Helvetica-Bold').fontSize(8).text('REP. LEGAL', -hR / 2, -4, { width: hR, align: 'center' }).restore();
 
                 let yRowR = yR;
                 doc.moveTo(fieldBoxX, yRowR + rowHeight).lineTo(endX, yRowR + rowHeight).stroke();
@@ -141,7 +141,7 @@ async function generatePdfPromise(data) {
                     const hC = rowHeight * 5;
                     doc.rect(MARGIN_LEFT, yC, CONTENT_WIDTH, hC).stroke();
                     doc.rect(MARGIN_LEFT, yC, labelBoxWidth, hC).stroke();
-                    doc.save().translate(MARGIN_LEFT + labelBoxWidth / 2, yC + hC / 2).rotate(-90).font('Helvetica-Bold').fontSize(9).text(titulo, -hC / 2, -4, { width: hC, align: 'center' }).restore();
+                    doc.save().translate(MARGIN_LEFT + labelBoxWidth / 2, yC + hC / 2).rotate(-90).font('Helvetica-Bold').fontSize(8).text(titulo, -hC / 2, -4, { width: hC, align: 'center' }).restore();
 
                     const xC_1 = fieldBoxX;
                     const xC_2 = fieldBoxX + (CONTENT_WIDTH - labelBoxWidth) / 2 - 10;
