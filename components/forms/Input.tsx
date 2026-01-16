@@ -7,6 +7,7 @@ interface InputProps {
     required?: boolean;
     disabled?: boolean;
     className?: string;
+    helpText?: string;
 }
 
 export default function Input({
@@ -17,7 +18,8 @@ export default function Input({
     placeholder,
     required,
     disabled,
-    className = ""
+    className = "",
+    helpText
 }: InputProps) {
     return (
         <div className={`mb-4 ${className}`}>
@@ -38,6 +40,11 @@ export default function Input({
                            placeholder-gray-400 hover:border-gray-400
                            disabled:bg-gray-100 disabled:cursor-not-allowed disabled:text-gray-500"
             />
+            {helpText && (
+                <p className="mt-1 text-sm text-gray-600">
+                    {helpText}
+                </p>
+            )}
         </div>
     );
 }
