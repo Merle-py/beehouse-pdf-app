@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import toast from 'react-hot-toast';
 import Link from 'next/link';
@@ -18,7 +18,7 @@ interface Imovel {
     autorizacoes_count?: number;
 }
 
-export default function ImoveisPage() {
+function ImoveisContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const [imoveis, setImoveis] = useState<Imovel[]>([]);
@@ -279,5 +279,22 @@ export default function ImoveisPage() {
                 )}
             </div>
         </div>
+    );
+}
+
+export default function ImoveisPage() {
+    return (
+        <Suspense fallback={
+            <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-8 px-4">
+                <div className="max-w-7xl mx-auto">
+                    <div className="card animate-pulse">
+                        <div className="h-8 bg-gray-200 rounded w-1/3 mb-4"></div>
+                        <div className="h-20 bg-gray-200 rounded"></div>
+                    </div>
+                </div>
+            </div>
+        }>
+            <ImoveisContent />
+        </Suspense>
     );
 }

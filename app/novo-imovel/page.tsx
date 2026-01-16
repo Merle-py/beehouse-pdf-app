@@ -1,12 +1,12 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import toast from 'react-hot-toast';
 import EmpresaSelector from '@/components/selectors/EmpresaSelector';
 import ImovelForm, { type ImovelFormData } from '@/components/forms/ImovelForm';
 
-export default function NovoImovelPage() {
+function NovoImovelContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const [loading, setLoading] = useState(false);
@@ -133,5 +133,22 @@ export default function NovoImovelPage() {
                 ) : null}
             </div>
         </div>
+    );
+}
+
+export default function NovoImovelPage() {
+    return (
+        <Suspense fallback={
+            <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-8 px-4">
+                <div className="max-w-4xl mx-auto">
+                    <div className="card animate-pulse">
+                        <div className="h-8 bg-gray-200 rounded w-1/3 mb-4"></div>
+                        <div className="h-20 bg-gray-200 rounded"></div>
+                    </div>
+                </div>
+            </div>
+        }>
+            <NovoImovelContent />
+        </Suspense>
     );
 }

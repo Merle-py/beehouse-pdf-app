@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase/client';
 
+// Force dynamic rendering for OAuth callback
+export const dynamic = 'force-dynamic';
+
 /**
  * Bitrix24 OAuth Callback
  * This endpoint handles the OAuth callback from Bitrix24
