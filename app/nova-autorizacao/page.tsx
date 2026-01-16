@@ -1,205 +1,145 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
+import EmpresaSelector from '@/components/selectors/EmpresaSelector';
+import ImovelSelector from '@/components/selectors/ImovelSelector';
+import EmpresaCard from '@/components/cards/EmpresaCard';
+import ImovelCard from '@/components/cards/ImovelCard';
 import Input from '@/components/forms/Input';
-import MaskedInput from '@/components/forms/MaskedInput';
-import Select from '@/components/forms/Select';
-import Textarea from '@/components/forms/Textarea';
-import SpouseSection from '@/components/forms/SpouseSection';
-import PropertyFinancialFields from '@/components/forms/PropertyFinancialFields';
-import SocioFields from '@/components/forms/SocioFields';
-import { PersonData, SpouseData } from '@/types/authorization';
 
-function NovaAutorizacaoForm() {
+export default function NovaAutorizacaoPage() {
     const router = useRouter();
-
+    const [currentStep, setCurrentStep] = useState(1);
     const [loading, setLoading] = useState(false);
-    const [authType, setAuthType] = useState('');
 
-    // Estados para dados do contratante
-    const [contratante, setContratante] = useState({
-        nome: '',
-        cpfCnpj: '',
-        telefone: '',
-        email: '',
-        estadoCivil: '',
-        regimeCasamento: '',
-        profissao: '',
-        endereco: ''
-    });
+    // Step 1: Empresa
+    const [empresaId, setEmpresaId] = useState<number | null>(null);
+    const [empresaData, setEmpresaData] = useState<any>(null);
 
-    // Estado para empresa (PJ)
-    const [empresa, setEmpresa] = useState({
-        razaoSocial: '',
-        cnpj: '',
-        ie: '',
-        endereco: '',
-        telefone: '',
-        email: ''
-    });
+    // Step 2: Imóvel
+    const [imovelId, setImovelId] = useState<number | null>(null);
+    const [imovelData, setImovelData] = useState<any>(null);
 
-    // Estado para representante legal (PJ)
-    const [repLegal, setRepLegal] = useState({
-        nome: '',
-        cpf: '',
-        cargo: ''
-    });
+    // Step 3: Termos
+    const [prazoExclusividade, setPrazoExclusividade] = useState('0');
+    const [comissaoPercentual, setComissaoPercentual] = useState('6');
 
-    // Estado para cônjuge (se casado)
-    const [conjuge, setConjuge] = useState<SpouseData>({
-        nome: '',
-        cpf: '',
-        profissao: '',
-        email: ''
-    });
-
-    // Estado para imóvel
-    const [imovel, setImovel] = useState({
-        endereco: '',
-        valor: '',
-        matricula: '',
-        administradora: '',
-        valorCondominio: '',
-        chamadaCapital: '',
-        numeroParcelas: '',
-        descricao: ''
-    });
-
-    // Estado para sócios (se "socios")
-    const [socios, setSocios] = useState<PersonData[]>([{
-        nome: '',
-        cpf: '',
-        estadoCivil: '',
-        profissao: ''
-    }]);
-
-    // Atualizar estado civil automaticamente quando authType mudar
-    useEffect(() => {
-        if (authType === 'pf-solteiro') {
-            setContratante(prev => ({ ...prev, estadoCivil: 'solteiro' }));
-        } else if (authType === 'pf-casado') {
-            setContratante(prev => ({ ...prev, estadoCivil: 'casado' }));
+    // Fetch empresa data when selected
+    const handleEmpresaChange = async (id: number | null) => {
+        setEmpresaId(id);
+        if (id) {
+            try {
+                const response = await fetch(`/api/empresas/${id}`);
+                if (response.ok) {
+                    const data = await response.json();
+                    setEmpresaData(data);
+                }
+            } catch (error) {
+                console.error('Error fetching empresa:', error);
+            }
+        } else {
+            setEmpresaData(null);
         }
-    }, [authType]);
+    };
 
-    const authTypeOptions = [
-        { value: 'pf-solteiro', label: 'Pessoa Física Solteiro' },
-        { value: 'pf-casado', label: 'Pessoa Física Casado' },
-        { value: 'socios', label: 'Sociedade (Múltiplos Sócios)' },
-        { value: 'pj', label: 'Pessoa Jurídica' }
-    ];
+    // Fetch imovel data when selected
+    const handleImovelChange = async (id: number | null) => {
+        setImovelId(id);
+        if (id) {
+            try {
+                const response = await fetch(`/api/imoveis/${id}`);
+                if (response.ok) {
+                    const data = await response.json();
+                    setImovelData(data);
+                }
+            } catch (error) {
+                console.error('Error fetching imovel:', error);
+            }
+        } else {
+            setImovelData(null);
+        }
+    };
 
-    const estadoCivilOptions = [
-        { value: 'solteiro', label: 'Solteiro(a)' },
-        { value: 'casado', label: 'Casado(a)' },
-        { value: 'divorciado', label: 'Divorciado(a)' },
-        { value: 'viuvo', label: 'Viúvo(a)' }
-    ];
+    const handleNext = () => {
+        if (currentStep === 1 && !empresaId) {
+            toast.error('Selecione uma empresa');
+            return;
+        }
+        if (currentStep === 2 && !imovelId) {
+            toast.error('Selecione um imóvel');
+            return;
+        }
+        setCurrentStep(currentStep + 1);
+    };
 
-    const regimeCasamentoOptions = [
-        { value: 'comunhao-parcial', label: 'Comunhão Parcial de Bens' },
-        { value: 'comunhao-universal', label: 'Comunhão Universal de Bens' },
-        { value: 'separacao-total', label: 'Separação Total de Bens' },
-        { value: 'participacao-final', label: 'Participação Final nos Aquestos' }
-    ];
+    const handleBack = () => {
+        setCurrentStep(currentStep - 1);
+    };
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
+    const handleSubmit = async (generatePdf: boolean) => {
+        if (!empresaId || !imovelId) {
+            toast.error('Selecione empresa e imóvel');
+            return;
+        }
+
         setLoading(true);
 
         try {
-            const formData = {
-                authType,
-                ...(authType === 'pj' ? {
-                    empresa: {
-                        ...empresa,
-                        cnpj: empresa.cnpj.replace(/\D/g, '')
-                    },
-                    repLegal: {
-                        ...repLegal,
-                        cpf: repLegal.cpf.replace(/\D/g, '')
-                    }
-                } : {
-                    contratante: {
-                        ...contratante,
-                        cpf: contratante.cpfCnpj.replace(/\D/g, '')
-                    }
-                }),
-                ...(authType === 'pf-casado' && {
-                    conjuge: {
-                        ...conjuge,
-                        cpf: conjuge.cpf?.replace(/\D/g, '') || ''
-                    }
-                }),
-                ...(authType === 'socios' && { socios }),
-                imovel: {
-                    ...imovel,
-                    valor: parseFloat(imovel.valor) || 0,
-                    valorCondominio: parseFloat(imovel.valorCondominio) || 0
-                },
-                contrato: {
-                    prazo: 90,
-                    comissaoPct: 6
-                }
-            };
-
-            // Usar nova API de geração direta de PDF
-            const response = await fetch('/api/pdf/generate-authorization', {
+            // Create autorização
+            const response = await fetch('/api/autorizacoes', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ formData })
+                body: JSON.stringify({
+                    imovel_id: imovelId,
+                    prazo_exclusividade: parseInt(prazoExclusividade) || 0,
+                    comissao_percentual: parseFloat(comissaoPercentual) || 6,
+                }),
             });
 
-            console.log('[Frontend] Resposta recebida:', response.status, response.statusText);
-
-            // Verificar se a resposta é OK antes de tentar parsear JSON
             if (!response.ok) {
-                const errorText = await response.text();
-                console.error('[Frontend] Erro na API:', errorText);
-                throw new Error(`Erro ao gerar PDF: ${response.status} - ${errorText}`);
+                const error = await response.json();
+                throw new Error(error.error || 'Erro ao criar autorização');
             }
 
             const result = await response.json();
-            console.log('[Frontend] Resultado parseado:', { success: result.success });
+            const autorizacaoId = result.id;
 
-            if (result.success) {
-                toast.success('PDF gerado com sucesso!');
+            toast.success('Autorização criada com sucesso!');
 
-                // Fazer download automático do PDF
-                const link = document.createElement('a');
-                link.href = result.pdfUrl;
-                link.download = result.pdfFileName;
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
+            // Generate PDF if requested
+            if (generatePdf) {
+                toast.loading('Gerando PDF...', { id: 'pdf-gen' });
 
-                // Opcional: redirecionar ou limpar formulário
-                toast.success('Download iniciado!');
-            } else {
-                toast.error('Erro ao gerar PDF: ' + (result.error || 'Erro desconhecido'));
+                const pdfResponse = await fetch(`/api/autorizacoes/${autorizacaoId}/generate-pdf`, {
+                    method: 'POST',
+                });
+
+                if (pdfResponse.ok) {
+                    const pdfBlob = await pdfResponse.blob();
+                    const url = window.URL.createObjectURL(pdfBlob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `autorizacao-${autorizacaoId}.pdf`;
+                    document.body.appendChild(a);
+                    a.click();
+                    window.URL.revokeObjectURL(url);
+                    document.body.removeChild(a);
+
+                    toast.success('PDF gerado com sucesso!', { id: 'pdf-gen' });
+                } else {
+                    toast.error('Erro ao gerar PDF', { id: 'pdf-gen' });
+                }
             }
+
+            router.push('/minhas-autorizacoes');
         } catch (error: any) {
-            console.error('[Frontend] Erro capturado:', error);
-            toast.error(error.message || 'Erro ao gerar PDF');
+            console.error('Error creating autorização:', error);
+            toast.error(error.message || 'Erro ao criar autorização');
         } finally {
             setLoading(false);
         }
-    };
-
-    const addSocio = () => {
-        setSocios([...socios, {
-            nome: '',
-            cpf: '',
-            estadoCivil: '',
-            profissao: '',
-            endereco: ''
-        }]);
-    };
-
-    const removeSocio = (index: number) => {
-        setSocios(socios.filter((_, i) => i !== index));
     };
 
     return (
@@ -209,296 +149,201 @@ function NovaAutorizacaoForm() {
                 <div className="mb-6">
                     <button
                         onClick={() => router.back()}
-                        className="text-blue-600 hover:text-blue-800 mb-4"
+                        className="text-blue-600 hover:text-blue-800 mb-4 flex items-center gap-2"
                     >
-                        ← Voltar
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                        </svg>
+                        Voltar
                     </button>
-                    <h1 className="text-3xl font-bold text-gray-900">Nova Autorização</h1>
-                    <p className="text-gray-600 mt-2">Preencha os dados para criar uma nova autorização</p>
+                    <h1 className="text-3xl font-bold text-gray-900">Nova Autorização de Venda</h1>
+                    <p className="text-gray-600 mt-2">Crie uma autorização de venda em 3 etapas</p>
                 </div>
 
-                <form onSubmit={handleSubmit} className="space-y-6">
-                    {/* Tipo de Autorização */}
-                    <div className="card">
-                        <h2 className="text-xl font-bold mb-4">Tipo de Autorização</h2>
-                        <Select
-                            label="Selecione o tipo"
-                            value={authType}
-                            onChange={setAuthType}
-                            options={authTypeOptions}
-                            placeholder="Escolha o tipo de autorização"
-                            required
-                        />
-                    </div>
-
-
-                    {/* Dados da Empresa (PJ) */}
-                    {authType === 'pj' && (
-                        <>
-                            <div className="card">
-                                <h2 className="text-xl font-bold mb-4">Dados da Empresa</h2>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <Input
-                                        label="Razão Social"
-                                        value={empresa.razaoSocial}
-                                        onChange={(v) => setEmpresa({ ...empresa, razaoSocial: v })}
-                                        placeholder="Digite a razão social"
-                                        required
-                                    />
-                                    <MaskedInput
-                                        label="CNPJ"
-                                        value={empresa.cnpj}
-                                        onChange={(v) => setEmpresa({ ...empresa, cnpj: v })}
-                                        mask="cnpj"
-                                        validation="cnpj"
-                                        placeholder="00.000.000/0000-00"
-                                        required
-                                    />
-                                    <Input
-                                        label="Inscrição Estadual/Municipal"
-                                        value={empresa.ie}
-                                        onChange={(v) => setEmpresa({ ...empresa, ie: v })}
-                                        placeholder="Inscrição Estadual ou Municipal"
-                                    />
-                                    <Input
-                                        label="Endereço da Sede"
-                                        value={empresa.endereco}
-                                        onChange={(v) => setEmpresa({ ...empresa, endereco: v })}
-                                        placeholder="Rua, número, complemento, bairro, cidade, estado, CEP"
-                                    />
-                                    <MaskedInput
-                                        label="Telefone"
-                                        value={empresa.telefone}
-                                        onChange={(v) => setEmpresa({ ...empresa, telefone: v })}
-                                        mask="phone"
-                                        validation="phone"
-                                        placeholder="(00) 00000-0000"
-                                    />
-                                    <Input
-                                        label="Email"
-                                        type="email"
-                                        value={empresa.email}
-                                        onChange={(v) => setEmpresa({ ...empresa, email: v })}
-                                        placeholder="email@empresa.com"
-                                    />
+                {/* Progress Steps */}
+                <div className="card mb-6">
+                    <div className="flex items-center justify-between">
+                        {[1, 2, 3].map((step) => (
+                            <div key={step} className="flex items-center flex-1">
+                                <div className="flex items-center">
+                                    <div className={`w-10 h-10 rounded-full flex items-center justify-center font-semibold ${step < currentStep
+                                            ? 'bg-green-500 text-white'
+                                            : step === currentStep
+                                                ? 'bg-blue-600 text-white'
+                                                : 'bg-gray-200 text-gray-600'
+                                        }`}>
+                                        {step < currentStep ? '✓' : step}
+                                    </div>
+                                    <div className="ml-3">
+                                        <p className={`text-sm font-medium ${step <= currentStep ? 'text-gray-900' : 'text-gray-500'
+                                            }`}>
+                                            {step === 1 ? 'Empresa' : step === 2 ? 'Imóvel' : 'Termos'}
+                                        </p>
+                                    </div>
                                 </div>
-                            </div>
-
-                            {/* Dados do Representante Legal */}
-                            <div className="card">
-                                <h2 className="text-xl font-bold mb-4">Representante Legal</h2>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <Input
-                                        label="Nome Completo"
-                                        value={repLegal.nome}
-                                        onChange={(v) => setRepLegal({ ...repLegal, nome: v })}
-                                        placeholder="Nome do representante legal"
-                                        required
-                                    />
-                                    <MaskedInput
-                                        label="CPF"
-                                        value={repLegal.cpf}
-                                        onChange={(v) => setRepLegal({ ...repLegal, cpf: v })}
-                                        mask="cpf"
-                                        validation="cpf"
-                                        placeholder="000.000.000-00"
-                                        required
-                                    />
-                                    <Input
-                                        label="Cargo"
-                                        value={repLegal.cargo}
-                                        onChange={(v) => setRepLegal({ ...repLegal, cargo: v })}
-                                        placeholder="Ex: Diretor, Sócio-Administrador"
-                                        required
-                                    />
-                                </div>
-                            </div>
-                        </>
-                    )}
-
-                    {/* Dados do Contratante (PF) */}
-                    {authType && authType !== 'pj' && (
-                        <div className="card">
-                            <h2 className="text-xl font-bold mb-4">Dados do Contratante</h2>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <Input
-                                    label="Nome Completo"
-                                    value={contratante.nome}
-                                    onChange={(v) => setContratante({ ...contratante, nome: v })}
-                                    placeholder="Digite o nome completo"
-                                    required
-                                />
-                                <MaskedInput
-                                    label="CPF"
-                                    value={contratante.cpfCnpj}
-                                    onChange={(v) => setContratante({ ...contratante, cpfCnpj: v })}
-                                    mask="cpf"
-                                    validation="cpf"
-                                    placeholder="000.000.000-00"
-                                    required
-                                />
-                                <Input
-                                    label="Endereço Residencial"
-                                    value={contratante.endereco}
-                                    onChange={(v) => setContratante({ ...contratante, endereco: v })}
-                                    placeholder="Rua, número, complemento, bairro, cidade, estado, CEP"
-                                />
-                                <MaskedInput
-                                    label="Telefone"
-                                    value={contratante.telefone}
-                                    onChange={(v) => setContratante({ ...contratante, telefone: v })}
-                                    mask="phone"
-                                    validation="phone"
-                                    placeholder="(00) 00000-0000"
-                                    required
-                                />
-                                <Input
-                                    label="Email"
-                                    type="email"
-                                    value={contratante.email}
-                                    onChange={(v) => setContratante({ ...contratante, email: v })}
-                                    placeholder="email@exemplo.com"
-                                    required
-                                />
-                                <Select
-                                    label="Estado Civil"
-                                    value={contratante.estadoCivil}
-                                    onChange={(v) => setContratante({ ...contratante, estadoCivil: v })}
-                                    options={estadoCivilOptions}
-                                    disabled={authType === 'pf-solteiro' || authType === 'pf-casado'}
-                                    required
-                                />
-                                {contratante.estadoCivil === 'casado' && (
-                                    <Select
-                                        label="Regime de Casamento"
-                                        value={contratante.regimeCasamento}
-                                        onChange={(v) => setContratante({ ...contratante, regimeCasamento: v })}
-                                        options={regimeCasamentoOptions}
-                                        required
-                                    />
+                                {step < 3 && (
+                                    <div className={`flex-1 h-1 mx-4 ${step < currentStep ? 'bg-green-500' : 'bg-gray-200'
+                                        }`} />
                                 )}
-                                <Input
-                                    label="Profissão"
-                                    value={contratante.profissao}
-                                    onChange={(v) => setContratante({ ...contratante, profissao: v })}
-                                    placeholder="Digite a profissão"
-                                />
                             </div>
-                        </div>
-                    )}
+                        ))}
+                    </div>
+                </div>
 
-                    {/* Dados do Cônjuge */}
-                    {authType === 'pf-casado' && (
+                {/* Step Content */}
+                {currentStep === 1 && (
+                    <div className="space-y-6">
                         <div className="card">
-                            <h2 className="text-xl font-bold mb-4">Dados do Cônjuge</h2>
-                            <SpouseSection
-                                spouse={conjuge}
-                                onChange={(spouse) => setConjuge(spouse as SpouseData)}
+                            <h2 className="text-xl font-bold mb-4">Etapa 1: Selecione a Empresa</h2>
+                            <EmpresaSelector
+                                value={empresaId}
+                                onChange={handleEmpresaChange}
+                                allowCreate={true}
+                                onCreateClick={() => router.push('/nova-empresa')}
+                                label="Empresa Contratante"
+                                required
                             />
                         </div>
-                    )}
 
-                    {/* Sócios (PJ) */}
-                    {authType === 'pj' && (
-                        <div className="card">
-                            <div className="flex justify-between items-center mb-4">
-                                <h2 className="text-xl font-bold">Sócios</h2>
-                                <button
-                                    type="button"
-                                    onClick={addSocio}
-                                    className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
-                                >
-                                    ➕ Adicionar Sócio
-                                </button>
+                        {empresaData && (
+                            <div>
+                                <h3 className="text-sm font-medium text-gray-700 mb-2">Empresa Selecionada:</h3>
+                                <EmpresaCard empresa={empresaData} showDetails={true} />
                             </div>
-                            {socios.map((socio, index) => (
-                                <SocioFields
-                                    key={index}
-                                    index={index}
-                                    socio={socio}
-                                    onChange={(updatedSocio) => {
-                                        const newSocios = [...socios];
-                                        newSocios[index] = updatedSocio;
-                                        setSocios(newSocios);
-                                    }}
-                                    onRemove={() => removeSocio(index)}
-                                    canRemove={socios.length > 1}
-                                />
-                            ))}
-                        </div>
-                    )}
+                        )}
 
-                    {/* Dados do Imóvel */}
-                    {authType && (
+                        <div className="flex justify-end">
+                            <button
+                                onClick={handleNext}
+                                disabled={!empresaId}
+                                className="btn-primary flex items-center gap-2"
+                            >
+                                Próximo: Selecionar Imóvel
+                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                )}
+
+                {currentStep === 2 && (
+                    <div className="space-y-6">
                         <div className="card">
-                            <h2 className="text-xl font-bold mb-4">Dados do Imóvel</h2>
+                            <h2 className="text-xl font-bold mb-4">Etapa 2: Selecione o Imóvel</h2>
+                            <ImovelSelector
+                                empresaId={empresaId}
+                                value={imovelId}
+                                onChange={handleImovelChange}
+                                allowCreate={true}
+                                onCreateClick={() => router.push(`/novo-imovel?empresa_id=${empresaId}`)}
+                                label="Imóvel a ser vendido"
+                                required
+                            />
+                        </div>
+
+                        {imovelData && (
+                            <div>
+                                <h3 className="text-sm font-medium text-gray-700 mb-2">Imóvel Selecionado:</h3>
+                                <ImovelCard imovel={imovelData} showDetails={true} />
+                            </div>
+                        )}
+
+                        <div className="flex justify-between">
+                            <button
+                                onClick={handleBack}
+                                className="btn-secondary flex items-center gap-2"
+                            >
+                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                                </svg>
+                                Voltar
+                            </button>
+                            <button
+                                onClick={handleNext}
+                                disabled={!imovelId}
+                                className="btn-primary flex items-center gap-2"
+                            >
+                                Próximo: Configurar Termos
+                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                )}
+
+                {currentStep === 3 && (
+                    <div className="space-y-6">
+                        <div className="card">
+                            <h2 className="text-xl font-bold mb-4">Etapa 3: Configure os Termos</h2>
                             <div className="space-y-4">
-                                <Textarea
-                                    label="Endereço Completo"
-                                    value={imovel.endereco}
-                                    onChange={(v) => setImovel({ ...imovel, endereco: v })}
-                                    placeholder="Rua, número, complemento, bairro, cidade, estado, CEP"
-                                    rows={3}
+                                <Input
+                                    label="Prazo de Exclusividade (dias)"
+                                    type="number"
+                                    value={prazoExclusividade}
+                                    onChange={setPrazoExclusividade}
+                                    placeholder="0"
+                                    helpText="0 = sem exclusividade. A autorização terá validade de 90 dias."
+                                />
+                                <Input
+                                    label="Comissão (%)"
+                                    type="number"
+                                    step="0.1"
+                                    value={comissaoPercentual}
+                                    onChange={setComissaoPercentual}
+                                    placeholder="6.0"
                                     required
                                 />
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <Input
-                                        label="Valor do Imóvel"
-                                        type="number"
-                                        value={imovel.valor}
-                                        onChange={(v) => setImovel({ ...imovel, valor: v })}
-                                        placeholder="0.00"
-                                        required
-                                    />
-                                    <Input
-                                        label="Matrícula"
-                                        value={imovel.matricula}
-                                        onChange={(v) => setImovel({ ...imovel, matricula: v })}
-                                        placeholder="Número da matrícula"
-                                    />
-                                </div>
-                                <PropertyFinancialFields
-                                    adminCondominio={imovel.administradora}
-                                    valorCondominio={parseFloat(imovel.valorCondominio) || 0}
-                                    chamadaCapital={imovel.chamadaCapital}
-                                    numParcelas={imovel.numeroParcelas}
-                                    onChange={(field, value) => setImovel({ ...imovel, [field]: value })}
-                                />
-                                <Textarea
-                                    label="Descrição do Imóvel"
-                                    value={imovel.descricao}
-                                    onChange={(v) => setImovel({ ...imovel, descricao: v })}
-                                    placeholder="Detalhes adicionais sobre o imóvel"
-                                    rows={4}
-                                />
                             </div>
                         </div>
-                    )}
 
-                    {/* Botões de Ação */}
-                    {authType && (
-                        <div className="flex gap-4 justify-end">
-                            <button
-                                type="button"
-                                onClick={() => router.back()}
-                                className="btn-secondary"
-                                disabled={loading}
-                            >
-                                Cancelar
-                            </button>
-                            <button
-                                type="submit"
-                                className="btn-primary"
-                                disabled={loading}
-                            >
-                                {loading ? 'Gerando PDF...' : 'Gerar PDF'}
-                            </button>
+                        {/* Summary */}
+                        <div className="card bg-blue-50 border border-blue-200">
+                            <h3 className="font-semibold text-gray-900 mb-3">Resumo da Autorização</h3>
+                            <div className="space-y-2 text-sm">
+                                <p><span className="font-medium">Empresa:</span> {empresaData?.tipo === 'PJ' ? empresaData?.razao_social : empresaData?.nome}</p>
+                                <p><span className="font-medium">Imóvel:</span> {imovelData?.descricao}</p>
+                                <p><span className="font-medium">Valor:</span> R$ {imovelData?.valor?.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+                                <p><span className="font-medium">Prazo:</span> {prazoExclusividade || 0} dias {prazoExclusividade === '0' ? '(sem exclusividade)' : '(com exclusividade)'}</p>
+                                <p><span className="font-medium">Comissão:</span> {comissaoPercentual}%</p>
+                            </div>
                         </div>
-                    )}
-                </form>
+
+                        <div className="flex justify-between">
+                            <button
+                                onClick={handleBack}
+                                className="btn-secondary flex items-center gap-2"
+                                disabled={loading}
+                            >
+                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                                </svg>
+                                Voltar
+                            </button>
+                            <div className="flex gap-3">
+                                <button
+                                    onClick={() => handleSubmit(false)}
+                                    className="btn-secondary"
+                                    disabled={loading}
+                                >
+                                    Salvar como Rascunho
+                                </button>
+                                <button
+                                    onClick={() => handleSubmit(true)}
+                                    className="btn-primary flex items-center gap-2"
+                                    disabled={loading}
+                                >
+                                    {loading ? 'Processando...' : 'Salvar e Gerar PDF'}
+                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
             </div>
         </div>
     );
 }
-
-export default NovaAutorizacaoForm;
