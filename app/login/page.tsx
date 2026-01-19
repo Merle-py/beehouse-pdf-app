@@ -18,157 +18,108 @@ export default function LoginPage() {
 
     useEffect(() => {
         let mounted = true;
-        let timeoutId: NodeJS.Timeout;
 
         async function authenticateWithBitrix24() {
             try {
-                log('Iniciando processo de autenticação');
-                setStatus('Verificando SDK do Bitrix24...');
-
-                // Timeout de segurança - 15 segundos
-                timeoutId = setTimeout(() => {
-                    if (mounted && !error) {
-                        log('TIMEOUT: 15 segundos sem resposta');
-                        setError('Timeout: A autenticação demorou muito. Verifique se está acessando via Bitrix24.');
-                    }
-                }, 15000);
-
-                // Verificar se BX24 existe
-                if (typeof window === 'undefined') {
-                    throw new Error('Window não disponível');
-                }
-
-                log('Window disponível, verificando BX24...');
+                log('Iniciando autenticação Bitrix24');
 
                 // Aguardar BX24 carregar
                 let attempts = 0;
-                const maxAttempts = 100; // 10 segundos
-
-                const checkInterval = setInterval(() => {
+                const checkInterval = setInterval(async () => {
                     attempts++;
-                    log(`Tentativa ${attempts}/${maxAttempts} de detectar BX24`);
 
                     const BX24 = (window as any).BX24;
 
                     if (BX24) {
                         clearInterval(checkInterval);
-                        log('✅ BX24 detectado!');
+                        log('✅ BX24 detectado');
 
-                        if (!mounted) {
-                            log('Componente desmontado, abortando');
-                            return;
-                        }
-
-                        setStatus('SDK carregado. Inicializando...');
+                        if (!mounted) return;
 
                         try {
-                            log('Chamando BX24.init()...');
-                            if (typeof BX24.init === 'function') {
-                                BX24.init();
-                                log('✅ BX24.init() executado');
-                            } else {
-                                log('⚠️ BX24.init não é uma função');
-                            }
+                            // Método alternativo: usar BX24.callMethod para obter user.current
+                            log('Tentando BX24.callMethod("user.current")...');
 
-                            setTimeout(() => {
-                                if (!mounted) return;
+                            BX24.callMethod('user.current', {}, async (result: any) => {
+                                try {
+                                    log('✅ Callback de user.current executado');
 
-                                log('Chamando BX24.getAuth()...');
-                                setStatus('Obtendo dados de autenticação...');
-
-                                if (typeof BX24.getAuth !== 'function') {
-                                    throw new Error('BX24.getAuth não é uma função');
-                                }
-
-                                BX24.getAuth((auth: any) => {
-                                    log(`✅ BX24.getAuth callback executado`);
-                                    log(`Auth data: ${JSON.stringify(auth)}`);
-
-                                    if (!mounted) {
-                                        log('Componente desmontado após getAuth');
-                                        return;
+                                    if (result.error()) {
+                                        log(`❌ Erro do Bitrix24: ${JSON.stringify(result.error())}`);
+                                        throw new Error(result.error().error_description || 'Erro ao obter dados do usuário');
                                     }
 
-                                    if (!auth) {
-                                        log('❌ Auth é null/undefined');
-                                        throw new Error('Dados de autenticação vazios');
+                                    const userData = result.data();
+                                    log(`✅ Dados do usuário: ${JSON.stringify(userData)}`);
+
+                                    if (!userData || !userData.ID) {
+                                        throw new Error('ID do usuário não encontrado');
                                     }
 
-                                    if (!auth.user_id) {
-                                        log('❌ user_id não encontrado');
-                                        throw new Error('user_id não encontrado no Bitrix24');
-                                    }
+                                    if (!mounted) return;
 
-                                    log(`✅ User ID: ${auth.user_id}`);
-                                    setStatus(`Autenticando usuário ${auth.user_id}...`);
+                                    const userId = userData.ID;
+                                    log(`✅ User ID: ${userId}`);
+                                    setStatus(`Autenticando usuário ${userId}...`);
 
                                     // Autenticar no backend
-                                    authenticateBackend(auth);
-                                });
-                            }, 500);
+                                    const payload = {
+                                        userId: userId.toString(),
+                                        domain: 'viver.bitrix24.com.br',
+                                        memberInfo: {
+                                            name: `${userData.NAME || ''} ${userData.LAST_NAME || ''}`.trim() || `User ${userId}`,
+                                            email: userData.EMAIL || `user${userId}@bitrix24.com`,
+                                        },
+                                    };
+
+                                    log(`Enviando para API: ${JSON.stringify(payload)}`);
+
+                                    const response = await fetch('/api/auth/bitrix24', {
+                                        method: 'POST',
+                                        headers: { 'Content-Type': 'application/json' },
+                                        body: JSON.stringify(payload),
+                                    });
+
+                                    log(`Response status: ${response.status}`);
+
+                                    if (!response.ok) {
+                                        const errorText = await response.text();
+                                        log(`❌ API error: ${errorText}`);
+                                        throw new Error(`API falhou: ${response.status}`);
+                                    }
+
+                                    const data = await response.json();
+                                    log(`✅ Autenticação completa: ${JSON.stringify(data)}`);
+
+                                    if (!mounted) return;
+
+                                    setStatus('Sucesso! Redirecionando...');
+
+                                    setTimeout(() => {
+                                        log('Redirecionando para dashboard');
+                                        router.push('/dashboard');
+                                        router.refresh();
+                                    }, 1000);
+                                } catch (err: any) {
+                                    if (!mounted) return;
+                                    log(`❌ Erro no callback: ${err.message}`);
+                                    setError(err.message);
+                                }
+                            });
                         } catch (err: any) {
-                            log(`❌ Erro ao inicializar BX24: ${err.message}`);
-                            throw err;
+                            log(`❌ Erro ao chamar BX24.callMethod: ${err.message}`);
+                            setError(err.message);
                         }
-                    } else if (attempts >= maxAttempts) {
+                    } else if (attempts >= 100) {
                         clearInterval(checkInterval);
-                        log('❌ BX24 não detectado após todas as tentativas');
-                        throw new Error('SDK do Bitrix24 não carregou. Certifique-se de que está abrindo o app via Bitrix24.');
+                        log('❌ Timeout: BX24 não carregou');
+                        setError('SDK do Bitrix24 não carregou. Certifique-se de que está acessando via Bitrix24.');
                     }
                 }, 100);
             } catch (err: any) {
                 if (!mounted) return;
-                log(`❌ ERRO FATAL: ${err.message}`);
+                log(`❌ ERRO: ${err.message}`);
                 setError(err.message);
-                clearTimeout(timeoutId);
-            }
-        }
-
-        async function authenticateBackend(auth: any) {
-            try {
-                log('Enviando dados para /api/auth/bitrix24...');
-
-                const payload = {
-                    userId: auth.user_id,
-                    domain: auth.domain || 'viver.bitrix24.com.br',
-                    memberInfo: {
-                        name: `User ${auth.user_id}`,
-                        email: `user${auth.user_id}@${auth.domain || 'bitrix24.com'}`,
-                    },
-                };
-
-                log(`Payload: ${JSON.stringify(payload)}`);
-
-                const response = await fetch('/api/auth/bitrix24', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload),
-                });
-
-                log(`Response status: ${response.status}`);
-
-                if (!response.ok) {
-                    const errorText = await response.text();
-                    log(`❌ Response error: ${errorText}`);
-                    throw new Error(`Falha na API: ${response.status} - ${errorText}`);
-                }
-
-                const data = await response.json();
-                log(`✅ Response data: ${JSON.stringify(data)}`);
-
-                if (!mounted) return;
-
-                log('✅ Autenticação completa! Redirecionando...');
-                setStatus('Sucesso! Redirecionando para dashboard...');
-
-                setTimeout(() => {
-                    router.push('/dashboard');
-                    router.refresh();
-                }, 1000);
-            } catch (err: any) {
-                if (!mounted) return;
-                log(`❌ Erro no backend: ${err.message}`);
-                setError(`Erro ao autenticar no servidor: ${err.message}`);
             }
         }
 
@@ -176,7 +127,6 @@ export default function LoginPage() {
 
         return () => {
             mounted = false;
-            if (timeoutId) clearTimeout(timeoutId);
         };
     }, [router]);
 
@@ -200,11 +150,11 @@ export default function LoginPage() {
                             </div>
                         </div>
 
-                        <details className="mt-4 pt-4 border-t border-red-200">
-                            <summary className="cursor-pointer text-sm font-medium text-red-800 hover:text-red-900">
-                                🔍 Ver logs de debug ({debugLog.length} eventos)
+                        <details open className="mt-4 pt-4 border-t border-red-200">
+                            <summary className="cursor-pointer text-sm font-medium text-red-800 hover:text-red-900 mb-2">
+                                🔍 Logs de debug ({debugLog.length} eventos)
                             </summary>
-                            <div className="mt-2 p-3 bg-white rounded max-h-60 overflow-y-auto">
+                            <div className="p-3 bg-white rounded max-h-60 overflow-y-auto">
                                 {debugLog.map((log, i) => (
                                     <div key={i} className="text-xs font-mono text-gray-700 py-1 border-b border-gray-100 last:border-0">
                                         {log}
@@ -224,7 +174,7 @@ export default function LoginPage() {
 
                         <details className="mt-4 pt-4 border-t border-gray-200">
                             <summary className="cursor-pointer text-sm text-center text-gray-500 hover:text-gray-700">
-                                🔍 Logs de debug ({debugLog.length} eventos)
+                                🔍 Logs ({debugLog.length})
                             </summary>
                             <div className="mt-2 p-3 bg-gray-50 rounded max-h-60 overflow-y-auto">
                                 {debugLog.map((log, i) => (
