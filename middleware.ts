@@ -18,8 +18,11 @@ export async function middleware(request: NextRequest) {
     const publicPaths = ['/login', '/auth/callback'];
     const isPublicPath = publicPaths.some(path => request.nextUrl.pathname.startsWith(path));
 
-    // Verificar autenticação Supabase (apenas se não for página pública)
-    if (!isPublicPath) {
+    // ⚠️ DESENVOLVIMENTO: Pular verificação de auth se DEV_BYPASS_AUTH está ativo
+    const isDevBypass = process.env.DEV_BYPASS_AUTH === 'true';
+
+    // Verificar autenticação Supabase (apenas em produção ou se não for página pública)
+    if (!isDevBypass && !isPublicPath) {
         const supabase = createServerClient(
             process.env.NEXT_PUBLIC_SUPABASE_URL!,
             process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
