@@ -128,7 +128,7 @@ export default function DashboardPage() {
 
                 {/* Stats Grid */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                    <Link href="/empresas" className="card hover:shadow-lg transition-shadow bg-gradient-to-br from-blue-500 to-blue-600 text-white">
+                    <Link href="/empresas" prefetch={false} className="card hover:shadow-lg transition-shadow bg-gradient-to-br from-blue-500 to-blue-600 text-white">
                         <div className="flex items-center justify-between">
                             <div>
                                 <p className="text-sm opacity-90">Empresas</p>
@@ -143,7 +143,7 @@ export default function DashboardPage() {
                         </div>
                     </Link>
 
-                    <Link href="/imoveis" className="card hover:shadow-lg transition-shadow bg-gradient-to-br from-green-500 to-green-600 text-white">
+                    <Link href="/imoveis" prefetch={false} className="card hover:shadow-lg transition-shadow bg-gradient-to-br from-green-500 to-green-600 text-white">
                         <div className="flex items-center justify-between">
                             <div>
                                 <p className="text-sm opacity-90">Imóveis</p>
@@ -155,7 +155,7 @@ export default function DashboardPage() {
                         </div>
                     </Link>
 
-                    <Link href="/minhas-autorizacoes" className="card hover:shadow-lg transition-shadow bg-gradient-to-br from-purple-500 to-purple-600 text-white">
+                    <Link href="/minhas-autorizacoes" prefetch={false} className="card hover:shadow-lg transition-shadow bg-gradient-to-br from-purple-500 to-purple-600 text-white">
                         <div className="flex items-center justify-between">
                             <div>
                                 <p className="text-sm opacity-90">Autorizações</p>
@@ -185,7 +185,7 @@ export default function DashboardPage() {
 
                 {/* Quick Actions */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                    <Link href="/nova-empresa" className="card hover:shadow-lg transition-all hover:scale-105">
+                    <Link href="/nova-empresa" prefetch={false} className="card hover:shadow-lg transition-all hover:scale-105">
                         <div className="flex items-center gap-4">
                             <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
                                 <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -199,7 +199,7 @@ export default function DashboardPage() {
                         </div>
                     </Link>
 
-                    <Link href="/novo-imovel" className="card hover:shadow-lg transition-all hover:scale-105">
+                    <Link href="/novo-imovel" prefetch={false} className="card hover:shadow-lg transition-all hover:scale-105">
                         <div className="flex items-center gap-4">
                             <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
                                 <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -213,7 +213,7 @@ export default function DashboardPage() {
                         </div>
                     </Link>
 
-                    <Link href="/nova-autorizacao" className="card hover:shadow-lg transition-all hover:scale-105 bg-gradient-to-r from-blue-50 to-purple-50 border-2 border-blue-200">
+                    <Link href="/nova-autorizacao" prefetch={false} className="card hover:shadow-lg transition-all hover:scale-105 bg-gradient-to-r from-blue-50 to-purple-50 border-2 border-blue-200">
                         <div className="flex items-center gap-4">
                             <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
                                 <svg className="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -280,7 +280,7 @@ export default function DashboardPage() {
                         <p className="text-gray-600 mb-6 max-w-md mx-auto">
                             Comece criando sua primeira autorização de venda. O sistema irá guiá-lo através de um processo simples em 3 etapas.
                         </p>
-                        <Link href="/nova-autorizacao" className="btn-primary inline-flex items-center gap-2">
+                        <Link href="/nova-autorizacao" prefetch={false} className="btn-primary inline-flex items-center gap-2">
                             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                             </svg>
