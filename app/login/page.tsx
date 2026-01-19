@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Script from 'next/script';
 
 export default function LoginPage() {
     const router = useRouter();
@@ -11,71 +12,77 @@ export default function LoginPage() {
     useEffect(() => {
         async function authenticateBitrix24() {
             try {
-                // Verificar se está no contexto do Bitrix24
-                if (typeof window === 'undefined') {
-                    setError('Window não disponível');
-                    return;
-                }
+                setStatus('Aguardando SDK do Bitrix24...');
 
-                const BX24 = (window as any).BX24;
+                // Aguardar SDK carregar
+                const checkBX24 = setInterval(() => {
+                    const BX24 = (window as any).BX24;
 
-                if (!BX24) {
-                    setError('Este aplicativo deve ser executado dentro do Bitrix24');
-                    return;
-                }
+                    if (BX24) {
+                        clearInterval(checkBX24);
 
-                setStatus('Conectado ao Bitrix24. Autenticando...');
+                        setStatus('Conectado ao Bitrix24. Autenticando...');
 
-                // Inicializar SDK
-                if (typeof BX24.init === 'function') {
-                    BX24.init();
-                }
+                        // Inicializar SDK
+                        if (typeof BX24.init === 'function') {
+                            BX24.init();
+                        }
 
-                // Aguardar e obter autenticação
-                setTimeout(async () => {
-                    if (typeof BX24.getAuth === 'function') {
-                        BX24.getAuth(async (auth: any) => {
-                            if (!auth || !auth.user_id) {
-                                setError('Usuário não encontrado no Bitrix24');
-                                return;
-                            }
+                        // Obter autenticação
+                        setTimeout(() => {
+                            if (typeof BX24.getAuth === 'function') {
+                                BX24.getAuth(async (auth: any) => {
+                                    if (!auth || !auth.user_id) {
+                                        setError('Usuário não encontrado no Bitrix24');
+                                        return;
+                                    }
 
-                            setStatus(`Usuário ${auth.user_id} detectado. Criando sessão...`);
+                                    setStatus(`Usuário ${auth.user_id} detectado. Criando sessão...`);
 
-                            // Autenticar no backend
-                            try {
-                                const response = await fetch('/api/auth/bitrix24', {
-                                    method: 'POST',
-                                    headers: { 'Content-Type': 'application/json' },
-                                    body: JSON.stringify({
-                                        userId: auth.user_id,
-                                        domain: auth.domain || 'viver.bitrix24.com.br',
-                                        memberInfo: {
-                                            name: `User ${auth.user_id}`,
-                                            email: `user${auth.user_id}@bitrix24.com`,
-                                        },
-                                    }),
+                                    // Autenticar no backend
+                                    try {
+                                        const response = await fetch('/api/auth/bitrix24', {
+                                            method: 'POST',
+                                            headers: { 'Content-Type': 'application/json' },
+                                            body: JSON.stringify({
+                                                userId: auth.user_id,
+                                                domain: auth.domain || 'viver.bitrix24.com.br',
+                                                memberInfo: {
+                                                    name: `User ${auth.user_id}`,
+                                                    email: `user${auth.user_id}@bitrix24.com`,
+                                                },
+                                            }),
+                                        });
+
+                                        if (!response.ok) {
+                                            throw new Error('Falha ao autenticar no backend');
+                                        }
+
+                                        setStatus('Autenticado! Redirecionando...');
+
+                                        // Redirecionar para dashboard
+                                        setTimeout(() => {
+                                            router.push('/dashboard');
+                                            router.refresh();
+                                        }, 500);
+                                    } catch (err: any) {
+                                        setError(`Erro no backend: ${err.message}`);
+                                    }
                                 });
-
-                                if (!response.ok) {
-                                    throw new Error('Falha ao autenticar no backend');
-                                }
-
-                                setStatus('Autenticado! Redirecionando...');
-
-                                // Redirecionar para dashboard
-                                setTimeout(() => {
-                                    router.push('/dashboard');
-                                    router.refresh();
-                                }, 500);
-                            } catch (err: any) {
-                                setError(`Erro no backend: ${err.message}`);
+                            } else {
+                                setError('BX24.getAuth não disponível');
                             }
-                        });
-                    } else {
-                        setError('BX24.getAuth não disponível');
+                        }, 200);
                     }
-                }, 200);
+                }, 100);
+
+                // Timeout após 10 segundos
+                setTimeout(() => {
+                    clearInterval(checkBX24);
+                    if (!error && status === 'Aguardando SDK do Bitrix24...') {
+                        setError('Timeout: SDK do Bitrix24 não carregou. Certifique-se de que está acessando via Bitrix24.');
+                    }
+                }, 10000);
             } catch (err: any) {
                 setError(`Erro: ${err.message}`);
             }
@@ -85,21 +92,23 @@ export default function LoginPage() {
     }, [router]);
 
     return (
-        <html lang="pt-BR">
-            <head>
-                <title>Beehouse - Login</title>
-                <script src="//api.bitrix24.com/api/v1/"></script>
-            </head>
-            <body style={{
-                margin: 0,
-                padding: '40px 20px',
-                fontFamily: 'Arial, sans-serif',
-                backgroundColor: '#f5f5f5',
+        <>
+            <Script
+                src="//api.bitrix24.com/api/v1/"
+                strategy="beforeInteractive"
+            />
+
+            <div style={{
                 minHeight: '100vh',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                backgroundColor: '#f5f5f5',
+                padding: '20px',
             }}>
                 <div style={{
                     maxWidth: '500px',
-                    margin: '0 auto',
+                    width: '100%',
                     backgroundColor: 'white',
                     padding: '40px',
                     borderRadius: '8px',
@@ -110,6 +119,7 @@ export default function LoginPage() {
                         marginBottom: '10px',
                         color: '#333',
                         textAlign: 'center',
+                        fontWeight: 'bold',
                     }}>
                         Beehouse
                     </h1>
@@ -117,6 +127,7 @@ export default function LoginPage() {
                         textAlign: 'center',
                         color: '#666',
                         marginBottom: '30px',
+                        fontSize: '14px',
                     }}>
                         Sistema de Autorizações de Venda
                     </p>
@@ -133,9 +144,10 @@ export default function LoginPage() {
                             <strong>Erro:</strong> {error}
                             <div style={{ marginTop: '15px', fontSize: '14px', color: '#666' }}>
                                 <strong>Certifique-se de que:</strong>
-                                <ul style={{ marginTop: '10px', paddingLeft: '20px' }}>
+                                <ul style={{ marginTop: '10px', paddingLeft: '20px', lineHeight: '1.6' }}>
                                     <li>O aplicativo está sendo acessado via Bitrix24</li>
                                     <li>O SDK do Bitrix24 está carregado corretamente</li>
+                                    <li>Você tem permissão para acessar o aplicativo</li>
                                 </ul>
                             </div>
                         </div>
@@ -147,15 +159,7 @@ export default function LoginPage() {
                                 justifyContent: 'center',
                                 marginBottom: '20px',
                             }}>
-                                <div style={{
-                                    width: '40px',
-                                    height: '40px',
-                                    border: '4px solid #f3f3f3',
-                                    borderTop: '4px solid #3498db',
-                                    borderRadius: '50%',
-                                    animation: 'spin 1s linear infinite',
-                                }}>
-                                </div>
+                                <div className="spinner"></div>
                             </div>
                             <p style={{
                                 textAlign: 'center',
@@ -167,14 +171,7 @@ export default function LoginPage() {
                         </div>
                     )}
                 </div>
-
-                <style>{`
-          @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-          }
-        `}</style>
-            </body>
-        </html>
+            </div>
+        </>
     );
 }
