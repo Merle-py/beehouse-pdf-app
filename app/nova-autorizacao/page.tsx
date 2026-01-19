@@ -34,7 +34,8 @@ export default function NovaAutorizacaoPage() {
                 const response = await fetch(`/api/empresas/${id}`);
                 if (response.ok) {
                     const data = await response.json();
-                    setEmpresaData(data);
+                    // API returns { empresa: {...} }
+                    setEmpresaData(data.empresa);
                 }
             } catch (error) {
                 console.error('Error fetching empresa:', error);
@@ -52,7 +53,8 @@ export default function NovaAutorizacaoPage() {
                 const response = await fetch(`/api/imoveis/${id}`);
                 if (response.ok) {
                     const data = await response.json();
-                    setImovelData(data);
+                    // API returns { imovel: {...} }
+                    setImovelData(data.imovel);
                 }
             } catch (error) {
                 console.error('Error fetching imovel:', error);
@@ -95,6 +97,8 @@ export default function NovaAutorizacaoPage() {
                     imovel_id: imovelId,
                     prazo_exclusividade: parseInt(prazoExclusividade) || 0,
                     comissao_percentual: parseFloat(comissaoPercentual) || 6,
+                    // If generating PDF, save as aguardando_assinatura, otherwise as rascunho
+                    status: generatePdf ? 'aguardando_assinatura' : 'rascunho',
                 }),
             });
 
@@ -103,40 +107,45 @@ export default function NovaAutorizacaoPage() {
                 throw new Error(error.error || 'Erro ao criar autorização');
             }
 
-            const result = await response.json();
-            const autorizacaoId = result.id;
+            const data = await response.json();
+            const autorizacaoId = data.autorizacao?.id;
+
+            if (!autorizacaoId) {
+                throw new Error('ID da autorização não retornado');
+            }
 
             toast.success('Autorização criada com sucesso!');
 
-            // Generate PDF if requested
             if (generatePdf) {
-                toast.loading('Gerando PDF...', { id: 'pdf-gen' });
-
+                // Generate PDF
                 const pdfResponse = await fetch(`/api/autorizacoes/${autorizacaoId}/generate-pdf`, {
                     method: 'POST',
                 });
 
-                if (pdfResponse.ok) {
-                    const pdfBlob = await pdfResponse.blob();
-                    const url = window.URL.createObjectURL(pdfBlob);
-                    const a = document.createElement('a');
-                    a.href = url;
-                    a.download = `autorizacao-${autorizacaoId}.pdf`;
-                    document.body.appendChild(a);
-                    a.click();
-                    window.URL.revokeObjectURL(url);
-                    document.body.removeChild(a);
-
-                    toast.success('PDF gerado com sucesso!', { id: 'pdf-gen' });
-                } else {
-                    toast.error('Erro ao gerar PDF', { id: 'pdf-gen' });
+                if (!pdfResponse.ok) {
+                    const pdfError = await pdfResponse.json();
+                    throw new Error(pdfError.error || 'Erro ao gerar PDF');
                 }
+
+                // Download PDF
+                const blob = await pdfResponse.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `autorizacao-${autorizacaoId}.pdf`;
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+                document.body.removeChild(a);
+
+                toast.success('PDF gerado com sucesso!');
             }
 
-            router.push('/minhas-autorizacoes');
+            // Redirect to autorizações list
+            router.push('/autorizacoes');
         } catch (error: any) {
-            console.error('Error creating autorização:', error);
-            toast.error(error.message || 'Erro ao criar autorização');
+            console.error('Error:', error);
+            toast.error(error.message || 'Erro ao processar autorização');
         } finally {
             setLoading(false);
         }
@@ -167,10 +176,10 @@ export default function NovaAutorizacaoPage() {
                             <div key={step} className="flex items-center flex-1">
                                 <div className="flex items-center">
                                     <div className={`w-10 h-10 rounded-full flex items-center justify-center font-semibold ${step < currentStep
-                                            ? 'bg-green-500 text-white'
-                                            : step === currentStep
-                                                ? 'bg-blue-600 text-white'
-                                                : 'bg-gray-200 text-gray-600'
+                                        ? 'bg-green-500 text-white'
+                                        : step === currentStep
+                                            ? 'bg-blue-600 text-white'
+                                            : 'bg-gray-200 text-gray-600'
                                         }`}>
                                         {step < currentStep ? '✓' : step}
                                     </div>

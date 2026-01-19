@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
+import { getAuthenticatedUser } from '@/lib/auth/helpers';
+import { getSupabaseClient } from '@/lib/supabase/dev-client';
 import { imovelUpdateSchema } from '@/lib/validations/db-schemas';
 
 // GET /api/imoveis/[id] - Get single imovel
@@ -8,12 +9,10 @@ export async function GET(
     { params }: { params: { id: string } }
 ) {
     try {
-        const supabase = createClient();
+        const supabase = getSupabaseClient();
 
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) {
-            return NextResponse.json({ error: 'Não autenticado' }, { status: 401 });
-        }
+        const { user, response } = await getAuthenticatedUser();
+        if (!user) return response!;
 
         const id = parseInt(params.id);
         if (isNaN(id)) {
@@ -52,12 +51,10 @@ export async function PUT(
     { params }: { params: { id: string } }
 ) {
     try {
-        const supabase = createClient();
+        const supabase = getSupabaseClient();
 
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) {
-            return NextResponse.json({ error: 'Não autenticado' }, { status: 401 });
-        }
+        const { user, response } = await getAuthenticatedUser();
+        if (!user) return response!;
 
         const id = parseInt(params.id);
         if (isNaN(id)) {
@@ -114,12 +111,10 @@ export async function DELETE(
     { params }: { params: { id: string } }
 ) {
     try {
-        const supabase = createClient();
+        const supabase = getSupabaseClient();
 
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) {
-            return NextResponse.json({ error: 'Não autenticado' }, { status: 401 });
-        }
+        const { user, response } = await getAuthenticatedUser();
+        if (!user) return response!;
 
         const id = parseInt(params.id);
         if (isNaN(id)) {

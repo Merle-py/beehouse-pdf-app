@@ -1,50 +1,38 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
+import { getAuthenticatedUser } from '@/lib/auth/helpers';
+import { getSupabaseClient } from '@/lib/supabase/dev-client';
 import { empresaUpdateSchema } from '@/lib/validations/db-schemas';
 
-// GET /api/empresas/[id] - Get single empresa with linked imoveis
+// GET /api/empresas/[id] - Get single empresa
 export async function GET(
     req: NextRequest,
     { params }: { params: { id: string } }
 ) {
     try {
-        const supabase = createClient();
+        const supabase = getSupabaseClient();
 
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) {
-            return NextResponse.json({ error: 'Não autenticado' }, { status: 401 });
-        }
+        const { user, response } = await getAuthenticatedUser();
+        if (!user) return response!;
 
         const id = parseInt(params.id);
         if (isNaN(id)) {
             return NextResponse.json({ error: 'ID inválido' }, { status: 400 });
         }
 
-        // Get empresa
-        const { data: empresa, error: empresaError } = await supabase
+        const { data: empresa, error } = await supabase
             .from('empresas')
             .select('*')
             .eq('id', id)
             .single();
 
-        if (empresaError || !empresa) {
+        if (error || !empresa) {
             return NextResponse.json(
                 { error: 'Empresa não encontrada' },
                 { status: 404 }
             );
         }
 
-        // Get linked imoveis
-        const { data: imoveis } = await supabase
-            .from('imoveis')
-            .select('*')
-            .eq('empresa_id', id)
-            .order('created_at', { ascending: false });
-
-        return NextResponse.json({
-            empresa,
-            imoveis: imoveis || [],
-        });
+        return NextResponse.json({ empresa });
     } catch (error: any) {
         console.error('Error getting empresa:', error);
         return NextResponse.json(
@@ -60,12 +48,10 @@ export async function PUT(
     { params }: { params: { id: string } }
 ) {
     try {
-        const supabase = createClient();
+        const supabase = getSupabaseClient();
 
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) {
-            return NextResponse.json({ error: 'Não autenticado' }, { status: 401 });
-        }
+        const { user, response } = await getAuthenticatedUser();
+        if (!user) return response!;
 
         const id = parseInt(params.id);
         if (isNaN(id)) {
@@ -83,6 +69,14 @@ export async function PUT(
             );
         }
 
+        // Cannot change tipo after creation
+        if (validation.data.tipo) {
+            return NextResponse.json(
+                { error: 'Não é possível alterar o tipo da empresa' },
+                { status: 400 }
+            );
+        }
+
         const { data: empresa, error } = await supabase
             .from('empresas')
             .update(validation.data)
@@ -92,6 +86,13 @@ export async function PUT(
 
         if (error) {
             console.error('Error updating empresa:', error);
+
+            if (error.code === 'PGRST116') {
+                return NextResponse.json(
+                    { error: 'Empresa não encontrada ou você não tem permissão' },
+                    { status: 404 }
+                );
+            }
 
             // Handle unique constraint violations
             if (error.code === '23505') {
@@ -109,18 +110,8 @@ export async function PUT(
                 }
             }
 
-            // RLS will return error if user doesn't have access
-            if (error.code === 'PGRST116') {
-                return NextResponse.json(
-                    { error: 'Empresa não encontrada ou você não tem permissão' },
-                    { status: 404 }
-                );
-            }
-
             return NextResponse.json({ error: error.message }, { status: 500 });
         }
-
-        // TODO: Sync to Bitrix24 in background
 
         return NextResponse.json({
             message: 'Empresa atualizada com sucesso',
@@ -141,16 +132,28 @@ export async function DELETE(
     { params }: { params: { id: string } }
 ) {
     try {
-        const supabase = createClient();
+        const supabase = getSupabaseClient();
 
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) {
-            return NextResponse.json({ error: 'Não autenticado' }, { status: 401 });
-        }
+        const { user, response } = await getAuthenticatedUser();
+        if (!user) return response!;
 
         const id = parseInt(params.id);
         if (isNaN(id)) {
             return NextResponse.json({ error: 'ID inválido' }, { status: 400 });
+        }
+
+        // Check if has linked imoveis
+        const { data: imoveis } = await supabase
+            .from('imoveis')
+            .select('id')
+            .eq('empresa_id', id)
+            .limit(1);
+
+        if (imoveis && imoveis.length > 0) {
+            return NextResponse.json(
+                { error: 'Não é possível excluir empresa com imóveis vinculados' },
+                { status: 400 }
+            );
         }
 
         const { error } = await supabase

@@ -1,19 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
+import { getAuthenticatedUser } from '@/lib/auth/helpers';
+import { getSupabaseClient } from '@/lib/supabase/dev-client';
 import { autorizacaoUpdateSchema } from '@/lib/validations/db-schemas';
 
-// GET /api/autorizacoes/[id] - Get single autorizacao with full details
+// GET /api/autorizacoes/[id] - Get single autorizacao
 export async function GET(
     req: NextRequest,
     { params }: { params: { id: string } }
 ) {
     try {
-        const supabase = createClient();
+        const supabase = getSupabaseClient();
 
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) {
-            return NextResponse.json({ error: 'Não autenticado' }, { status: 401 });
-        }
+        const { user, response } = await getAuthenticatedUser();
+        if (!user) return response!;
 
         const id = parseInt(params.id);
         if (isNaN(id)) {
@@ -49,12 +48,10 @@ export async function PUT(
     { params }: { params: { id: string } }
 ) {
     try {
-        const supabase = createClient();
+        const supabase = getSupabaseClient();
 
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) {
-            return NextResponse.json({ error: 'Não autenticado' }, { status: 401 });
-        }
+        const { user, response } = await getAuthenticatedUser();
+        if (!user) return response!;
 
         const id = parseInt(params.id);
         if (isNaN(id)) {
@@ -72,16 +69,16 @@ export async function PUT(
             );
         }
 
-        // Check if already signed
+        // Check current status - can only edit drafts
         const { data: current } = await supabase
             .from('autorizacoes_vendas')
             .select('status')
             .eq('id', id)
             .single();
 
-        if (current?.status === 'assinado') {
+        if (current && current.status !== 'rascunho') {
             return NextResponse.json(
-                { error: 'Não é possível atualizar uma autorização já assinada' },
+                { error: 'Apenas rascunhos podem ser editados' },
                 { status: 400 }
             );
         }
@@ -125,28 +122,26 @@ export async function DELETE(
     { params }: { params: { id: string } }
 ) {
     try {
-        const supabase = createClient();
+        const supabase = getSupabaseClient();
 
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) {
-            return NextResponse.json({ error: 'Não autenticado' }, { status: 401 });
-        }
+        const { user, response } = await getAuthenticatedUser();
+        if (!user) return response!;
 
         const id = parseInt(params.id);
         if (isNaN(id)) {
             return NextResponse.json({ error: 'ID inválido' }, { status: 400 });
         }
 
-        // Check if already signed
+        // Check if signed - cannot delete signed authorizations
         const { data: current } = await supabase
             .from('autorizacoes_vendas')
             .select('status')
             .eq('id', id)
             .single();
 
-        if (current?.status === 'assinado') {
+        if (current && current.status === 'assinado') {
             return NextResponse.json(
-                { error: 'Não é possível excluir uma autorização já assinada' },
+                { error: 'Não é possível excluir autorizações assinadas' },
                 { status: 400 }
             );
         }

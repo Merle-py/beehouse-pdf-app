@@ -1,119 +1,64 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
+import { getAuthenticatedUser } from '@/lib/auth/helpers';
+import { getSupabaseClient } from '@/lib/supabase/dev-client';
+import { convertDbDataToPDFData } from '@/lib/pdf/db-to-pdf-converter';
 import { generateAuthorizationPdf } from '@/lib/pdf/authorization-generator';
-import { convertDbDataToPDFData, generatePdfFilename, type DbAutorizacaoCompleta } from '@/lib/pdf/db-to-pdf-converter';
-import { uploadPdfToStorage } from '@/lib/supabase/storage';
 
-export const dynamic = 'force-dynamic';
-
-/**
- * POST /api/autorizacoes/[id]/generate-pdf
- * 
- * Generates PDF from an existing autorização in the database
- * 
- * Flow:
- * 1. Validate authentication and autorização access
- * 2. Fetch complete autorização data from vw_autorizacoes_completas
- * 3. Convert database data to PDF format
- * 4. Generate PDF buffer
- * 5. Upload PDF to Supabase Storage
- * 6. Update autorizacoes_vendas table with pdf_url and pdf_filename
- * 7. Return PDF for download
- */
+// POST /api/autorizacoes/[id]/generate-pdf - Generate PDF from database
 export async function POST(
     req: NextRequest,
     { params }: { params: { id: string } }
-): Promise<NextResponse> {
+) {
     try {
-        const supabase = createClient();
+        const supabase = getSupabaseClient();
 
-        // 1. Validate authentication
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) {
-            return NextResponse.json(
-                { error: 'Não autenticado' },
-                { status: 401 }
-            );
-        }
+        const { user, response } = await getAuthenticatedUser();
+        if (!user) return response!;
 
         const id = parseInt(params.id);
         if (isNaN(id)) {
-            return NextResponse.json(
-                { error: 'ID inválido' },
-                { status: 400 }
-            );
+            return NextResponse.json({ error: 'ID inválido' }, { status: 400 });
         }
 
-        console.log(`[Generate PDF] Starting for autorização #${id}`);
-
-        // 2. Fetch complete autorização data
-        const { data: autorizacao, error: fetchError } = await supabase
+        // Fetch complete authorization data from view
+        const { data: autorizacao, error } = await supabase
             .from('vw_autorizacoes_completas')
             .select('*')
             .eq('id', id)
             .single();
 
-        if (fetchError || !autorizacao) {
-            console.error('[Generate PDF] Fetch error:', fetchError);
+        if (error || !autorizacao) {
             return NextResponse.json(
-                { error: 'Autorização não encontrada ou você não tem permissão' },
+                { error: 'Autorização não encontrada' },
                 { status: 404 }
             );
         }
 
-        const dbData = autorizacao as unknown as DbAutorizacaoCompleta;
-
-        console.log(`[Generate PDF] Found autorização for ${dbData.empresa_tipo === 'PJ' ? dbData.razao_social : dbData.empresa_nome}`);
-
-        // 3. Convert database data to PDF format
-        const pdfData = convertDbDataToPDFData(dbData);
-        console.log(`[Generate PDF] Converted to PDF data, authType: ${pdfData.authType}`);
-
-        // 4. Generate PDF buffer
-        const pdfBuffer = await generateAuthorizationPdf(pdfData);
-        console.log(`[Generate PDF] PDF generated, size: ${pdfBuffer.length} bytes`);
-
-        // 5. Upload to Supabase Storage
-        const filename = `${generatePdfFilename(dbData)}.pdf`;
-        const pdfUrl = await uploadPdfToStorage(filename, pdfBuffer, user.id);
-        console.log(`[Generate PDF] Uploaded to storage: ${pdfUrl}`);
-
-        // 6. Update database with PDF URL
-        const { error: updateError } = await supabase
-            .from('autorizacoes_vendas')
-            .update({
-                pdf_url: pdfUrl,
-                pdf_filename: filename,
-                updated_at: new Date().toISOString()
-            })
-            .eq('id', id);
-
-        if (updateError) {
-            console.error('[Generate PDF] Database update error:', updateError);
-            // Don't fail the request - PDF was generated successfully
-            console.warn('[Generate PDF] Failed to update database, but PDF was generated');
-        } else {
-            console.log('[Generate PDF] Database updated with PDF URL');
+        // Can only generate PDF for non-draft status
+        if (autorizacao.status === 'rascunho') {
+            return NextResponse.json(
+                { error: 'Não é possível gerar PDF de rascunho. Salve a autorização primeiro.' },
+                { status: 400 }
+            );
         }
 
-        // 7. Return PDF for download
-        return new NextResponse(new Uint8Array(pdfBuffer), {
-            status: 200,
+        // Convert database data to PDF format
+        const pdfData = convertDbDataToPDFData(autorizacao);
+
+        // Generate PDF
+        const pdfBuffer = await generateAuthorizationPdf(pdfData);
+
+        // Return PDF
+        return new NextResponse(pdfBuffer as unknown as BodyInit, {
             headers: {
                 'Content-Type': 'application/pdf',
-                'Content-Disposition': `attachment; filename="${filename}"`,
-                'Content-Length': pdfBuffer.length.toString(),
-                'X-PDF-URL': pdfUrl, // Include URL in header for frontend reference
+                'Content-Disposition': `attachment; filename="autorizacao-${id}.pdf"`,
             },
         });
-
     } catch (error: any) {
-        console.error('[Generate PDF] Error:', error);
+        console.error('Error generating PDF:', error);
         return NextResponse.json(
-            {
-                error: 'Erro ao gerar PDF',
-                details: error.message
-            },
+            { error: 'Erro ao gerar PDF' },
             { status: 500 }
         );
     }

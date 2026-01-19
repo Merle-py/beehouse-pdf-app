@@ -1,21 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
+import { getAuthenticatedUser } from '@/lib/auth/helpers';
+import { getSupabaseClient } from '@/lib/supabase/dev-client';
 import { autorizacaoCreateSchema } from '@/lib/validations/db-schemas';
 
 // GET /api/autorizacoes - List all autorizacoes for current user
 export async function GET(req: NextRequest) {
     try {
-        const supabase = createClient();
+        const supabase = getSupabaseClient();
 
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) {
-            return NextResponse.json({ error: 'Não autenticado' }, { status: 401 });
-        }
+        const { user, response } = await getAuthenticatedUser();
+        if (!user) return response!;
 
         const { searchParams } = new URL(req.url);
         const status = searchParams.get('status');
-        const imovelId = searchParams.get('imovel_id');
 
+        // Use view for complete data
         let query = supabase
             .from('vw_autorizacoes_completas')
             .select('*')
@@ -23,10 +22,6 @@ export async function GET(req: NextRequest) {
 
         if (status) {
             query = query.eq('status', status);
-        }
-
-        if (imovelId) {
-            query = query.eq('imovel_id', parseInt(imovelId));
         }
 
         const { data: autorizacoes, error } = await query;
@@ -52,12 +47,10 @@ export async function GET(req: NextRequest) {
 // POST /api/autorizacoes - Create new autorizacao
 export async function POST(req: NextRequest) {
     try {
-        const supabase = createClient();
+        const supabase = getSupabaseClient();
 
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) {
-            return NextResponse.json({ error: 'Não autenticado' }, { status: 401 });
-        }
+        const { user, response } = await getAuthenticatedUser();
+        if (!user) return response!;
 
         const body = await req.json();
 
@@ -72,34 +65,12 @@ export async function POST(req: NextRequest) {
 
         const data = validation.data;
 
-        // Verify imovel exists and user has access
-        const { data: imovelCheck } = await supabase
-            .from('imoveis')
-            .select('id')
-            .eq('id', data.imovel_id)
-            .single();
-
-        if (!imovelCheck) {
-            return NextResponse.json(
-                { error: 'Imóvel não encontrado ou você não tem permissão' },
-                { status: 404 }
-            );
-        }
-
-        // Calculate expiration date if prazo_exclusividade > 0
-        let expiresAt = null;
-        if (data.prazo_exclusividade > 0) {
-            const now = new Date();
-            expiresAt = new Date(now.getTime() + data.prazo_exclusividade * 24 * 60 * 60 * 1000).toISOString();
-        }
-
-        // Create autorizacao
+        // Create autorizacao with status from request or default to rascunho
         const { data: autorizacao, error } = await supabase
             .from('autorizacoes_vendas')
             .insert({
                 ...data,
                 created_by_user_id: user.id,
-                expires_at: expiresAt,
             })
             .select()
             .single();

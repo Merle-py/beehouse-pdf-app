@@ -1,17 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
 import { empresaCreateSchema } from '@/lib/validations/db-schemas';
 import { Empresa } from '@/types/database';
+import { getAuthenticatedUser } from '@/lib/auth/helpers';
+import { getSupabaseClient } from '@/lib/supabase/dev-client';
 
 // GET /api/empresas - List all empresas for current user
 export async function GET(req: NextRequest) {
     try {
-        const supabase = createClient();
+        const supabase = getSupabaseClient();
 
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) {
-            return NextResponse.json({ error: 'Não autenticado' }, { status: 401 });
-        }
+        const { user, response } = await getAuthenticatedUser();
+        if (!user) return response!;
 
         const { searchParams } = new URL(req.url);
         const tipo = searchParams.get('tipo');
@@ -59,12 +58,10 @@ export async function GET(req: NextRequest) {
 // POST /api/empresas - Create new empresa
 export async function POST(req: NextRequest) {
     try {
-        const supabase = createClient();
+        const supabase = getSupabaseClient();
 
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) {
-            return NextResponse.json({ error: 'Não autenticado' }, { status: 401 });
-        }
+        const { user, response } = await getAuthenticatedUser();
+        if (!user) return response!;
 
         const body = await req.json();
 
@@ -79,12 +76,12 @@ export async function POST(req: NextRequest) {
 
         const data = validation.data;
 
-        // Create empresa
+        // Create empresa with user ID
         const { data: empresa, error } = await supabase
             .from('empresas')
             .insert({
                 ...data,
-                created_by_user_id: user.id,
+                created_by_user_id: user.id, // Uses mock UUID in dev, real UUID in production
             })
             .select()
             .single();

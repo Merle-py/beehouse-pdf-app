@@ -1,16 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
+import { getAuthenticatedUser } from '@/lib/auth/helpers';
+import { getSupabaseClient } from '@/lib/supabase/dev-client';
 import { imovelCreateSchema } from '@/lib/validations/db-schemas';
 
 // GET /api/imoveis - List all imoveis for current user
 export async function GET(req: NextRequest) {
     try {
-        const supabase = createClient();
+        const supabase = getSupabaseClient();
 
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) {
-            return NextResponse.json({ error: 'Não autenticado' }, { status: 401 });
-        }
+        const { user, response } = await getAuthenticatedUser();
+        if (!user) return response!;
 
         const { searchParams } = new URL(req.url);
         const empresaId = searchParams.get('empresa_id');
@@ -50,12 +49,10 @@ export async function GET(req: NextRequest) {
 // POST /api/imoveis - Create new imovel
 export async function POST(req: NextRequest) {
     try {
-        const supabase = createClient();
+        const supabase = getSupabaseClient();
 
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) {
-            return NextResponse.json({ error: 'Não autenticado' }, { status: 401 });
-        }
+        const { user, response } = await getAuthenticatedUser();
+        if (!user) return response!;
 
         const body = await req.json();
 
