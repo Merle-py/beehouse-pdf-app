@@ -55,7 +55,7 @@ export default function Navbar() {
                 <div className="flex justify-between h-16">
                     <div className="flex">
                         {/* Logo */}
-                        <Link href="/dashboard" className="flex items-center">
+                        <Link href="/dashboard" prefetch={false} className="flex items-center">
                             <div className="flex items-center gap-2">
                                 <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-blue-700 rounded-lg flex items-center justify-center">
                                     <span className="text-white font-bold text-lg">B</span>
@@ -70,9 +70,10 @@ export default function Navbar() {
                                 <Link
                                     key={item.path}
                                     href={item.path}
+                                    prefetch={false}
                                     className={`inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-colors ${isActive(item.path)
-                                            ? 'bg-blue-50 text-blue-700'
-                                            : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                                        ? 'bg-blue-50 text-blue-700'
+                                        : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
                                         }`}
                                 >
                                     {item.icon}
@@ -86,6 +87,7 @@ export default function Navbar() {
                     <div className="flex items-center gap-2">
                         <Link
                             href="/nova-autorizacao"
+                            prefetch={false}
                             className="hidden sm:flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
                         >
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -102,9 +104,10 @@ export default function Navbar() {
                         <Link
                             key={item.path}
                             href={item.path}
+                            prefetch={false}
                             className={`flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-lg ${isActive(item.path)
-                                    ? 'bg-blue-50 text-blue-700'
-                                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                                ? 'bg-blue-50 text-blue-700'
+                                : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
                                 }`}
                         >
                             {item.icon}
@@ -113,6 +116,7 @@ export default function Navbar() {
                     ))}
                     <Link
                         href="/nova-autorizacao"
+                        prefetch={false}
                         className="flex items-center gap-2 px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-medium"
                     >
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
