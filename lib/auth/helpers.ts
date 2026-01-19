@@ -10,23 +10,25 @@ export interface AuthResult {
  * Get authenticated user with development bypass
  * In development mode with DEV_BYPASS_AUTH=true, returns a mock user
  */
-export async function getAuthenticatedUser(): Promise<AuthResult> {
-    const supabase = createClient();
+export async function getAuthenticatedUser() {
+    // ⚠️ TEMPORÁRIO: Bypass completo de autenticação para debug
+    const tempDisableAuth = process.env.TEMP_DISABLE_AUTH === 'true';
+    const devBypassAuth = process.env.DEV_BYPASS_AUTH === 'true';
 
-    // Development bypass
-    if (process.env.NODE_ENV === 'development' && process.env.DEV_BYPASS_AUTH === 'true') {
-        console.log('[AUTH] Development bypass enabled - using mock user');
+    if (tempDisableAuth || devBypassAuth) {
+        // Mock user para bypass
         return {
             user: {
-                // Use Bitrix24 user ID (INTEGER, not UUID)
-                // This mirrors Bitrix24's user.id for permission checking
-                id: 38931, // Your Bitrix24 user ID
-                email: 'dev@localhost',
-                role: 'authenticated',
-            }
+                id: 38931, // Bitrix24 ID do usuário de desenvolvimento
+                email: 'dev@beehouse.com',
+                name: 'Dev User',
+            },
+            response: null,
         };
     }
 
+    // Produção normal: verificar Supabase auth
+    const supabase = createClient();
     const { data: { user }, error } = await supabase.auth.getUser();
 
     if (error || !user) {
@@ -35,9 +37,16 @@ export async function getAuthenticatedUser(): Promise<AuthResult> {
             response: NextResponse.json(
                 { error: 'Não autenticado' },
                 { status: 401 }
-            )
+            ),
         };
     }
 
-    return { user };
+    return {
+        user: {
+            id: parseInt(user.id), // Converter UUID para INT se necessário
+            email: user.email || '',
+            name: user.user_metadata?.name || '',
+        },
+        response: null,
+    };
 }
