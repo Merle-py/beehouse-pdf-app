@@ -25,7 +25,11 @@ export async function middleware(request: NextRequest) {
         // Verificar se tem cookie de sessão personalizado (Bitrix24 auth)
         const sessionCookie = request.cookies.get('beehouse_session');
 
+        console.log('[MIDDLEWARE] Path:', request.nextUrl.pathname);
+        console.log('[MIDDLEWARE] Has session cookie:', !!sessionCookie);
+
         if (!sessionCookie) {
+            console.log('[MIDDLEWARE] No session, redirecting to /login');
             // Sem sessão, redirecionar para login
             return NextResponse.redirect(new URL('/login', request.url));
         }
@@ -34,18 +38,26 @@ export async function middleware(request: NextRequest) {
             // Validar sessão
             const sessionData = JSON.parse(Buffer.from(sessionCookie.value, 'base64').toString());
 
+            console.log('[MIDDLEWARE] Session data:', { userId: sessionData.userId, timestamp: sessionData.timestamp });
+
             // Verificar se sessão não expirou (7 dias)
             const sessionAge = Date.now() - sessionData.timestamp;
             const maxAge = 7 * 24 * 60 * 60 * 1000; // 7 dias em ms
 
             if (sessionAge > maxAge) {
+                console.log('[MIDDLEWARE] Session expired, redirecting to /login');
                 // Sessão expirada
                 return NextResponse.redirect(new URL('/login', request.url));
             }
+
+            console.log('[MIDDLEWARE] Session valid, allowing access');
         } catch (error) {
+            console.log('[MIDDLEWARE] Session invalid, redirecting to /login');
             // Sessão inválida
             return NextResponse.redirect(new URL('/login', request.url));
         }
+    } else {
+        console.log('[MIDDLEWARE] Bypassing auth check - isDevBypass:', isDevBypass, 'isPublicPath:', isPublicPath);
     }
 
     // CORREÇÃO DO ERRO 405
