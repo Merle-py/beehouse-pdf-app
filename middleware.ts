@@ -1,4 +1,3 @@
-import { createServerClient, type CookieOptions } from '@supabase/ssr';
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
@@ -9,7 +8,7 @@ export async function middleware(request: NextRequest) {
         },
     });
 
-    // NÃO aplicar redirecionamento em rotas de API
+    // NÃO aplicar nada em rotas de API
     if (request.nextUrl.pathname.startsWith('/api/')) {
         return response;
     }
@@ -21,7 +20,7 @@ export async function middleware(request: NextRequest) {
     // ⚠️ Em desenvolvimento, pular verificação se DEV_BYPASS_AUTH está ativo
     const isDevBypass = process.env.DEV_BYPASS_AUTH === 'true';
 
-    // Verificar autenticação via session cookie (exceto em desenvolvimento com bypass)
+    // Verificar autenticação via session cookie (exceto em desenvolvimento com bypass ou páginas públicas)
     if (!isDevBypass && !isPublicPath) {
         // Verificar se tem cookie de sessão personalizado (Bitrix24 auth)
         const sessionCookie = request.cookies.get('beehouse_session');
@@ -101,5 +100,5 @@ function adicionarHeadersDeSeguranca(response: NextResponse, request: NextReques
 }
 
 export const config = {
-    matcher: '/:path*',
+    matcher: ['/((?!_next/static|_next/image|favicon.ico).*)'],
 };
