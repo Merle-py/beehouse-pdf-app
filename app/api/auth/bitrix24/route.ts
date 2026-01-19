@@ -13,14 +13,30 @@ export async function POST(req: NextRequest) {
         const body = await req.json();
         const { userId, domain, memberInfo } = body;
 
+        console.log('[AUTH] Received auth request:', { userId, domain, memberInfo });
+
         if (!userId || !domain) {
+            console.error('[AUTH] Missing userId or domain');
             return NextResponse.json(
                 { error: 'userId and domain are required' },
                 { status: 400 }
             );
         }
 
-        const supabase = createClient();
+        // Usar service role client para bypass de RLS
+        const { createClient: createServiceClient } = await import('@supabase/supabase-js');
+        const supabase = createServiceClient(
+            process.env.NEXT_PUBLIC_SUPABASE_URL!,
+            process.env.SUPABASE_SERVICE_ROLE_KEY!,
+            {
+                auth: {
+                    autoRefreshToken: false,
+                    persistSession: false
+                }
+            }
+        );
+
+        console.log('[AUTH] Checking if user exists:', userId);
 
         // 1. Verificar se usuário já existe na tabela users
         const { data: existingUser, error: fetchError } = await supabase
@@ -30,9 +46,9 @@ export async function POST(req: NextRequest) {
             .single();
 
         if (fetchError && fetchError.code !== 'PGRST116') {
-            console.error('Error fetching user:', fetchError);
+            console.error('[AUTH] Error fetching user:', fetchError);
             return NextResponse.json(
-                { error: 'Error checking user' },
+                { error: 'Error checking user', details: fetchError.message },
                 { status: 500 }
             );
         }
@@ -41,6 +57,8 @@ export async function POST(req: NextRequest) {
 
         // 2. Se não existe, criar usuário
         if (!existingUser) {
+            console.log('[AUTH] Creating new user:', userId);
+
             const { data: newUser, error: insertError } = await supabase
                 .from('users')
                 .insert({
@@ -53,14 +71,17 @@ export async function POST(req: NextRequest) {
                 .single();
 
             if (insertError) {
-                console.error('Error creating user:', insertError);
+                console.error('[AUTH] Error creating user:', insertError);
                 return NextResponse.json(
-                    { error: 'Error creating user' },
+                    { error: 'Error creating user', details: insertError.message, code: insertError.code },
                     { status: 500 }
                 );
             }
 
+            console.log('[AUTH] User created successfully:', newUser);
             user = newUser;
+        } else {
+            console.log('[AUTH] User already exists:', existingUser);
         }
 
         // 3. Criar cookie de sessão personalizado
