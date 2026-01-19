@@ -18,10 +18,7 @@ export async function GET(req: NextRequest) {
 
         let query = supabase
             .from('empresas')
-            .select(`
-        *,
-        imoveis(count)
-      `)
+            .select('*')
             .order('created_at', { ascending: false });
 
         // Add filters
@@ -35,7 +32,7 @@ export async function GET(req: NextRequest) {
             );
         }
 
-        const { data: empresas, error, count } = await query;
+        const { data: empresas, error } = await query;
 
         if (error) {
             console.error('Error listing empresas:', error);
@@ -44,7 +41,6 @@ export async function GET(req: NextRequest) {
 
         return NextResponse.json({
             empresas: empresas || [],
-            total: count || 0,
         });
     } catch (error: any) {
         console.error('Error listing empresas:', error);
