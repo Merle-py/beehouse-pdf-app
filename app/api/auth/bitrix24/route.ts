@@ -102,10 +102,11 @@ export async function POST(req: NextRequest) {
         });
 
         // Definir cookie de sessão
+        // IMPORTANTE: sameSite='none' é obrigatório para funcionar em iframe do Bitrix24
         response.cookies.set('beehouse_session', sessionToken, {
             httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
-            sameSite: 'lax',
+            secure: true, // obrigatório quando sameSite='none'
+            sameSite: 'none', // permite envio em contexto cross-origin (iframe)
             maxAge: 60 * 60 * 24 * 7, // 7 dias
             path: '/',
         });
