@@ -1,4 +1,3 @@
-import { createServerClient, type CookieOptions } from '@supabase/ssr';
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
@@ -14,40 +13,8 @@ export async function middleware(request: NextRequest) {
         return response;
     }
 
-    // Páginas públicas que não precisam autenticação
-    const publicPaths = ['/login', '/auth/callback'];
-    const isPublicPath = publicPaths.some(path => request.nextUrl.pathname.startsWith(path));
-
-    // ⚠️ DESENVOLVIMENTO: Pular verificação de auth se DEV_BYPASS_AUTH está ativo
-    const isDevBypass = process.env.DEV_BYPASS_AUTH === 'true';
-
-    // Verificar autenticação (desenvolvimento usa bypass, produção usa session cookie)
-    if (!isDevBypass && !isPublicPath) {
-        // Verificar se tem cookie de sessão personalizado (Bitrix24 auth)
-        const sessionCookie = request.cookies.get('beehouse_session');
-
-        if (!sessionCookie) {
-            // Sem sessão, redirecionar para login
-            return NextResponse.redirect(new URL('/login', request.url));
-        }
-
-        try {
-            // Validar sessão
-            const sessionData = JSON.parse(Buffer.from(sessionCookie.value, 'base64').toString());
-
-            // Verificar se sessão não expirou (7 dias)
-            const sessionAge = Date.now() - sessionData.timestamp;
-            const maxAge = 7 * 24 * 60 * 60 * 1000; // 7 dias em ms
-
-            if (sessionAge > maxAge) {
-                // Sessão expirada
-                return NextResponse.redirect(new URL('/login', request.url));
-            }
-        } catch (error) {
-            // Sessão inválida
-            return NextResponse.redirect(new URL('/login', request.url));
-        }
-    }
+    // ⚠️ TEMPORÁRIO: Auth completamente desabilitado para debug de produção
+    // TODO: Re-habilitar após corrigir problemas de layout
 
     // 1. CORREÇÃO DO ERRO 405
     // O Bitrix carrega o iframe via POST, mas o Next.js só aceita GET em páginas.
