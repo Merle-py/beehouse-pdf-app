@@ -21,34 +21,30 @@ export async function middleware(request: NextRequest) {
     // ⚠️ DESENVOLVIMENTO: Pular verificação de auth se DEV_BYPASS_AUTH está ativo
     const isDevBypass = process.env.DEV_BYPASS_AUTH === 'true';
 
-    // Verificar autenticação Supabase (apenas em produção ou se não for página pública)
+    // Verificar autenticação (desenvolvimento usa bypass, produção usa session cookie)
     if (!isDevBypass && !isPublicPath) {
-        const supabase = createServerClient(
-            process.env.NEXT_PUBLIC_SUPABASE_URL!,
-            process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-            {
-                cookies: {
-                    get(name: string) {
-                        return request.cookies.get(name)?.value;
-                    },
-                    set(name: string, value: string, options: CookieOptions) {
-                        request.cookies.set({ name, value, ...options });
-                        response = NextResponse.next({ request: { headers: request.headers } });
-                        response.cookies.set({ name, value, ...options });
-                    },
-                    remove(name: string, options: CookieOptions) {
-                        request.cookies.set({ name, value: '', ...options });
-                        response = NextResponse.next({ request: { headers: request.headers } });
-                        response.cookies.set({ name, value: '', ...options });
-                    },
-                },
+        // Verificar se tem cookie de sessão personalizado (Bitrix24 auth)
+        const sessionCookie = request.cookies.get('beehouse_session');
+
+        if (!sessionCookie) {
+            // Sem sessão, redirecionar para login
+            return NextResponse.redirect(new URL('/login', request.url));
+        }
+
+        try {
+            // Validar sessão
+            const sessionData = JSON.parse(Buffer.from(sessionCookie.value, 'base64').toString());
+
+            // Verificar se sessão não expirou (7 dias)
+            const sessionAge = Date.now() - sessionData.timestamp;
+            const maxAge = 7 * 24 * 60 * 60 * 1000; // 7 dias em ms
+
+            if (sessionAge > maxAge) {
+                // Sessão expirada
+                return NextResponse.redirect(new URL('/login', request.url));
             }
-        );
-
-        const { data: { session } } = await supabase.auth.getSession();
-
-        // Se não tem sessão, redireciona para login
-        if (!session) {
+        } catch (error) {
+            // Sessão inválida
             return NextResponse.redirect(new URL('/login', request.url));
         }
     }

@@ -6,6 +6,7 @@ import { createClient } from '@/lib/supabase/server';
  * 
  * Endpoint para autenticação via Bitrix24
  * Recebe dados do usuário do Bitrix24 e cria/atualiza usuário no Supabase
+ * Cria uma sessão personalizada via cookie
  */
 export async function POST(req: NextRequest) {
     try {
@@ -36,6 +37,8 @@ export async function POST(req: NextRequest) {
             );
         }
 
+        let user = existingUser;
+
         // 2. Se não existe, criar usuário
         if (!existingUser) {
             const { data: newUser, error: insertError } = await supabase
@@ -57,19 +60,36 @@ export async function POST(req: NextRequest) {
                 );
             }
 
-            return NextResponse.json({
-                success: true,
-                user: newUser,
-                message: 'User created and authenticated',
-            });
+            user = newUser;
         }
 
-        // 3. Usuário já existe
-        return NextResponse.json({
+        // 3. Criar cookie de sessão personalizado
+        const sessionData = {
+            userId: user.id,
+            name: user.name,
+            email: user.email,
+            bitrixDomain: domain,
+            timestamp: Date.now(),
+        };
+
+        const sessionToken = Buffer.from(JSON.stringify(sessionData)).toString('base64');
+
+        const response = NextResponse.json({
             success: true,
-            user: existingUser,
-            message: 'User authenticated',
+            user,
+            message: existingUser ? 'User authenticated' : 'User created and authenticated',
         });
+
+        // Definir cookie de sessão
+        response.cookies.set('beehouse_session', sessionToken, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'lax',
+            maxAge: 60 * 60 * 24 * 7, // 7 dias
+            path: '/',
+        });
+
+        return response;
     } catch (error: any) {
         console.error('Error in Bitrix24 auth:', error);
         return NextResponse.json(
