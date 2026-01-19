@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
 
 /**
  * POST /api/auth/bitrix24
@@ -63,9 +62,10 @@ export async function POST(req: NextRequest) {
                 .from('users')
                 .insert({
                     id: parseInt(userId),
-                    bitrix_domain: domain,
                     name: memberInfo?.name || `User ${userId}`,
                     email: memberInfo?.email || `user${userId}@${domain}`,
+                    password_hash: 'bitrix24-oauth', // Placeholder
+                    bitrix_user_id: parseInt(userId),
                 })
                 .select()
                 .single();
@@ -110,11 +110,13 @@ export async function POST(req: NextRequest) {
             path: '/',
         });
 
+        console.log('[AUTH] Session cookie set successfully');
+
         return response;
     } catch (error: any) {
-        console.error('Error in Bitrix24 auth:', error);
+        console.error('[AUTH] Error in Bitrix24 auth:', error);
         return NextResponse.json(
-            { error: 'Internal server error' },
+            { error: 'Internal server error', details: error.message },
             { status: 500 }
         );
     }
