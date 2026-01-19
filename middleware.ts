@@ -1,3 +1,4 @@
+import { createServerClient, type CookieOptions } from '@supabase/ssr';
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
@@ -13,10 +14,42 @@ export async function middleware(request: NextRequest) {
         return response;
     }
 
-    // ⚠️ TEMPORÁRIO: Auth completamente desabilitado para debug de produção
-    // TODO: Re-habilitar após corrigir problemas de layout
+    // Páginas públicas que não precisam autenticação
+    const publicPaths = ['/login', '/auth/callback'];
+    const isPublicPath = publicPaths.some(path => request.nextUrl.pathname.startsWith(path));
 
-    // 1. CORREÇÃO DO ERRO 405
+    // ⚠️ Em desenvolvimento, pular verificação se DEV_BYPASS_AUTH está ativo
+    const isDevBypass = process.env.DEV_BYPASS_AUTH === 'true';
+
+    // Verificar autenticação via session cookie (exceto em desenvolvimento com bypass)
+    if (!isDevBypass && !isPublicPath) {
+        // Verificar se tem cookie de sessão personalizado (Bitrix24 auth)
+        const sessionCookie = request.cookies.get('beehouse_session');
+
+        if (!sessionCookie) {
+            // Sem sessão, redirecionar para login
+            return NextResponse.redirect(new URL('/login', request.url));
+        }
+
+        try {
+            // Validar sessão
+            const sessionData = JSON.parse(Buffer.from(sessionCookie.value, 'base64').toString());
+
+            // Verificar se sessão não expirou (7 dias)
+            const sessionAge = Date.now() - sessionData.timestamp;
+            const maxAge = 7 * 24 * 60 * 60 * 1000; // 7 dias em ms
+
+            if (sessionAge > maxAge) {
+                // Sessão expirada
+                return NextResponse.redirect(new URL('/login', request.url));
+            }
+        } catch (error) {
+            // Sessão inválida
+            return NextResponse.redirect(new URL('/login', request.url));
+        }
+    }
+
+    // CORREÇÃO DO ERRO 405
     // O Bitrix carrega o iframe via POST, mas o Next.js só aceita GET em páginas.
     // Se for POST, forçamos um redirecionamento 303, que transforma a requisição em GET.
     if (request.method === 'POST') {
@@ -30,7 +63,7 @@ export async function middleware(request: NextRequest) {
         return response;
     }
 
-    // 2. Requisições normais (GET)
+    // Requisições normais (GET)
     adicionarHeadersDeSeguranca(response, request);
     return response;
 }
