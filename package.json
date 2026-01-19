@@ -12,6 +12,7 @@
     "@hookform/resolvers": "^3.3.4",
     "@react-pdf/renderer": "^4.2.0",
     "@supabase/auth-helpers-nextjs": "^0.15.0",
+    "@supabase/ssr": "^0.8.0",
     "@supabase/supabase-js": "^2.90.1",
     "@vercel/kv": "^1.0.1",
     "axios": "^1.6.8",

@@ -1,11 +1,53 @@
+import { createServerClient, type CookieOptions } from '@supabase/ssr';
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
-export function middleware(request: NextRequest) {
+export async function middleware(request: NextRequest) {
+    let response = NextResponse.next({
+        request: {
+            headers: request.headers,
+        },
+    });
 
     // NÃO aplicar redirecionamento em rotas de API
     if (request.nextUrl.pathname.startsWith('/api/')) {
-        return NextResponse.next();
+        return response;
+    }
+
+    // Páginas públicas que não precisam autenticação
+    const publicPaths = ['/login', '/auth/callback'];
+    const isPublicPath = publicPaths.some(path => request.nextUrl.pathname.startsWith(path));
+
+    // Verificar autenticação Supabase (apenas se não for página pública)
+    if (!isPublicPath) {
+        const supabase = createServerClient(
+            process.env.NEXT_PUBLIC_SUPABASE_URL!,
+            process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+            {
+                cookies: {
+                    get(name: string) {
+                        return request.cookies.get(name)?.value;
+                    },
+                    set(name: string, value: string, options: CookieOptions) {
+                        request.cookies.set({ name, value, ...options });
+                        response = NextResponse.next({ request: { headers: request.headers } });
+                        response.cookies.set({ name, value, ...options });
+                    },
+                    remove(name: string, options: CookieOptions) {
+                        request.cookies.set({ name, value: '', ...options });
+                        response = NextResponse.next({ request: { headers: request.headers } });
+                        response.cookies.set({ name, value: '', ...options });
+                    },
+                },
+            }
+        );
+
+        const { data: { session } } = await supabase.auth.getSession();
+
+        // Se não tem sessão, redireciona para login
+        if (!session) {
+            return NextResponse.redirect(new URL('/login', request.url));
+        }
     }
 
     // 1. CORREÇÃO DO ERRO 405
@@ -15,7 +57,7 @@ export function middleware(request: NextRequest) {
         const url = request.nextUrl.clone();
 
         // O status 303 (See Other) força o navegador a seguir o redirecionamento usando GET
-        const response = NextResponse.redirect(url, 303);
+        response = NextResponse.redirect(url, 303);
 
         // Aplicamos os headers de segurança no redirecionamento também
         adicionarHeadersDeSeguranca(response, request);
@@ -23,7 +65,6 @@ export function middleware(request: NextRequest) {
     }
 
     // 2. Requisições normais (GET)
-    const response = NextResponse.next();
     adicionarHeadersDeSeguranca(response, request);
     return response;
 }
