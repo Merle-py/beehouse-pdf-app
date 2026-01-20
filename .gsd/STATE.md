@@ -1,92 +1,81 @@
 # Current State
 
-> Last updated: 2026-01-20T08:48:00-03:00
+> Last updated: 2026-01-20T09:10:00-03:00
 
 ## Current Position
 
-- **Phase**: 1 - Test Infrastructure Setup (COMPLETE ✅)
-- **Task**: All Phase 1 plans complete
-- **Status**: Active - Ready for Phase 2
+- **Phase**: 2 - API Route Testing
+- **Task**: Plan 2.1 - Test Utilities & Mocking Infrastructure (Complete ✅)
+- **Status**: Active - Ready for Plan 2.2
 
-## Phase 1 Summary
+## Recent Progress
 
-### All Plans Complete ✅
-- ✅ **Plan 1.1**: Install & Configure Testing Framework (3/3 tasks)
-- ✅ **Plan 1.2**: Create Example Tests (3/3 tasks)
-- ✅ **Plan 1.3**: CI/CD Pipeline Setup (3/3 tasks)
+### Phase 1 Complete ✅
+- All 3 plans completed (Test Infrastructure Setup)
+- 6 passing tests, CI/CD operational
+- Foundation ready for API testing
 
-### Deliverables Achieved
-- Jest 29.7.0 + React Testing Library 14.3.1 installed and configured
-- 6 passing tests (4 unit + 2 integration)
-- GitHub Actions CI/CD pipeline operational
-- Test coverage reporting enabled
-- Example test patterns established
-
-### Commits Made (Phase 1)
-1. `634d2bb` - feat(1-1): install Jest and React Testing Library
-2. `ad0631b` - feat(1-1): create Jest configuration for Next.js App Router
-3. `1fe77cd` - feat(1-2): create unit test for formatCurrency utility
-4. `34aff50` - feat(1-2): create integration test for health API route
-5. `79bf4b7` - feat(1-3): add GitHub Actions CI/CD test workflow
+### Phase 2 Started
+- ✅ **Plan 2.1 Complete** - Test Utilities & Mocking Infrastructure
+  - Created `lib/test-utils/supabase-mock.ts` (Supabase client mock factory)
+  - Created `lib/test-utils/auth-helpers.ts` (Authentication mocks)
+  - Created `lib/test-utils/api-helpers.ts` (Request builders, response assertions, test data factories)
+  - Commit: f0a8f45
 
 ## Blockers
 
-None - Ready to proceed to Phase 2
+None - Ready to proceed to Plan 2.2 (Auth API Tests)
 
 ## Context Dump
 
-### Key Decisions from Phase 1
-- **Jest over Vitest**: Better Next.js 14 integration and documentation
-- **Separate test environments**: Use `@jest-environment node` docblock for API routes, jsdom for components
-- **Health endpoint pattern**: Simple endpoints avoid complex mocking for initial tests
-- **CI optimization**: testTimeout 10s, maxWorkers 2 in CI, bail on first failure
+### Phase 2 Strategy
+- **Testing approach**: Mocked Supabase for fast, isolated tests
+- **No real database**: All tests use mock client
+- **No external API calls**: Bitrix24 and ClickSign will be mocked
+- **Target**: 46+ tests (2 per endpoint: happy path + error case)
+- **Coverage goal**: >80% API route coverage
 
-### Patterns Established
-1. **Unit tests**: Test pure functions in `lib/utils/__tests__/`
-2. **Integration tests**: Test API routes in `app/api/__tests__/` with node environment
-3. **CI/CD**: GitHub Actions workflow triggers on push/PR to main/master
+### Test Utilities Created
+1. **Supabase mocks** - createMockSupabaseClient(), createMockQueryBuilder()
+2. **Auth helpers** - createMockUser(), mockAuthenticatedRequest()
+3. **API helpers** - createMockNextRequest(), expectJsonResponse()
+4. **Data factories** - createMockEmpresa(), createMockImovel(), createMockAutorizacao()
 
 ### Files of Interest
-- `.gsd/phases/1/01-SUMMARY.md` - Plan 1.1 completion
-- `.gsd/phases/1/02-SUMMARY.md` - Plan 1.2 completion
-- `.gsd/phases/1/03-SUMMARY.md` - Plan 1.3 completion
-- `jest.config.js` - Jest configuration with CI optimization
-- `jest.setup.js` - Test environment setup with router mocks
-- `.github/workflows/test.yml` - CI/CD pipeline configuration
-- `lib/utils/__tests__/formatters.test.ts` - Unit test example
-- `app/api/__tests__/health.test.ts` - Integration test example
+- `.gsd/phases/2/01-PLAN.md` - Plan 2.1 execution plan
+- `.gsd/phases/2/01-SUMMARY.md` - Plan 2.1 completion summary
+- `lib/test-utils/*.ts` - Test utility files (foundation for all API tests)
+- `.gsd/implementation_plan.md` - Phase 2 implementation plan with 7 plans
 
 ## Next Steps
 
-### Immediate: Phase 2 Planning
-1. **Review Phase 2 requirements** from ROADMAP.md
-   - Goal: Test all 23 API endpoints
-   - Categories: Auth (5), Empresas (2), Imoveis (2), Autorizações (4), Bitrix24 (7), ClickSign (1), PDF (2)
+1. **CREATE: Plan 2.2** (if not exists)
+   - Auth API tests (5 endpoints: bitrix login/callback, check, me)
+   - Use test utilities from Plan 2.1
 
-2. **Create Phase 2 plans**
-   - Plan 2.1: Test utilities (Supabase mocking, auth helpers)
-   - Plan 2.2: Auth API tests (5 endpoints)
-   - Plan 2.3: Business entity API tests (Empresas, Imoveis, Autorizações)
-   - Plan 2.4: External integration tests (Bitrix24, ClickSign, PDF)
+2. **EXECUTE: Plan 2.2** (15-20 min)
+   - Test Bitrix24 OAuth flow
+   - Test session management
+   - Verify tests pass
 
-3. **Execute Phase 2**
-   - Target: >80% API test coverage
-   - All endpoints with happy path + error case tests
+3. **Continue Phase 2**
+   - Plan 2.3: Business Entity APIs (Empresas, Imoveis)
+   - Plan 2.4: Autorizações APIs
+   - Plan 2.5: Bitrix24 Integration APIs
+   - Plan 2.6: External Integrations (ClickSign, PDF)
+   - Plan 2.7: Verification & Coverage Report
 
-## Deviations Applied (Phase 1 Total)
-- **[Rule 1 - Bug]** Fixed formatCurrency test expectations to use NBSP (U+00A0)
-- **[Rule 3 - Blocking]** Fixed maxWorkers validation error in jest.config.js
-- **[Rule 3 - Blocking]** Fixed Jest environment incompatibility for API route tests
-
-## Progress Metrics (Phase 1)
-- **Plans completed**: 3/3 (100%)
-- **Commits made**: 5
-- **Tests created**: 6 test cases (6 passing, 100% pass rate)
-- **Code coverage**: >0% (formatters.ts + health route covered)
-- **Test execution time**: Local ~20s, CI ~2.5s with --ci flag
-- **CI/CD**: ✅ Operational (GitHub Actions verified)
+## Progress Metrics (Phase 2)
+- **Plans completed**: 1/7 (14%)
+- **Plans in progress**: None (ready for 2.2)
+- **Plans remaining**: 6
+- **Commits made**: 1 (f0a8f45)
+- **Test utilities created**: 3 files, ~400 lines
+- **Tests created**: 0 (foundation only)
+- **Target**: 46+ tests (2 per endpoint)
 
 ## Overall Project Status
-- **Phase 1**: Complete ✅
-- **Phase 2**: Ready to plan
+- **Phase 1**: Complete ✅ (3/3 plans)
+- **Phase 2**: In Progress (1/7 plans)
 - **Remaining phases**: 3, 4, 5, 6
+- **Total commits (project)**: 6
