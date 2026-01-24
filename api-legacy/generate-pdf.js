@@ -91,16 +91,16 @@ async function generatePdfPromise(data) {
                 doc.moveTo(xC_2, yRow).lineTo(xC_2, yRow + rowHeight).stroke();
                 doc.font('Helvetica-Bold').fontSize(8).text('CNPJ:', xC_1 + textPad, yRow + textYPad);
                 doc.font('Helvetica').fontSize(8).text(data.empresaCnpj || '', xC_1 + textPad + doc.widthOfString('CNPJ:') + textPad, yRow + textYPad);
-                doc.font('Helvetica-Bold').fontSize(8).text('Email:', xC_2 + textPad, yRow + textYPad);
-                doc.font('Helvetica').fontSize(8).text(data.empresaEmail || '', xC_2 + textPad + doc.widthOfString('Email:') + textPad, yRow + textYPad);
+                doc.font('Helvetica-Bold').fontSize(8).text('Inscrição Est./Mun.:', xC_2 + textPad, yRow + textYPad);
+                doc.font('Helvetica').fontSize(8).text(data.empresaIe || '', xC_2 + textPad + doc.widthOfString('Inscrição Est./Mun.:') + textPad, yRow + textYPad);
                 yRow += rowHeight;
 
                 doc.moveTo(fieldBoxX, yRow + rowHeight).lineTo(endX, yRow + rowHeight).stroke();
                 doc.moveTo(xC_2, yRow).lineTo(xC_2, yRow + rowHeight).stroke();
-                doc.font('Helvetica-Bold').fontSize(8).text('Telefone:', xC_1 + textPad, yRow + textYPad);
-                doc.font('Helvetica').fontSize(8).text(data.empresaTelefone || '', xC_1 + textPad + doc.widthOfString('Telefone:') + textPad, yRow + textYPad);
-                doc.font('Helvetica-Bold').fontSize(8).text('Inscrição Est./Mun.:', xC_2 + textPad, yRow + textYPad);
-                doc.font('Helvetica').fontSize(8).text(data.empresaIe || '', xC_2 + textPad + doc.widthOfString('Inscrição Est./Mun.:') + textPad, yRow + textYPad);
+                doc.font('Helvetica-Bold').fontSize(8).text('Email:', xC_1 + textPad, yRow + textYPad);
+                doc.font('Helvetica').fontSize(8).text(data.empresaEmail || '', xC_1 + textPad + doc.widthOfString('Email:') + textPad, yRow + textYPad);
+                doc.font('Helvetica-Bold').fontSize(8).text('Telefone:', xC_2 + textPad, yRow + textYPad);
+                doc.font('Helvetica').fontSize(8).text(data.empresaTelefone || '', xC_2 + textPad + doc.widthOfString('Telefone:') + textPad, yRow + textYPad);
                 yRow += rowHeight;
 
                 doc.font('Helvetica-Bold').fontSize(8).text('Endereço da Sede:', xC_1 + textPad, yRow + textYPad);
@@ -162,11 +162,6 @@ async function generatePdfPromise(data) {
                     doc.font('Helvetica').fontSize(8).text(data[`${prefix}Cpf`] || '', xC_1 + textPad + doc.widthOfString('CPF:') + textPad, yRow + textYPad);
                     yRow += rowHeight;
 
-                    doc.moveTo(fieldBoxX, yRow + rowHeight).lineTo(endX, yRow + rowHeight).stroke();
-                    doc.font('Helvetica-Bold').fontSize(8).text('Telefone:', xC_1 + textPad, yRow + textYPad);
-                    doc.font('Helvetica').fontSize(8).text(data[`${prefix}Telefone`] || '', xC_1 + textPad + doc.widthOfString('Telefone:') + textPad, yRow + textYPad);
-                    yRow += rowHeight;
-
                     // Linha 3
                     doc.moveTo(fieldBoxX, yRow + rowHeight).lineTo(endX, yRow + rowHeight).stroke();
                     doc.moveTo(xC_2, yRow).lineTo(xC_2, yRow + rowHeight).stroke();
@@ -183,8 +178,15 @@ async function generatePdfPromise(data) {
                     yRow += rowHeight;
 
                     // Linha 5
+                    doc.moveTo(fieldBoxX, yRow + rowHeight).lineTo(endX, yRow + rowHeight).stroke();
+                    doc.moveTo(xC_2, yRow).lineTo(xC_2, yRow + rowHeight).stroke();
+
                     doc.font('Helvetica-Bold').fontSize(8).text('Email:', xC_1 + textPad, yRow + textYPad);
                     doc.font('Helvetica').fontSize(8).text(data[`${prefix}Email`] || '', xC_1 + textPad + doc.widthOfString('Email:') + textPad, yRow + textYPad);
+
+                    doc.font('Helvetica-Bold').fontSize(8).text('Telefone:', xC_2 + textPad, yRow + textYPad);
+                    doc.font('Helvetica').fontSize(8).text(data[`${prefix}Telefone`] || '', xC_2 + textPad + doc.widthOfString('Telefone:') + textPad, yRow + textYPad);
+
                     y = yRow + rowHeight;
                 }
 
@@ -213,8 +215,13 @@ async function generatePdfPromise(data) {
                     doc.font('Helvetica').fontSize(8).text(data.conjugeProfissao || '', xConj_1 + textPad + doc.widthOfString('Profissão:') + textPad, yRowConj + textYPad);
                     yRowConj += rowHeight;
 
+                    doc.moveTo(xConj_2, yRowConj).lineTo(xConj_2, yRowConj + rowHeight).stroke();
                     doc.font('Helvetica-Bold').fontSize(8).text('Email:', xConj_1 + textPad, yRowConj + textYPad);
                     doc.font('Helvetica').fontSize(8).text(data.conjugeEmail || '', xConj_1 + textPad + doc.widthOfString('Email:') + textPad, yRowConj + textYPad);
+
+                    doc.font('Helvetica-Bold').fontSize(8).text('Telefone:', xConj_2 + textPad, yRowConj + textYPad);
+                    doc.font('Helvetica').fontSize(8).text(data.conjugeTelefone || '', xConj_2 + textPad + doc.widthOfString('Telefone:') + textPad, yRowConj + textYPad);
+
                     y = yConj + hConj;
                 }
                 y += 15;
