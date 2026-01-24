@@ -242,7 +242,7 @@ async function generatePdfPromise(data) {
 
             doc.rect(MARGIN_LEFT, yI, CONTENT_WIDTH, hI).stroke();
             doc.rect(MARGIN_LEFT, yI, labelBoxWidth, hI).stroke();
-            doc.save().translate(MARGIN_LEFT + labelBoxWidth / 2, yI + hI / 2).rotate(-90).font('Helvetica-Bold').fontSize(9).text('IMÓVEIS', -hI / 2, -4, { width: hI, align: 'center' }).restore();
+            doc.save().translate(MARGIN_LEFT + labelBoxWidth / 2, yI + hI / 2).rotate(-90).font('Helvetica-Bold').fontSize(9).text('IMÓVEl', -hI / 2, -4, { width: hI, align: 'center' }).restore();
 
             const xI_1 = fieldBoxX;
             const xI_2 = fieldBoxX + 318;
