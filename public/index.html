@@ -76,6 +76,10 @@
                     <label>Email</label>
                     <input type="email" name="contratanteEmail">
                 </div>
+                <div class="form-group">
+                    <label>Telefone</label>
+                    <input type="text" name="contratanteTelefone" placeholder="(00) 00000-0000">
+                </div>
             </div>
 
             <!-- DADOS CONJUGE (CASADO) -->
@@ -98,6 +102,10 @@
                 <div class="form-group">
                     <label>Email</label>
                     <input type="email" name="conjugeEmail">
+                </div>
+                <div class="form-group">
+                    <label>Telefone</label>
+                    <input type="text" name="conjugeTelefone" placeholder="(00) 00000-0000">
                 </div>
             </div>
 
@@ -190,6 +198,10 @@
                          <div class="form-group">
                             <label>Email</label>
                             <input type="email" name="socio1Email">
+                        </div>
+                        <div class="form-group">
+                            <label>Telefone</label>
+                            <input type="text" name="socio1Telefone" placeholder="(00) 00000-0000">
                         </div>
                     </div>
                 </div>
@@ -349,6 +361,10 @@
                     <label>Email</label>
                     <input type="email" name="socio${index}Email">
                 </div>
+                <div class="form-group">
+                    <label>Telefone</label>
+                    <input type="text" name="socio${index}Telefone" placeholder="(00) 00000-0000">
+                </div>
             `;
             container.appendChild(div);
         }
@@ -400,6 +416,7 @@
                     cleanData[`socio${realIndex}RegimeCasamento`] = card.querySelector('input[name$="RegimeCasamento"]').value;
                     cleanData[`socio${realIndex}Endereco`] = card.querySelector('input[name$="Endereco"]').value;
                     cleanData[`socio${realIndex}Email`] = card.querySelector('input[name$="Email"]').value;
+                    cleanData[`socio${realIndex}Telefone`] = card.querySelector('input[name$="Telefone"]').value;
                 });
             } else {
                  // Copy single/married specific fields if any were missed
