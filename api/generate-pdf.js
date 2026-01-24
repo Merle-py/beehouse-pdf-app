@@ -259,8 +259,8 @@ async function generatePdfPromise(data) {
                 doc.moveTo(xI_2, yIRow).lineTo(xI_2, yIRow + rHI).stroke();
 
                 // Unidade
-                doc.font('Helvetica-Bold').fontSize(8).text(`Imóvel ${i + 1}:`, xI_1 + textPad, yIRow + textYPad);
-                labelWidth = doc.widthOfString(`Imóvel ${i + 1}:`);
+                doc.font('Helvetica-Bold').fontSize(8).text('Imóvel:', xI_1 + textPad, yIRow + textYPad);
+                labelWidth = doc.widthOfString('Imóvel:');
                 doc.font('Helvetica').fontSize(8).text(descVal, xI_1 + textPad + labelWidth + textPad, yIRow + textYPad);
 
                 // Valor
