@@ -57,7 +57,7 @@ async function generatePdfPromise(data) {
 
             let y = doc.y;
             const textPad = 5;
-            const textYPad = 4;
+            const textYPad = 5;
             const labelBoxWidth = 22;
             const fieldBoxX = MARGIN_LEFT + labelBoxWidth;
             const endX = MARGIN_LEFT + CONTENT_WIDTH;
