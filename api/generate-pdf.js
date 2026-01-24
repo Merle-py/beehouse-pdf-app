@@ -138,7 +138,7 @@ async function generatePdfPromise(data) {
                     if (i > 0) y += 20;
 
                     const yC = y;
-                    const hC = rowHeight * 6;
+                    const hC = rowHeight * 5;
                     doc.rect(MARGIN_LEFT, yC, CONTENT_WIDTH, hC).stroke();
                     doc.rect(MARGIN_LEFT, yC, labelBoxWidth, hC).stroke();
                     doc.save().translate(MARGIN_LEFT + labelBoxWidth / 2, yC + hC / 2).rotate(-90).font('Helvetica-Bold').fontSize(9).text(titulo, -hC / 2, -4, { width: hC, align: 'center' }).restore();
@@ -364,11 +364,6 @@ async function generatePdfPromise(data) {
             const clausulaNumX = MARGIN_LEFT;
             const clausulaTextX = MARGIN_LEFT + clausulaNumWidth;
 
-            const comissaoTexto = (authType === 'pj') ? 'A Contratante pagará a Contratada' : 'O(s) Contratante(s) pagará(ão) a Contratada';
-            const declaracaoTexto = (authType === 'pj')
-                ? 'A Contratante declara que os imóveis encontram-se livres e desembaraçados...'
-                : 'O(s) Contratante(s) declara(m) que os imóveis encontram-se livres e desembaraçados...';
-
             const addClause = (num, text) => {
                 doc.font('Helvetica-Bold').text(num, clausulaNumX, doc.y, { width: clausulaNumWidth });
                 doc.font('Helvetica').text(text, clausulaTextX, doc.y - doc.heightOfString(num), { align: 'justify', width: clausulaTextWidth });
@@ -376,10 +371,11 @@ async function generatePdfPromise(data) {
             };
 
             addClause('1º', 'A venda é concebida a contar desta data pelo prazo e forma acima definidos. Após esse período o contrato se encerra.');
-            addClause('2º', `${comissaoTexto} ${data.contratoComissaoPct || '6'}% (seis por cento) sobre o valor da venda, no ato do recebimento do sinal. Esta comissão é devida também mesmo fora do prazo desta autorização desde que a venda do imóvel seja efetuado por cliente apresentado pela Contratada ou nos caso em que, comprovadamente, a negociação tiver sido por esta iniciada, observando também o artigo 727 do Código Civil Brasileiro.`);
-            addClause('3º', 'A Contratada compromete-se a fazer publicidade dos imóveis, podendo colocar placas, anunciar em jornais e meios de divulgação do imóvel ao público.');
-            addClause('4º', declaracaoTexto);
+            addClause('2º', `O(s) CONTRATANTE(S) pagará(ão) à CONTRATADA comissão de ${data.contratoComissaoPct || '6'}% sobre o valor da venda, devida no recebimento do sinal. Sendo o sinal inferior ao valor da comissão, esta será paga em 50% no ato do sinal e 50% na parcela subsequente. A comissão será devida ainda que a venda ocorra fora do prazo desta autorização, desde que com cliente apresentado ou negociação iniciada pela CONTRATADA, nos termos do art. 727 do Código Civil Brasileiro.`);
+            addClause('3º', 'A Contratada compromete-se a fazer publicidade do imóvel, podendo colocar placas, anunciar em jornais e meios de divulgação do imóvel ao público.');
+            addClause('4º', 'O(s) Contratante(s) declara(m) que o imóvel encontra-se livre e desembaraçado, inexistindo quaisquer impedimento judicial e/ou extra judicial que impeça a transferência de posse, comprometendo-se a fornecer cópia do Registro de Imóveis, documentos pessoais e demais informações pertinentes a negociação.');
             addClause('5º', 'Em caso de qualquer controversia decorrente deste contrato, as partes elegem o Foro da Comarca de Joinville/SC para dirimir quaisquer dúvidas deste contrato, renunciando qualquer outro, por mais privilégio que seja.');
+            addClause('6º', 'Caso não haja exclusividade, esta autorização de vendas terá validade de 90 (noventa) dias e será renovada automaticamente por períodos iguais e sucessivos, salvo manifestação expressa de cancelamento por parte do(s) Contratante(s), que deverá ser comunicada à Contratada com antecedência mínima de 15 (quinze) dias do término da vigência.');
 
             doc.moveDown(0.5);
             doc.text('Assim por estarem juntos e contratados, obrigam-se a si e seus herdeiros a cumprir e fazer cumprir o disposto neste contrato, assinando-os em duas vias de igual teor e forma a tudo presentes.', MARGIN_LEFT, doc.y, { align: 'justify', width: CONTENT_WIDTH });
@@ -457,9 +453,20 @@ async function generatePdfPromise(data) {
 export default async function handler(req, res) {
     if (req.method !== 'POST') return res.status(405).send('Metodo nao permitido');
     try {
-        const pdfBuffer = await generatePdfPromise(req.body);
+        const data = req.body;
+        const pdfBuffer = await generatePdfPromise(data);
+
+        // Determinar nome do arquivo para o Header (Fallback)
+        let name = 'Autorizacao';
+        if (data.empresaRazaoSocial) name = data.empresaRazaoSocial;
+        else if (data.socio1Nome) name = data.socio1Nome;
+        else if (data.contratanteNome) name = data.contratanteNome;
+
+        // Remove acentos e caracteres especiais
+        const safeName = name.normalize('NFD').replace(/[\u0300-\u036f]/g, "").replace(/[^a-zA-Z0-9]/g, "_");
+
         res.setHeader('Content-Type', 'application/pdf');
-        res.setHeader('Content-Disposition', `attachment; filename="Autorizacao_Venda.pdf"`);
+        res.setHeader('Content-Disposition', `attachment; filename="Autorizacao_${safeName}_${new Date().getTime()}.pdf"`);
         res.end(pdfBuffer);
     } catch (error) {
         console.error('Erro Handler:', error);

@@ -138,7 +138,7 @@ async function generatePdfPromise(data) {
                     if (i > 0) y += 20;
 
                     const yC = y;
-                    const hC = rowHeight * 6;
+                    const hC = rowHeight * 5;
                     doc.rect(MARGIN_LEFT, yC, CONTENT_WIDTH, hC).stroke();
                     doc.rect(MARGIN_LEFT, yC, labelBoxWidth, hC).stroke();
                     doc.save().translate(MARGIN_LEFT + labelBoxWidth / 2, yC + hC / 2).rotate(-90).font('Helvetica-Bold').fontSize(9).text(titulo, -hC / 2, -4, { width: hC, align: 'center' }).restore();
