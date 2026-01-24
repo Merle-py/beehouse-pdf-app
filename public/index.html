@@ -276,6 +276,78 @@
     </div>
 
     <script>
+
+        // ============================================
+        // MÁSCARAS DE FORMATAÇÃO
+        // ============================================
+        
+        // Função para aplicar máscara de CPF: 000.000.000-00
+        function maskCPF(value) {
+            return value
+                .replace(/\D/g, '') // Remove tudo que não é dígito
+                .replace(/(\d{3})(\d)/, '$1.$2')
+                .replace(/(\d{3})(\d)/, '$1.$2')
+                .replace(/(\d{3})(\d{1,2})/, '$1-$2')
+                .replace(/(-\d{2})\d+?$/, '$1'); // Limita a 11 dígitos
+        }
+
+        // Função para aplicar máscara de CNPJ: 00.000.000/0000-00
+        function maskCNPJ(value) {
+            return value
+                .replace(/\D/g, '')
+                .replace(/(\d{2})(\d)/, '$1.$2')
+                .replace(/(\d{3})(\d)/, '$1.$2')
+                .replace(/(\d{3})(\d)/, '$1/$2')
+                .replace(/(\d{4})(\d)/, '$1-$2')
+                .replace(/(-\d{2})\d+?$/, '$1'); // Limita a 14 dígitos
+        }
+
+        // Função para aplicar máscara de Telefone: (00) 00000-0000 ou (00) 0000-0000
+        function maskPhone(value) {
+            value = value.replace(/\D/g, '');
+            
+            if (value.length <= 10) {
+                // Formato: (00) 0000-0000
+                return value
+                    .replace(/(\d{2})(\d)/, '($1) $2')
+                    .replace(/(\d{4})(\d)/, '$1-$2')
+                    .replace(/(-\d{4})\d+?$/, '$1');
+            } else {
+                // Formato: (00) 00000-0000
+                return value
+                    .replace(/(\d{2})(\d)/, '($1) $2')
+                    .replace(/(\d{5})(\d)/, '$1-$2')
+                    .replace(/(-\d{4})\d+?$/, '$1');
+            }
+        }
+
+        // Aplicar máscaras aos campos
+        function applyMasks() {
+            // CPF
+            document.querySelectorAll('input[name$="Cpf"]').forEach(input => {
+                input.addEventListener('input', function(e) {
+                    e.target.value = maskCPF(e.target.value);
+                });
+            });
+
+            // CNPJ
+            document.querySelectorAll('input[name$="Cnpj"]').forEach(input => {
+                input.addEventListener('input', function(e) {
+                    e.target.value = maskCNPJ(e.target.value);
+                });
+            });
+
+            // Telefone
+            document.querySelectorAll('input[name$="Telefone"]').forEach(input => {
+                input.addEventListener('input', function(e) {
+                    e.target.value = maskPhone(e.target.value);
+                });
+            });
+        }
+
+        // Executar ao carregar a página
+        document.addEventListener('DOMContentLoaded', applyMasks);
+
         // State
         let socioCount = 1;
 
@@ -317,57 +389,60 @@
         }
 
         function addSocio() {
-            const container = document.getElementById('socios-container');
-            socioCount++; // Increment first
-            const index = socioCount;
-            
-            const div = document.createElement('div');
-            div.className = 'unit-card';
-            div.dataset.socioIndex = index;
-            div.innerHTML = `
-                <div class="unit-header">
-                    <span class="unit-title">Sócio ${index}</span>
-                    <button type="button" class="btn btn-danger" onclick="removeElement(this)">Remover</button>
+        const container = document.getElementById('socios-container');
+        socioCount++;
+        const index = socioCount;
+        
+        const div = document.createElement('div');
+        div.className = 'unit-card';
+        div.dataset.socioIndex = index;
+        div.innerHTML = `
+            <div class="unit-header">
+                <span class="unit-title">Sócio ${index}</span>
+                <button type="button" class="btn btn-danger" onclick="removeElement(this)">Remover</button>
+            </div>
+            <div class="form-group">
+                <label>Nome</label>
+                <input type="text" name="socio${index}Nome">
+            </div>
+            <div class="form-row two-col">
+                <div>
+                    <label>CPF</label>
+                    <input type="text" name="socio${index}Cpf">
                 </div>
-                <div class="form-group">
-                    <label>Nome</label>
-                    <input type="text" name="socio${index}Nome">
+                <div>
+                    <label>Profissão</label>
+                    <input type="text" name="socio${index}Profissao">
                 </div>
-                <div class="form-row two-col">
-                    <div>
-                        <label>CPF</label>
-                        <input type="text" name="socio${index}Cpf">
-                    </div>
-                    <div>
-                        <label>Profissão</label>
-                        <input type="text" name="socio${index}Profissao">
-                    </div>
+            </div>
+             <div class="form-row two-col">
+                <div>
+                    <label>Estado Civil</label>
+                    <input type="text" name="socio${index}EstadoCivil">
                 </div>
-                 <div class="form-row two-col">
-                    <div>
-                        <label>Estado Civil</label>
-                        <input type="text" name="socio${index}EstadoCivil">
-                    </div>
-                    <div>
-                        <label>Regime Casamento</label>
-                        <input type="text" name="socio${index}RegimeCasamento">
-                    </div>
+                <div>
+                    <label>Regime Casamento</label>
+                    <input type="text" name="socio${index}RegimeCasamento">
                 </div>
-                <div class="form-group">
-                    <label>Endereço</label>
-                    <input type="text" name="socio${index}Endereco">
-                </div>
-                 <div class="form-group">
-                    <label>Email</label>
-                    <input type="email" name="socio${index}Email">
-                </div>
-                <div class="form-group">
-                    <label>Telefone</label>
-                    <input type="text" name="socio${index}Telefone" placeholder="(00) 00000-0000">
-                </div>
-            `;
-            container.appendChild(div);
-        }
+            </div>
+            <div class="form-group">
+                <label>Endereço</label>
+                <input type="text" name="socio${index}Endereco">
+            </div>
+             <div class="form-group">
+                <label>Email</label>
+                <input type="email" name="socio${index}Email">
+            </div>
+            <div class="form-group">
+                <label>Telefone</label>
+                <input type="text" name="socio${index}Telefone" placeholder="(00) 00000-0000">
+            </div>
+        `;
+        container.appendChild(div);
+        
+        // IMPORTANTE: Reaplicar máscaras aos novos campos
+        applyMasks();
+    }
 
         function removeElement(button) {
             button.closest('.unit-card').remove();
